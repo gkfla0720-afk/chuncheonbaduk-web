@@ -87,132 +87,188 @@ export default function StatusPage() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-900 font-sans p-6 select-none pb-16 relative">
-      {newMatchAlert && (
-        <div className="fixed top-6 left-0 right-0 z-50 flex justify-center animate-bounce">
-          <div className="bg-amber-500 text-white px-10 py-6 rounded-full font-bold text-3xl shadow-2xl flex items-center gap-3">
-            <span>🔥 새로운 대국이 시작되었습니다!</span>
-          </div>
-        </div>
-      )}
-
-      {/* 💡 초대형 헤더 영역 */}
-      <header className="py-10 flex flex-col items-center relative mb-8">
-        <h1 className="text-6xl sm:text-7xl font-extrabold text-slate-800 tracking-tight">춘천기원 라이브 📡</h1>
-        <p className="text-slate-500 text-2xl sm:text-3xl mt-4 font-bold">
-          업데이트: {lastUpdated.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-        </p>
-        <button onClick={handleRefresh} disabled={isCooldown} className={`mt-8 px-10 py-5 rounded-3xl font-bold text-3xl sm:text-4xl shadow-xl transition-all ${isCooldown ? 'bg-slate-300 text-slate-500 cursor-not-allowed' : 'bg-white border-4 border-slate-300 text-slate-800 hover:bg-slate-100 active:scale-95'}`}>
-          {isCooldown ? '대기중...' : '🔄 새로고침 (10초)'}
-        </button>
-      </header>
-
-      {/* 💡 초대형 인원 현황 영역 */}
-      <section className="bg-white rounded-[3rem] shadow-xl border-4 border-slate-200 p-12 mb-12 text-center">
-        <h2 className="text-slate-500 font-extrabold text-4xl sm:text-5xl mb-6">현재 기원에 계신 분</h2>
-        {isLoading ? (
-          <div className="text-7xl font-extrabold text-slate-300 animate-pulse">...</div>
-        ) : (
-          <div className="flex items-center justify-center gap-4">
-            <span className="text-[10rem] sm:text-[12rem] font-black text-[#9a5b28] leading-none">{activeCount}</span>
-            <span className="text-6xl sm:text-7xl font-extrabold text-slate-600 mt-12">명</span>
-          </div>
-        )}
-      </section>
-
-      {/* 💡 초대형 진행 중인 대국 영역 */}
-      <section>
-        <div className="flex justify-between items-center mb-8 px-4">
-          <h3 className="font-extrabold text-4xl sm:text-5xl text-slate-800 flex items-center gap-4">
-            🔥 진행 중인 대국 현황
-            <span className="flex h-8 w-8 relative">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-8 w-8 bg-red-500"></span>
-            </span>
-          </h3>
-        </div>
-
-        {isLoading ? (
-          <p className="text-center text-slate-400 text-3xl font-bold mt-16">대국 정보를 불러오는 중...</p>
-        ) : activeMatches.length === 0 ? (
-          <div className="text-center py-24 bg-white rounded-[3rem] border-4 border-slate-200 border-dashed">
-            <p className="text-slate-500 text-3xl font-bold leading-relaxed">현재 진행 중인 대국이 없습니다.<br/>방문하셔서 첫 대국을 시작해보세요!</p>
-          </div>
-        ) : (
-          <ul className="space-y-8">
-            {activeMatches.map((match) => (
-              <li key={match.id} className="bg-white p-8 rounded-[3rem] shadow-2xl border-4 border-slate-200 relative overflow-hidden">
-                <div className="absolute top-6 right-6">
-                  <span className="px-6 py-3 rounded-full text-2xl font-black bg-blue-100 text-blue-800 border-2 border-blue-200 shadow-sm">{match.match_type}</span>
-                </div>
-                
-                <p className="text-3xl text-slate-500 font-extrabold mb-8 mt-2">
-                  {new Date(match.started_at).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })} 시작
-                  <span className="ml-4 text-red-500 bg-red-50 px-3 py-1 rounded-xl">{match.handicap}</span>
-                </p>
-
-                <div className="flex justify-between items-stretch mt-4 bg-slate-50 rounded-[2.5rem] p-6 border-2 border-slate-200">
-                  {/* 💡 흑팀 터치 시 오픈 */}
-                  <div className="flex flex-col items-center flex-1 justify-center gap-4">
-                    {match.blackProfiles?.map(p => (
-                      <div key={p.id} onClick={() => openProfileDetail(p)} className="text-center bg-slate-800 text-white w-full py-4 rounded-2xl shadow-lg cursor-pointer hover:opacity-80 active:scale-95 transition-all">
-                        <span className="text-4xl sm:text-5xl font-black">{p.name}</span> <span className="text-2xl sm:text-3xl text-slate-300 ml-2">{p.rank}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="flex items-center justify-center px-8">
-                    <span className="text-5xl font-black text-slate-400 italic">VS</span>
-                  </div>
-                  {/* 💡 백팀 터치 시 오픈 */}
-                  <div className="flex flex-col items-center flex-1 justify-center gap-4">
-                    {match.whiteProfiles?.map(p => (
-                      <div key={p.id} onClick={() => openProfileDetail(p)} className="text-center bg-white border-4 border-slate-300 text-slate-800 w-full py-4 rounded-2xl shadow-lg cursor-pointer hover:bg-slate-100 active:scale-95 transition-all">
-                        <span className="text-4xl sm:text-5xl font-black">{p.name}</span> <span className="text-2xl sm:text-3xl text-slate-500 ml-2">{p.rank}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      {/* 💡 초대형 모달 프로필 팝업 */}
-      {selectedProfile && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-6">
-          <div className="bg-white rounded-[3rem] w-full max-w-2xl p-10 shadow-2xl border-4 border-slate-300 relative text-center">
-            <h2 className="text-4xl font-black text-slate-800 mb-2">회원 기력 및 프로필</h2>
-            <p className="text-slate-500 font-bold mb-8 text-xl">가입일: {profileStats.joinedAt}</p>
-            
-            <div className="bg-slate-50 p-8 rounded-3xl mb-8 border-2 border-slate-200">
-               <h3 className="text-6xl font-black text-slate-900 mb-4">{selectedProfile.name}</h3>
-               <p className="text-4xl font-extrabold text-[#9a5b28] mb-8">{selectedProfile.rank} / {profileStats.tier}</p>
-               
-               {isLoadingStats ? (
-                 <p className="text-slate-400 font-bold py-8 animate-pulse text-2xl">전적 데이터를 집계하는 중...</p>
-               ) : (
-                 <div className="grid grid-cols-2 gap-6">
-                    <div className="bg-white p-6 rounded-2xl border-2 border-slate-200 shadow-sm">
-                       <p className="text-slate-500 text-xl font-bold mb-3">대국 통산 전적</p>
-                       <p className="text-5xl font-black">
-                         <span className="text-blue-500">{profileStats.wins}승</span> <span className="text-red-500">{profileStats.losses}패</span>
-                       </p>
-                       <p className="text-slate-400 text-xl font-bold mt-4">승률 {profileStats.wins + profileStats.losses > 0 ? Math.round((profileStats.wins / (profileStats.wins + profileStats.losses)) * 100) : 0}%</p>
-                    </div>
-                    <div className="bg-white p-6 rounded-2xl border-2 border-slate-200 shadow-sm flex flex-col justify-center items-center">
-                       <p className="text-slate-500 text-xl font-bold mb-3">최근 30일 출석률</p>
-                       <p className="text-6xl font-black text-[#9a5b28]">{profileStats.attendanceRate}%</p>
-                    </div>
-                 </div>
-               )}
+    <main className="min-h-screen bg-[#f3efe7] text-stone-800 font-sans select-none relative">
+      <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
+        {newMatchAlert && (
+          <div className="fixed top-4 left-0 right-0 z-50 flex justify-center animate-bounce pointer-events-none">
+            <div className="bg-[#8a5a2b] text-white px-5 py-3 rounded-full font-bold text-sm shadow-xl border border-[#704522]">
+              새로운 대국이 시작되었습니다.
             </div>
-            <button onClick={() => setSelectedProfile(null)} className="w-full py-6 bg-slate-800 hover:bg-slate-700 text-white text-3xl font-black rounded-2xl shadow-xl transition-all">
-              확인 (닫기)
+          </div>
+        )}
+
+        <header className="mb-6 rounded-[28px] border border-[#d6c4a4] bg-[#f9f4ea] px-5 py-5 shadow-[0_10px_30px_rgba(95,72,46,0.08)] sm:px-7">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#8b6d4a]">춘천기원 LIVE</p>
+              <h1 className="mt-2 text-3xl font-black tracking-tight text-[#2a241d] sm:text-4xl">기원 현황</h1>
+            </div>
+            <div className="flex items-center gap-3 text-sm text-stone-500">
+              <span className="inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500 shadow-[0_0_0_4px_rgba(16,185,129,0.12)]" />
+              <span>마지막 업데이트: {lastUpdated.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+            </div>
+          </div>
+
+          <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="max-w-xl text-sm leading-6 text-stone-600">
+              오늘 기원에 모인 분위기와 진행 중인 대국을 한눈에 살펴보는 공간입니다. 바둑을 두는 기원 회원들의 자연스러운 일상을 보며 외부 방문객에게 기원의 활기를 전달합니다.
+            </p>
+            <button
+              onClick={handleRefresh}
+              disabled={isCooldown}
+              className={`inline-flex items-center justify-center rounded-full px-4 py-2.5 text-sm font-semibold shadow-sm transition-all ${isCooldown ? 'cursor-not-allowed bg-stone-200 text-stone-400' : 'bg-[#2a241d] text-[#f8f3eb] hover:bg-[#1f1b18]'}`}
+            >
+              {isCooldown ? '잠시만 기다려 주세요...' : '새로고침'}
             </button>
           </div>
-        </div>
-      )}
+        </header>
+
+        <section className="mt-6 grid gap-4 md:grid-cols-3">
+          <div className="rounded-[26px] border border-[#d7c9b4] bg-[#f5f0e8] p-5 shadow-[0_8px_20px_rgba(88,70,50,0.06)]">
+            <p className="text-xs font-bold tracking-[0.18em] text-[#7f6348]">오늘의 기원</p>
+            <p className="mt-4 text-3xl font-black text-[#2a241d]">{activeMatches.length}</p>
+            <p className="mt-2 text-sm text-stone-600">진행 중인 대국</p>
+          </div>
+          <div className="rounded-[26px] border border-[#d7c9b4] bg-[#f5f0e8] p-5 shadow-[0_8px_20px_rgba(88,70,50,0.06)]">
+            <p className="text-xs font-bold tracking-[0.18em] text-[#7f6348]">기원 인원</p>
+            <p className="mt-4 text-3xl font-black text-[#2a241d]">{isLoading ? '...' : activeCount}</p>
+            <p className="mt-2 text-sm text-stone-600">현재 자리한 분</p>
+          </div>
+          <div className="rounded-[26px] border border-[#d7c9b4] bg-[#f5f0e8] p-5 shadow-[0_8px_20px_rgba(88,70,50,0.06)]">
+            <p className="text-xs font-bold tracking-[0.18em] text-[#7f6348]">기원 분위기</p>
+            <p className="mt-4 text-lg font-bold text-[#2a241d]">차분하고 활기찬</p>
+            <p className="mt-2 text-sm text-stone-600">오랜 정성과 한 수 한 수의 집중이 느껴집니다.</p>
+          </div>
+        </section>
+
+        <section className="mt-6 rounded-[32px] border border-[#d8c7a8] bg-[linear-gradient(135deg,#f5f0e8_0%,#e7dcc2_100%)] p-5 shadow-[0_14px_30px_rgba(82,64,40,0.08)] sm:p-6">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-bold tracking-[0.18em] text-[#7e5d3d]">현재 기원에 계신 분</p>
+              <h2 className="mt-2 text-2xl font-black text-[#2a241d] sm:text-3xl">오늘의 참여 인원</h2>
+            </div>
+            <div className="rounded-full border border-[#cdb48b] bg-[#f7f3ec] px-3 py-1 text-xs font-semibold text-[#6d553f]">
+              실시간 현황
+            </div>
+          </div>
+
+          {isLoading ? (
+            <div className="mt-6 text-4xl font-black text-[#c7b09a] animate-pulse">...</div>
+          ) : (
+            <div className="mt-5 flex items-end justify-center gap-2">
+              <span className="text-6xl font-black leading-none text-[#2a241d] sm:text-7xl">{activeCount}</span>
+              <span className="pb-3 text-xl font-bold text-stone-600">명</span>
+            </div>
+          )}
+        </section>
+
+        <section className="mt-8">
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="text-xl font-black text-[#2a241d] sm:text-2xl">진행 중인 대국 현황</h3>
+            <span className="inline-flex items-center gap-2 rounded-full border border-[#d0b38c] bg-[#f6efe6] px-3 py-1 text-xs font-semibold text-[#6d553f]">
+              <span className="h-2 w-2 rounded-full bg-[#9f6838]" />
+              Live
+            </span>
+          </div>
+
+          {isLoading ? (
+            <p className="mt-8 text-center text-base font-medium text-stone-500">대국 정보를 불러오는 중입니다.</p>
+          ) : activeMatches.length === 0 ? (
+            <div className="rounded-[28px] border border-dashed border-[#cfb895] bg-[#faf7f2] px-5 py-10 text-center shadow-inner">
+              <p className="text-lg font-semibold text-stone-600">현재 진행 중인 대국이 없습니다.</p>
+              <p className="mt-2 text-sm text-stone-500">마지막 대국이 끝난 뒤 다음 대국을 기다리고 있습니다.</p>
+            </div>
+          ) : (
+            <ul className="space-y-4">
+              {activeMatches.map((match) => (
+                <li key={match.id} className="rounded-[28px] border border-[#d7c7a8] bg-[#faf5ee] p-4 shadow-[0_12px_24px_rgba(90,69,45,0.06)] sm:p-5">
+                  <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                    <div className="flex items-center gap-3">
+                      <span className="rounded-full border border-[#cab38b] bg-[#fffaf2] px-2.5 py-1 text-[10px] font-bold tracking-[0.18em] text-[#7f6348]">{match.match_type}</span>
+                      <p className="text-sm font-medium text-stone-500">
+                        {new Date(match.started_at).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })} 시작
+                      </p>
+                    </div>
+                    <span className="inline-flex items-center rounded-full bg-[#efe2c7] px-2.5 py-1 text-xs font-bold text-[#725739]">{match.handicap}</span>
+                  </div>
+
+                  <div className="mt-4 rounded-[24px] border border-[#d5c3a4] bg-[linear-gradient(90deg,#1d1b19_0%,#1d1b19_49.5%,#f9f6f2_49.5%,#f9f6f2_100%)] p-3 shadow-inner sm:p-4">
+                    <div className="grid gap-3 md:grid-cols-[1fr_auto_1fr] md:items-center">
+                      <div className="flex flex-col gap-2">
+                        {match.blackProfiles?.map(p => (
+                          <button
+                            key={p.id}
+                            onClick={() => openProfileDetail(p)}
+                            className="w-full rounded-2xl border border-[#322c28] bg-[#1d1b19] px-3 py-2.5 text-left text-white shadow-sm transition hover:brightness-110"
+                          >
+                            <span className="block text-base font-black">{p.name}</span>
+                            <span className="text-xs text-stone-300">{p.rank}</span>
+                          </button>
+                        ))}
+                      </div>
+
+                      <div className="flex items-center justify-center px-2">
+                        <span className="text-xl font-black tracking-[0.2em] text-[#7a6348]">VS</span>
+                      </div>
+
+                      <div className="flex flex-col gap-2">
+                        {match.whiteProfiles?.map(p => (
+                          <button
+                            key={p.id}
+                            onClick={() => openProfileDetail(p)}
+                            className="w-full rounded-2xl border border-[#d7d0c7] bg-[#f9f5f1] px-3 py-2.5 text-left text-stone-800 shadow-sm transition hover:bg-[#f1ece6]"
+                          >
+                            <span className="block text-base font-black">{p.name}</span>
+                            <span className="text-xs text-stone-500">{p.rank}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        {selectedProfile && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(28,24,20,0.55)] p-4 backdrop-blur-sm">
+            <div className="w-full max-w-xl rounded-[30px] border border-[#d4c3a2] bg-[#f8f4ee] p-5 shadow-[0_18px_45px_rgba(34,27,20,0.28)] sm:p-6">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs font-bold tracking-[0.18em] text-[#7e5d3d]">프로필</p>
+                  <h2 className="mt-2 text-2xl font-black text-[#2a241d]">{selectedProfile.name}</h2>
+                </div>
+                <button onClick={() => setSelectedProfile(null)} className="rounded-full bg-stone-200 px-3 py-1 text-xs font-bold text-stone-700">닫기</button>
+              </div>
+
+              <div className="mt-5 rounded-[24px] border border-[#d9cab0] bg-[#f3ebdf] p-4">
+                <p className="text-sm text-stone-500">가입일: {profileStats.joinedAt}</p>
+                <p className="mt-3 text-2xl font-black text-[#8a5a2b]">{selectedProfile.rank} / {profileStats.tier}</p>
+
+                {isLoadingStats ? (
+                  <p className="mt-5 text-sm font-medium text-stone-500">전적을 정리하고 있습니다.</p>
+                ) : (
+                  <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                    <div className="rounded-2xl bg-white p-3 shadow-sm border border-[#e6dcc8]">
+                      <p className="text-xs font-bold tracking-[0.14em] text-stone-500">전적</p>
+                      <p className="mt-2 text-xl font-black text-[#2a241d]">
+                        <span className="text-[#2a5fba]">{profileStats.wins}승</span>
+                        <span className="mx-1 text-stone-400">·</span>
+                        <span className="text-[#b54d3a]">{profileStats.losses}패</span>
+                      </p>
+                    </div>
+                    <div className="rounded-2xl bg-white p-3 shadow-sm border border-[#e6dcc8]">
+                      <p className="text-xs font-bold tracking-[0.14em] text-stone-500">출석률</p>
+                      <p className="mt-2 text-2xl font-black text-[#8a5a2b]">{profileStats.attendanceRate}%</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </main>
   );
 }
