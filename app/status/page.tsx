@@ -101,22 +101,22 @@ export default function StatusPage() {
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-[#8b6d4a]">춘천기원 LIVE</p>
-              <h1 className="mt-2 text-3xl font-black tracking-tight text-[#2a241d] sm:text-4xl drop-shadow-[0_1px_0_rgba(255,255,255,0.55)]">기원 현황</h1>
+              <h1 className="mt-2 text-4xl font-black tracking-tight text-[#2a241d] sm:text-5xl drop-shadow-[0_1px_0_rgba(255,255,255,0.55)]">기원 현황</h1>
             </div>
-            <div className="flex items-center gap-3 text-sm text-stone-500">
+            <div className="flex items-center gap-3 text-[15px] text-stone-500 sm:text-base">
               <span className="inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500 shadow-[0_0_0_4px_rgba(16,185,129,0.12)]" />
-              <span>마지막 업데이트: {lastUpdated.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+              <span className="text-[15px] sm:text-base">마지막 업데이트: {lastUpdated.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
             </div>
           </div>
 
           <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <p className="max-w-2xl text-sm leading-6 text-stone-600">
+            <p className="max-w-2xl text-[15px] leading-7 text-stone-600 sm:text-base">
               춘천에서 바둑을 사랑하는 바둑인들이 모인 공간입니다. 춘천기원의 바둑 열기를 느껴보세요.
             </p>
             <button
               onClick={handleRefresh}
               disabled={isCooldown}
-              className={`inline-flex items-center justify-center rounded-full px-4 py-2.5 text-sm font-semibold shadow-sm transition-all ${isCooldown ? 'cursor-not-allowed bg-stone-200 text-stone-400' : 'bg-[#2a241d] text-[#f8f3eb] hover:bg-[#1f1b18]'}`}
+              className={`inline-flex items-center justify-center rounded-full px-4 py-2.5 text-[15px] font-semibold shadow-sm transition-all ${isCooldown ? 'cursor-not-allowed bg-stone-200 text-stone-400' : 'bg-[#2a241d] text-[#f8f3eb] hover:bg-[#1f1b18]'}`}
             >
               {isCooldown ? '잠시만 기다려 주세요...' : '새로고침'}
             </button>
@@ -127,7 +127,7 @@ export default function StatusPage() {
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="text-[10px] font-bold tracking-[0.18em] text-[#7e5d3d]">춘천기원 LIVE</p>
-              <h2 className="mt-2 text-2xl font-black text-[#2a241d] sm:text-3xl">오늘의 참여 인원</h2>
+              <h2 className="mt-2 text-[2rem] font-black text-[#2a241d] sm:text-[2.4rem]">오늘의 참여 인원</h2>
             </div>
             <div className="rounded-full border border-[#cdb48b] bg-[#f7f3ec] px-3 py-1 text-xs font-semibold text-[#6d553f]">
               실시간 현황
@@ -138,16 +138,16 @@ export default function StatusPage() {
             <div className="mt-6 text-4xl font-black text-[#c7b09a] animate-pulse">...</div>
           ) : (
             <div className="mt-5 flex items-end justify-center gap-2">
-              <span className="text-6xl font-black leading-none text-[#2a241d] sm:text-7xl">{activeCount}</span>
-              <span className="pb-3 text-xl font-bold text-stone-600">명</span>
+              <span className="text-[4.5rem] font-black leading-none text-[#2a241d] sm:text-[5.5rem]">{activeCount}</span>
+              <span className="pb-3 text-[1.35rem] font-bold text-stone-600 sm:text-[1.6rem]">명</span>
             </div>
           )}
         </section>
 
         <section className="mt-8 rounded-[28px] border border-[#d7c7a8] bg-[#f7f1e7]/95 p-4 shadow-[0_12px_26px_rgba(10,8,7,0.16)] sm:p-5">
           <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-xl font-black text-[#2a241d] sm:text-2xl">진행 중인 대국 현황</h3>
-            <span className="inline-flex items-center gap-2 rounded-full border border-[#d0b38c] bg-[#f6efe6] px-3 py-1 text-xs font-semibold text-[#6d553f]">
+            <h3 className="text-[1.8rem] font-black text-[#2a241d] sm:text-[2.5rem]">진행 중인 대국 현황</h3>
+            <span className="inline-flex items-center gap-2 rounded-full border border-[#d0b38c] bg-[#f6efe6] px-3 py-1 text-[13px] font-semibold text-[#6d553f] sm:text-sm">
               <span className="h-2 w-2 rounded-full bg-[#9f6838]" />
               Live
             </span>
@@ -166,42 +166,42 @@ export default function StatusPage() {
                 <li key={match.id} className="rounded-[28px] border border-[#d7c7a8] bg-[#faf5ee] p-4 shadow-[0_12px_24px_rgba(90,69,45,0.06)] sm:p-5">
                   <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                     <div className="flex items-center gap-3">
-                      <span className="rounded-full border border-[#cab38b] bg-[#fffaf2] px-2.5 py-1 text-[10px] font-bold tracking-[0.18em] text-[#7f6348]">{match.match_type}</span>
-                      <p className="text-sm font-medium text-stone-500">
+                      <span className="rounded-full border border-[#cab38b] bg-[#fffaf2] px-2.5 py-1 text-[11px] font-bold tracking-[0.18em] text-[#7f6348] sm:text-[12px]">{match.match_type}</span>
+                      <p className="text-[15px] font-medium text-stone-500 sm:text-base">
                         {new Date(match.started_at).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })} 시작
                       </p>
                     </div>
-                    <span className="inline-flex items-center rounded-full bg-[#efe2c7] px-2.5 py-1 text-xs font-bold text-[#725739]">{match.handicap}</span>
+                    <span className="inline-flex items-center rounded-full bg-[#efe2c7] px-2.5 py-1 text-[13px] font-bold text-[#725739] sm:text-sm">{match.handicap}</span>
                   </div>
 
                   <div className="mt-4 rounded-[24px] border border-[#d5c3a4] bg-[linear-gradient(90deg,#1d1b19_0%,#1d1b19_49.5%,#f9f6f2_49.5%,#f9f6f2_100%)] p-3 shadow-inner sm:p-4">
-                    <div className="grid gap-3 md:grid-cols-[1fr_auto_1fr] md:items-center">
-                      <div className="flex flex-col gap-2">
+                    <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 sm:gap-3">
+                      <div className="min-w-0 flex flex-col gap-2">
                         {match.blackProfiles?.map(p => (
                           <button
                             key={p.id}
                             onClick={() => openProfileDetail(p)}
                             className="w-full rounded-2xl border border-[#322c28] bg-[#1d1b19] px-3 py-2.5 text-left text-white shadow-sm transition hover:brightness-110"
                           >
-                            <span className="block text-base font-black">{p.name}</span>
-                            <span className="text-xs text-stone-300">{p.rank}</span>
+                            <span className="block text-[1.05rem] font-black sm:text-lg">{p.name}</span>
+                            <span className="text-[13px] text-stone-300 sm:text-sm">{p.rank}</span>
                           </button>
                         ))}
                       </div>
 
-                      <div className="flex items-center justify-center px-2">
-                        <span className="text-xl font-black tracking-[0.2em] text-[#7a6348]">VS</span>
+                      <div className="flex items-center justify-center px-1 sm:px-2">
+                        <span className="text-[1.3rem] font-black tracking-[0.2em] text-[#7a6348] sm:text-[1.6rem]">VS</span>
                       </div>
 
-                      <div className="flex flex-col gap-2">
+                      <div className="min-w-0 flex flex-col gap-2">
                         {match.whiteProfiles?.map(p => (
                           <button
                             key={p.id}
                             onClick={() => openProfileDetail(p)}
                             className="w-full rounded-2xl border border-[#d7d0c7] bg-[#f9f5f1] px-3 py-2.5 text-left text-stone-800 shadow-sm transition hover:bg-[#f1ece6]"
                           >
-                            <span className="block text-base font-black">{p.name}</span>
-                            <span className="text-xs text-stone-500">{p.rank}</span>
+                            <span className="block text-[1.05rem] font-black sm:text-lg">{p.name}</span>
+                            <span className="text-[13px] text-stone-500 sm:text-sm">{p.rank}</span>
                           </button>
                         ))}
                       </div>
