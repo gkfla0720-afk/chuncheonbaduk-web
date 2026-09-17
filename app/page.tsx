@@ -19,7 +19,7 @@ export default function KioskPage() {
   const [activeAttendance, setActiveAttendance] = useState<{ id: number; status: string } | null>(null);
   const [message, setMessage] = useState('전화번호 뒷자리 4자리를 눌러주세요.');
   
-  const [kioskMode, setKioskMode] = useState<'attendance' | 'match_wizard' | 'register' | 'match_detail'>('attendance');
+  const [kioskMode, setKioskMode] = useState<'attendance' | 'match_wizard' | 'register' | 'match_detail' | 'profile_detail'>('attendance');
 
   const [matchStep, setMatchStep] = useState(1);
   const [matchType, setMatchType] = useState('친선전');
@@ -33,6 +33,10 @@ export default function KioskPage() {
   const [matchElapsed, setMatchElapsed] = useState('');
   const [confirmAction, setConfirmAction] = useState<'black_win' | 'white_win' | 'cancel' | null>(null);
 
+  const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
+  const [profileStats, setProfileStats] = useState({ wins: 0, losses: 0, attendanceRate: 0, joinedAt: '' });
+  const [isLoadingStats, setIsLoadingStats] = useState(false);
+
   const [regName, setRegName] = useState('');
   const [regPhone, setRegPhone] = useState('');
   const [regRank, setRegRank] = useState('18급');
@@ -42,10 +46,22 @@ export default function KioskPage() {
   useEffect(() => {
     let isMounted = true;
     const fetchActiveMembers = async () => {
-      const { data } = await supabase.from('attendance').select(`id, status, checked_in_at, user_id, profiles(name, rank, tier)`).neq('status', '귀가').order('checked_in_at', { ascending: false });
+      const { data } = await supabase.from('attendance')
+        .select(`id, status, checked_in_at, user_id, profiles(name, rank, tier)`)
+        .neq('status', '귀가')
+        .order('checked_in_at', { ascending: false });
+
       if (data && isMounted) {
-        // @ts-expect-error: Supabase 조인 데이터 타입 추론 무시
-        setActiveMembers(data); 
+        // 💡 맵에 명시적 타입 지정 및 불필요한 @ts-expect-error 제거
+        const uniqueMembersMap = new Map<string, ActiveMember>();
+        data.forEach(item => {
+          if (!uniqueMembersMap.has(item.user_id)) {
+            // @ts-expect-error: 내부 조인 타입 매칭
+            uniqueMembersMap.set(item.user_id, item);
+          }
+        });
+        
+        setActiveMembers(Array.from(uniqueMembersMap.values())); 
         setIsLoadingList(false);
       }
     };
@@ -64,11 +80,8 @@ export default function KioskPage() {
       const start = new Date(selectedMatch.started_at).getTime();
       timer = setInterval(() => {
         const now = new Date().getTime();
-        const diffInSeconds = Math.floor((now - start) / 1000);
-        const h = Math.floor(diffInSeconds / 3600);
-        const m = Math.floor((diffInSeconds % 3600) / 60);
-        const s = diffInSeconds % 60;
-        setMatchElapsed(`${h > 0 ? `${h}시간 ` : ''}${m}분 ${s}초`);
+        const diff = Math.floor((now - start) / 1000);
+        setMatchElapsed(`${Math.floor(diff/3600) > 0 ? `${Math.floor(diff/3600)}시간 ` : ''}${Math.floor((diff%3600)/60)}분 ${diff%60}초`);
       }, 1000);
     }
     return () => clearInterval(timer);
@@ -78,20 +91,11 @@ export default function KioskPage() {
     if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
     setPhoneNumber(''); setCandidates([]); setConfirmUser(null); setActiveAttendance(null);
     setKioskMode('attendance'); setMessage('전화번호 뒷자리 4자리를 눌러주세요.');
-    setConfirmAction(null); setSelectedMatch(null);
+    setConfirmAction(null); setSelectedMatch(null); setSelectedProfile(null);
   };
 
   const handleNumberClick = (num: string) => { if (phoneNumber.length < 4) setPhoneNumber(prev => prev + num); };
   const handleDelete = () => setPhoneNumber(prev => prev.slice(0, -1));
-
-  const openMatchWizard = () => {
-    setKioskMode('match_wizard'); setMatchStep(1); setBlackTeam([]); setWhiteTeam([]);
-    setHandicapType('호선'); setHandicapStones(2); setKomi(0.5);
-  };
-
-  const closeMatchWizard = () => {
-    setKioskMode('attendance'); handleReset();
-  };
 
   const handleSearchUser = async () => {
     if (phoneNumber.length !== 4) { setMessage('뒷자리를 모두 입력하세요.'); return; }
@@ -126,25 +130,58 @@ export default function KioskPage() {
     alert('가입이 완료되었습니다!'); handleReset();
   };
 
+  const openProfileDetail = async (member: ActiveMember) => {
+    setKioskMode('profile_detail');
+    setSelectedProfile(member.profiles);
+    setIsLoadingStats(true);
+
+    try {
+      const { data: profData } = await supabase.from('profiles').select('created_at').eq('id', member.user_id).single();
+      const joinedAt = profData?.created_at ? new Date(profData.created_at).toLocaleDateString('ko-KR') : '정보 없음';
+
+      const { data: blackMatches } = await supabase.from('matches').select('winner').eq('phase', '종료').contains('black_team', [member.user_id]);
+      const { data: whiteMatches } = await supabase.from('matches').select('winner').eq('phase', '종료').contains('white_team', [member.user_id]);
+      
+      let w = 0, l = 0;
+      blackMatches?.forEach(m => { if (m.winner === '흑승') w++; else if (m.winner === '백승') l++; });
+      whiteMatches?.forEach(m => { if (m.winner === '백승') w++; else if (m.winner === '흑승') l++; });
+
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const { data: attData } = await supabase.from('attendance').select('checked_in_at').eq('user_id', member.user_id).gte('checked_in_at', thirtyDaysAgo.toISOString());
+      
+      const uniqueDays = new Set(attData?.map(a => new Date(a.checked_in_at).toLocaleDateString())).size;
+      const attRate = Math.round((uniqueDays / 30) * 100);
+
+      setProfileStats({ wins: w, losses: l, attendanceRate: attRate, joinedAt });
+    } catch (err) {
+      console.error(err);
+    }
+    setIsLoadingStats(false);
+  };
+
+  const openMatchWizard = () => {
+    setKioskMode('match_wizard'); setMatchStep(1); setBlackTeam([]); setWhiteTeam([]); setHandicapType('호선'); setHandicapStones(2); setKomi(0.5);
+  };
+
+  // 💡 추가됨: 마법사를 닫는 함수
+  const closeMatchWizard = () => {
+    setKioskMode('attendance'); handleReset();
+  };
+
   const openMatchDetail = async (userId: string) => {
     const { data } = await supabase.from('matches').select('*').neq('phase', '종료').neq('phase', '취소');
     if (data) {
       const match = data.find(m => m.black_team.includes(userId) || m.white_team.includes(userId));
-      if (match) {
-        setSelectedMatch(match);
-        setKioskMode('match_detail');
-        setConfirmAction(null);
-      }
+      if (match) { setSelectedMatch(match); setKioskMode('match_detail'); setConfirmAction(null); }
     }
   };
 
   const endMatch = async (result: string) => {
     if (!selectedMatch) return;
     await supabase.from('matches').update({ phase: result === '취소' ? '취소' : '종료', winner: result }).eq('id', selectedMatch.id);
-    
     const allIds = [...selectedMatch.black_team, ...selectedMatch.white_team];
     await supabase.from('attendance').update({ status: '출석중' }).in('user_id', allIds).neq('status', '귀가');
-    
     alert(result === '취소' ? '대국이 취소되었습니다.' : '대국이 정상 종료되었습니다.');
     setRefreshTrigger(p => p + 1); handleReset();
   };
@@ -166,7 +203,7 @@ export default function KioskPage() {
         <header className="p-6 bg-white border-b-4 border-stone-200 flex justify-between items-end">
           <div>
             <h1 className="text-3xl font-black text-[#2c1e16] tracking-tight">현재 현황</h1>
-            <p className="text-stone-500 font-bold mt-1">대국중인 회원을 눌러 대국을 종료하세요</p>
+            <p className="text-stone-500 font-bold mt-1">대국중단/프로필 조회를 위해 이름을 터치하세요</p>
           </div>
           <div className="text-right">
             <span className="text-5xl font-black text-[#9a5b28]">{activeMembers.length}</span><span className="text-xl font-bold text-stone-600"> 명</span>
@@ -192,10 +229,12 @@ export default function KioskPage() {
                     else if (whiteTeam.length < req) setWhiteTeam([...whiteTeam, member]);
                   } else if (member.status === '대국중') {
                     openMatchDetail(member.user_id);
+                  } else {
+                    openProfileDetail(member);
                   }
                 }}
-                className={`p-4 rounded-2xl shadow-sm border-2 flex justify-between items-center transition-all ${
-                  member.status === '대국중' ? 'bg-red-50 border-red-200 cursor-pointer hover:bg-red-100 hover:scale-[1.02]' : 'bg-white border-stone-200'
+                className={`p-4 rounded-2xl shadow-sm border-2 flex justify-between items-center transition-all cursor-pointer hover:scale-[1.02] ${
+                  member.status === '대국중' ? 'bg-red-50 border-red-200 hover:bg-red-100' : 'bg-white border-stone-200 hover:bg-stone-50'
                 }`}
               >
                 <div className="flex flex-col">
@@ -222,7 +261,6 @@ export default function KioskPage() {
                <button onClick={() => setKioskMode('register')} className="flex-1 bg-stone-700 hover:bg-stone-600 text-white font-extrabold py-3 rounded-2xl shadow-md text-xl transition-all">📝 신규 가입</button>
                <button onClick={openMatchWizard} className="flex-1 bg-[#9a5b28] hover:bg-[#854d20] text-white font-extrabold py-3 rounded-2xl shadow-md text-xl transition-all">⚔️ 대국 신청</button>
             </div>
-            
             <h2 className="text-5xl font-black text-[#fdfbf7] tracking-tight mb-3">입장 / 귀가</h2>
             <p className="text-xl font-bold h-8 text-[#e3c18b] mb-6">{message}</p>
 
@@ -252,8 +290,6 @@ export default function KioskPage() {
                 <div className="bg-[#1a110b] border-2 border-stone-800 rounded-3xl h-24 flex items-center justify-center mb-6 shadow-inner">
                   <span className="text-5xl font-mono tracking-[0.4em] text-[#e3c18b] font-black">{phoneNumber.padEnd(4, '—')}</span>
                 </div>
-                
-                {/* 💡 숫자 패드 크기 조절 (w-20 h-20 text-4xl) */}
                 <div className="grid grid-cols-3 gap-4 mb-6">
                   {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map(num => (
                     <button key={num} onClick={() => handleNumberClick(num)} className="w-20 h-20 mx-auto rounded-full bg-[#fdfbf7] text-[#2c1e16] text-4xl font-black shadow-[0_6px_0_#d1c8b8] active:translate-y-1.5 active:shadow-none flex items-center justify-center transition-transform">{num}</button>
@@ -262,10 +298,41 @@ export default function KioskPage() {
                   <button onClick={() => handleNumberClick('0')} className="w-20 h-20 mx-auto rounded-full bg-[#fdfbf7] text-[#2c1e16] text-4xl font-black shadow-[0_6px_0_#d1c8b8] active:translate-y-1.5 flex items-center justify-center">0</button>
                   <button onClick={handleReset} className="w-20 h-20 mx-auto rounded-full bg-[#1a110b] border-4 border-stone-700 text-stone-400 text-xl font-black shadow-[0_6px_0_#000] active:translate-y-1.5 flex items-center justify-center">취소</button>
                 </div>
-                
                 <button onClick={handleSearchUser} className="w-full h-20 bg-[#9a5b28] text-white text-3xl font-black rounded-2xl shadow-[0_6px_0_#5c3516] active:translate-y-1.5 transition-transform">확인</button>
               </div>
             )}
+          </div>
+        )}
+
+        {/* 회원 프로필 상세 보기 모드 */}
+        {kioskMode === 'profile_detail' && selectedProfile && (
+          <div className="relative z-10 w-full max-w-lg bg-[#3a291f] p-10 rounded-[40px] shadow-2xl border-4 border-stone-700 text-center my-6">
+            <h2 className="text-4xl font-black text-white mb-2">회원 프로필</h2>
+            <p className="text-stone-400 font-bold mb-8">가입일: {profileStats.joinedAt}</p>
+            
+            <div className="bg-[#1a110b] p-8 rounded-3xl mb-8 border-2 border-stone-800">
+               <h3 className="text-5xl font-black text-[#fdfbf7] mb-2">{selectedProfile.name}</h3>
+               <p className="text-2xl font-extrabold text-[#e3c18b] mb-8">{selectedProfile.rank} / {selectedProfile.tier}</p>
+               
+               {isLoadingStats ? (
+                 <p className="text-stone-400 font-bold text-xl py-6 animate-pulse">전적 데이터를 불러오는 중...</p>
+               ) : (
+                 <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-stone-800 p-4 rounded-2xl border border-stone-700">
+                       <p className="text-stone-400 text-sm font-bold mb-1">통산 전적</p>
+                       <p className="text-3xl font-black text-white">
+                         <span className="text-blue-400">{profileStats.wins}승</span> <span className="text-red-400">{profileStats.losses}패</span>
+                       </p>
+                       <p className="text-stone-500 text-sm font-bold mt-2">승률: {profileStats.wins + profileStats.losses > 0 ? Math.round((profileStats.wins / (profileStats.wins + profileStats.losses)) * 100) : 0}%</p>
+                    </div>
+                    <div className="bg-stone-800 p-4 rounded-2xl border border-stone-700 flex flex-col justify-center items-center">
+                       <p className="text-stone-400 text-sm font-bold mb-1">최근 30일 출석률</p>
+                       <p className="text-4xl font-black text-[#e3c18b]">{profileStats.attendanceRate}%</p>
+                    </div>
+                 </div>
+               )}
+            </div>
+            <button onClick={handleReset} className="w-full py-5 bg-[#9a5b28] hover:bg-[#854d20] text-white text-3xl font-black rounded-2xl shadow-xl transition-all">확인 (닫기)</button>
           </div>
         )}
 

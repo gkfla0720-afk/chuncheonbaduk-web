@@ -17,12 +17,15 @@ export default function StatusPage() {
   const fetchData = useCallback(async (showNotification = false) => {
     const { count } = await supabase.from('attendance').select('*', { count: 'exact', head: true }).neq('status', '귀가');
     
-    // 💡 변경된 테이블 구조(다대다 배열)에 맞춘 새로운 호출 방식
-    const { data: matchesData } = await supabase.from('matches').select('*').neq('phase', '종료').order('started_at', { ascending: false });
+    // 💡 핵심 수정: '종료'뿐만 아니라 '취소'된 대국도 화면에서 제외하도록 수정했습니다.
+    const { data: matchesData } = await supabase.from('matches')
+      .select('*')
+      .neq('phase', '종료')
+      .neq('phase', '취소')
+      .order('started_at', { ascending: false });
     
     let enrichedMatches: Match[] = [];
     if (matchesData && matchesData.length > 0) {
-      // 대국에 참여중인 모든 회원의 정보를 한 번에 불러옴
       const allPlayerIds = matchesData.flatMap(m => [...m.black_team, ...m.white_team]);
       const { data: profiles } = await supabase.from('profiles').select('id, name, rank').in('id', allPlayerIds);
       
@@ -74,7 +77,7 @@ export default function StatusPage() {
         </button>
       </header>
 
-      <section className="bg-white rounded-[32px] shadow-md border-2 border-slate-200 p-8 mb-8 text-center">
+      <section className="bg-white rounded-4xl shadow-md border-2 border-slate-200 p-8 mb-8 text-center">
         <h2 className="text-slate-500 font-extrabold text-2xl mb-4">현재 기원에 계신 분</h2>
         {isLoading ? (
           <div className="text-6xl font-extrabold text-slate-300 animate-pulse">...</div>
@@ -100,13 +103,13 @@ export default function StatusPage() {
         {isLoading ? (
           <p className="text-center text-slate-400 text-xl font-bold mt-10">대국 정보를 불러오는 중...</p>
         ) : activeMatches.length === 0 ? (
-          <div className="text-center py-16 bg-white rounded-[32px] border-2 border-slate-200 border-dashed">
+          <div className="text-center py-16 bg-white rounded-4xl border-2 border-slate-200 border-dashed">
             <p className="text-slate-500 text-xl font-bold leading-relaxed">현재 진행 중인 대국이 없습니다.<br/>방문하셔서 첫 대국을 시작해보세요!</p>
           </div>
         ) : (
           <ul className="space-y-6">
             {activeMatches.map((match) => (
-              <li key={match.id} className="bg-white p-6 rounded-[32px] shadow-lg border-2 border-slate-200 relative overflow-hidden">
+              <li key={match.id} className="bg-white p-6 rounded-4xl shadow-lg border-2 border-slate-200 relative overflow-hidden">
                 <div className="absolute top-5 right-5">
                   <span className="px-4 py-2 rounded-full text-sm font-black bg-blue-100 text-blue-800 border border-blue-200 shadow-sm">{match.match_type}</span>
                 </div>
