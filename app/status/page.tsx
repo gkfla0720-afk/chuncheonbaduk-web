@@ -123,23 +123,10 @@ export default function StatusPage() {
           </div>
         </header>
 
-        <section className="mt-6 grid gap-4 md:grid-cols-2">
-          <div className="board-panel rounded-[26px] border border-[#d7c9b4] p-5">
-            <p className="text-[10px] font-bold tracking-[0.18em] text-[#7f6348]">기원 인원</p>
-            <p className="mt-4 text-3xl font-black text-[#2a241d]">{isLoading ? '...' : activeCount}</p>
-            <p className="mt-2 text-sm text-stone-600">현재 기원에 계신 분</p>
-          </div>
-          <div className="board-panel rounded-[26px] border border-[#d7c9b4] p-5">
-            <p className="text-[10px] font-bold tracking-[0.18em] text-[#7f6348]">실시간 대국</p>
-            <p className="mt-4 text-3xl font-black text-[#2a241d]">{activeMatches.length}</p>
-            <p className="mt-2 text-sm text-stone-600">진행 중인 대국 현황</p>
-          </div>
-        </section>
-
         <section className="mt-6 rounded-[32px] border border-[#d8c7a8] bg-[linear-gradient(135deg,#f5f0e8_0%,#e7dcc2_100%)] p-5 shadow-[0_14px_30px_rgba(82,64,40,0.08)] sm:p-6">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-[10px] font-bold tracking-[0.18em] text-[#7e5d3d]">현장 인원</p>
+              <p className="text-[10px] font-bold tracking-[0.18em] text-[#7e5d3d]">춘천기원 LIVE</p>
               <h2 className="mt-2 text-2xl font-black text-[#2a241d] sm:text-3xl">오늘의 참여 인원</h2>
             </div>
             <div className="rounded-full border border-[#cdb48b] bg-[#f7f3ec] px-3 py-1 text-xs font-semibold text-[#6d553f]">

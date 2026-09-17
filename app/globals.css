@@ -36,10 +36,13 @@ body {
 
 .board-surface {
   background:
-    linear-gradient(rgba(80, 61, 35, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(80, 61, 35, 0.05) 1px, transparent 1px),
-    linear-gradient(135deg, rgba(255, 255, 255, 0.45), rgba(236, 224, 203, 0.72));
-  background-size: 24px 24px, 24px 24px, cover;
+    radial-gradient(circle at 12% 18%, rgba(24, 20, 15, 0.25) 0 9%, transparent 10%),
+    radial-gradient(circle at 75% 22%, rgba(24, 20, 15, 0.18) 0 8%, transparent 9%),
+    radial-gradient(circle at 46% 62%, rgba(24, 20, 15, 0.2) 0 7%, transparent 8%),
+    radial-gradient(circle at 28% 74%, rgba(24, 20, 15, 0.16) 0 9%, transparent 10%),
+    linear-gradient(135deg, rgba(255,255,255,0.26), rgba(201,176,131,0.14)),
+    linear-gradient(135deg, #d7b77e 0%, #b88a52 32%, #d9b77d 100%);
+  background-size: auto, auto, auto, auto, cover, cover;
 }
 
 .board-panel {

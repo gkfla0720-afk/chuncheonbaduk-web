@@ -20,6 +20,7 @@ export default function KioskPage() {
   const [candidates, setCandidates] = useState<Profile[]>([]);
   const [confirmUser, setConfirmUser] = useState<Profile | null>(null);
   const [message, setMessage] = useState('전화번호 뒷자리 4자리를 눌러주세요.');
+  const [showMembershipGuide, setShowMembershipGuide] = useState(false);
   
   const [kioskMode, setKioskMode] = useState<'attendance' | 'match_wizard' | 'register' | 'match_detail' | 'profile_detail'>('attendance');
 
@@ -289,12 +290,43 @@ export default function KioskPage() {
 
             {/* 우측: 여백 공간을 활용한 큼직한 액션 버튼 */}
             <div className="flex flex-col gap-6 w-64 xl:w-72 shrink-0">
+               <button onClick={() => setShowMembershipGuide(true)} className="w-full bg-[#f5efe5] hover:bg-[#efe4d4] text-stone-900 font-extrabold py-4 rounded-2xl shadow-md text-lg transition-all border-2 border-[#b88c42]">
+                 정회원 달성 조건
+               </button>
                <button onClick={() => setKioskMode('register')} className="w-full bg-white hover:bg-stone-50 text-stone-900 font-extrabold py-8 rounded-3xl shadow-xl text-2xl xl:text-3xl transition-all border-4 border-[#b88c42] flex items-center justify-center gap-3">
                  <span>📝</span> 신규 가입
                </button>
                <button onClick={openMatchWizard} className="w-full bg-[#1f1a16] hover:bg-[#332a24] text-[#e8d5b5] font-extrabold py-8 rounded-3xl shadow-xl text-2xl xl:text-3xl transition-all border-4 border-stone-800 flex items-center justify-center gap-3">
                  <span>⚔️</span> 대국 신청
                </button>
+            </div>
+          </div>
+        )}
+
+        {showMembershipGuide && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(28,24,20,0.6)] p-4 backdrop-blur-sm">
+            <div className="w-full max-w-lg rounded-[30px] border border-[#d4c3a2] bg-[#f8f4ee] p-6 shadow-[0_18px_45px_rgba(34,27,20,0.28)]">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-[10px] font-bold tracking-[0.18em] text-[#7e5d3d]">회원 등급</p>
+                  <h3 className="mt-2 text-2xl font-black text-[#2a241d]">정회원 달성 조건</h3>
+                </div>
+                <button onClick={() => setShowMembershipGuide(false)} className="rounded-full bg-stone-200 px-3 py-1 text-xs font-bold text-stone-700">닫기</button>
+              </div>
+
+              <div className="mt-5 rounded-[24px] border border-[#d9cab0] bg-[#f3ebdf] p-5">
+                <p className="text-base leading-7 text-stone-700">
+                  정회원은 <span className="font-black text-[#8a5a2b]">기원 방문 10회 이상</span>과 <span className="font-black text-[#8a5a2b]">대국 10회 이상</span>을 충족한 회원에게 자동으로 승격됩니다.
+                </p>
+                <ul className="mt-4 space-y-3 text-sm text-stone-700">
+                  <li className="flex items-start gap-2"><span className="mt-1 inline-block h-2 w-2 rounded-full bg-[#8a5a2b]" /> 방문 기록과 대국 기록이 누적되면 자동으로 정회원으로 인정됩니다.</li>
+                  <li className="flex items-start gap-2"><span className="mt-1 inline-block h-2 w-2 rounded-full bg-[#8a5a2b]" /> 승격 조건을 충족한 회원은 등급이 자연스럽게 정회원으로 바뀝니다.</li>
+                </ul>
+              </div>
+
+              <button onClick={() => setShowMembershipGuide(false)} className="mt-5 w-full rounded-2xl bg-[#2a241d] py-3 text-base font-bold text-[#f8f3eb] transition hover:bg-[#1f1b18]">
+                확인
+              </button>
             </div>
           </div>
         )}
