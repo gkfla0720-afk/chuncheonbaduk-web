@@ -229,7 +229,6 @@ export default function KioskPage() {
         openProfileDetail={openProfileDetail}
       />
 
-      {/* 우측 영역: 바둑판 격자 스타일 배경 */}
       <section className="w-[62%] h-full bg-[#d5a758] text-stone-900 flex flex-col items-center justify-center relative overflow-y-auto custom-scrollbar p-6">
         <div 
           className="absolute inset-0 opacity-25 pointer-events-none" 
@@ -241,8 +240,6 @@ export default function KioskPage() {
 
         {kioskMode === 'attendance' && (
           <div className="relative z-10 w-full flex flex-row items-center justify-center gap-10">
-            
-            {/* 1. 키패드 영역: 흑돌 컨셉 */}
             <div className="flex flex-col items-center w-full max-w-sm">
               <h2 className="text-4xl font-black text-stone-900 tracking-tight mb-2 drop-shadow-sm">입장 / 귀가</h2>
               <p className="text-lg font-extrabold h-6 text-stone-800 mb-5">{message}</p>
@@ -292,7 +289,6 @@ export default function KioskPage() {
               )}
             </div>
 
-            {/* 2. 우측 상단 액션 버튼: 백돌/바둑판 모티프 */}
             <div className="flex flex-col gap-5 w-60 shrink-0 pb-10">
                <button onClick={() => setKioskMode('register')} className="w-full bg-white hover:bg-stone-50 text-stone-900 font-extrabold py-6 rounded-3xl shadow-xl text-2xl transition-all border-4 border-[#b88c42] flex items-center justify-center gap-2">
                  <span>📝</span> 신규 가입
@@ -301,11 +297,10 @@ export default function KioskPage() {
                  <span>⚔️</span> 대국 신청
                </button>
             </div>
-
           </div>
         )}
 
-        {/* 회원 프로필 상세 팝업: 가로 폭 확장 및 바둑판 조화 */}
+        {/* 회원 프로필 상세 팝업 */}
         {kioskMode === 'profile_detail' && selectedProfile && (
           <div className="relative z-10 w-full max-w-2xl bg-[#1f1a16] text-white p-10 rounded-4xl shadow-2xl border-4 border-[#b88c42] text-center">
             <h2 className="text-3xl font-black text-[#e8d5b5] mb-1">회원 기력 및 프로필</h2>
@@ -404,7 +399,7 @@ export default function KioskPage() {
            </div>
         )}
 
-        {/* 대국 신청 마법사: 큼직한 가로 폭(max-w-3xl)과 흑백 팀 슬롯 */}
+        {/* 💡 대국 신청 마법사: 리스트에서 제외(빼기) 기능 추가됨 */}
         {kioskMode === 'match_wizard' && (
           <div className="relative z-10 w-full max-w-3xl bg-[#1f1a16] text-white p-10 rounded-4xl shadow-2xl border-4 border-[#b88c42]">
             <button onClick={closeMatchWizard} className="absolute top-6 right-6 text-stone-400 hover:text-white font-extrabold text-2xl">✕</button>
@@ -428,19 +423,32 @@ export default function KioskPage() {
             {matchStep === 2 && (
               <div className="text-center">
                 <h2 className="text-3xl font-black text-white mb-2">2. 대국자를 선택하세요</h2>
-                <p className="text-[#dcb36c] mb-6 text-base font-bold">좌측 명단을 터치하여 팀을 구성하세요.</p>
+                <p className="text-[#dcb36c] mb-6 text-base font-bold">터치하여 명단에서 빼거나 추가할 수 있습니다.</p>
                 <div className="flex gap-6">
+                  {/* 💡 흑팀 터치 시 제외 기능 */}
                   <div className="flex-1 bg-stone-900 p-5 rounded-3xl border-2 border-stone-700 shadow-inner">
                     <h3 className="text-2xl font-black text-white mb-4 border-b border-stone-800 pb-2">⚫ 흑 팀</h3>
                     <div className="space-y-3 min-h-[140px]">
-                      {blackTeam.map(m => <div key={m.id} className="bg-black/60 py-3 px-4 rounded-xl font-black text-xl text-white flex justify-between border border-stone-800"><span>{m.name}</span><span className="text-[#dcb36c]">{m.rank}</span></div>)}
+                      {blackTeam.map(m => (
+                        <div key={m.id} onClick={() => setBlackTeam(prev => prev.filter(p => p.id !== m.id))} className="bg-black/60 py-3 px-4 rounded-xl font-black text-xl text-white flex justify-between border border-stone-800 cursor-pointer hover:bg-red-900/80 transition-colors group">
+                          <span>{m.name}</span>
+                          <span className="text-[#dcb36c] group-hover:text-white">{m.rank} <span className="ml-2 text-red-400 group-hover:text-white">✕</span></span>
+                        </div>
+                      ))}
                       {blackTeam.length === 0 && <p className="text-stone-500 pt-8 text-sm">좌측에서 선수를 터치하세요</p>}
                     </div>
                   </div>
+                  
+                  {/* 💡 백팀 터치 시 제외 기능 */}
                   <div className="flex-1 bg-white text-stone-900 p-5 rounded-3xl border-2 border-stone-300 shadow-inner">
                     <h3 className="text-2xl font-black text-stone-900 mb-4 border-b border-stone-200 pb-2">⚪ 백 팀</h3>
                     <div className="space-y-3 min-h-[140px]">
-                      {whiteTeam.map(m => <div key={m.id} className="bg-stone-50 py-3 px-4 rounded-xl font-black text-xl text-stone-900 flex justify-between border border-stone-300"><span>{m.name}</span><span className="text-[#8a5a20]">{m.rank}</span></div>)}
+                      {whiteTeam.map(m => (
+                        <div key={m.id} onClick={() => setWhiteTeam(prev => prev.filter(p => p.id !== m.id))} className="bg-stone-50 py-3 px-4 rounded-xl font-black text-xl text-stone-900 flex justify-between border border-stone-300 cursor-pointer hover:bg-red-100 transition-colors group">
+                          <span>{m.name}</span>
+                          <span className="text-[#8a5a20] group-hover:text-red-500">{m.rank} <span className="ml-2 text-red-500">✕</span></span>
+                        </div>
+                      ))}
                       {whiteTeam.length === 0 && <p className="text-stone-400 pt-8 text-sm">흑팀 선발 후 자동 지정됩니다</p>}
                     </div>
                   </div>
