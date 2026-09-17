@@ -32,19 +32,19 @@ body {
 
 .board-surface {
   position: relative;
-  background-image: url('/go-board-scene.jpg');
+  background-image: url('/mainimage.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   isolation: isolate;
+  background-color: #d9c691;
 }
 
 .board-surface::before {
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(17, 13, 10, 0.46);
-  backdrop-filter: blur(2px);
+  background: rgba(17, 13, 10, 0.12);
   z-index: 0;
 }
 
