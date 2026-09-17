@@ -27,11 +27,32 @@ export default function LeftPanel({
   openMatchDetail,
   openProfileDetail
 }: LeftPanelProps) {
+
+  // 💡 전체화면 토글(On/Off) 기능
+  const toggleFullScreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch((err) => {
+        console.warn(`전체화면 전환 에러: ${err.message}`);
+      });
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+    }
+  };
+
   return (
     <section className="w-[40%] h-full bg-[#fdfbf7] border-r-8 border-[#2c1e16] flex flex-col shadow-2xl relative z-10">
       <header className="p-4 sm:p-6 bg-white border-b-4 border-stone-200 flex justify-between items-end">
         <div>
-          <h1 className="text-3xl font-black text-[#2c1e16] tracking-tight">현재 현황</h1>
+          {/* 💡 "현재 현황" 글씨에 전체화면 기능 연결 및 마우스 커서 변경 */}
+          <h1 
+            onClick={toggleFullScreen} 
+            className="text-3xl font-black text-[#2c1e16] tracking-tight cursor-pointer hover:text-[#9a5b28] transition-colors"
+            title="클릭 시 전체화면"
+          >
+            현재 현황 ⛶
+          </h1>
           <p className="text-stone-500 font-bold mt-1 text-sm sm:text-base">이름을 터치하세요 (대국/프로필)</p>
         </div>
         <div className="text-right">
