@@ -213,7 +213,7 @@ export default function KioskPage() {
   };
 
   return (
-    <main className="flex flex-row w-full h-screen bg-[#e3c18b] font-sans select-none overflow-hidden text-slate-900">
+    <main className="flex flex-row w-full h-screen bg-[#dcb36c] font-sans select-none overflow-hidden text-stone-900">
       
       <LeftPanel
         activeMembers={activeMembers}
@@ -229,185 +229,195 @@ export default function KioskPage() {
         openProfileDetail={openProfileDetail}
       />
 
-      <section className="w-[60%] h-full bg-[#2c1e16] text-[#fdfbf7] flex flex-col items-center justify-center relative overflow-y-auto custom-scrollbar">
-        <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'linear-gradient(#fdfbf7 2px, transparent 2px), linear-gradient(90deg, #fdfbf7 2px, transparent 2px)', backgroundSize: '60px 60px' }}></div>
+      {/* 우측 영역: 바둑판 격자 스타일 배경 */}
+      <section className="w-[62%] h-full bg-[#d5a758] text-stone-900 flex flex-col items-center justify-center relative overflow-y-auto custom-scrollbar p-6">
+        <div 
+          className="absolute inset-0 opacity-25 pointer-events-none" 
+          style={{ 
+            backgroundImage: 'linear-gradient(#291b0f 1px, transparent 1px), linear-gradient(90deg, #291b0f 1px, transparent 1px)', 
+            backgroundSize: '36px 36px' 
+          }}
+        />
 
-        {/* 💡 새로운 레이아웃: 키패드는 가운데-좌측, 액션 버튼은 우측에 큼직하게 배치 */}
         {kioskMode === 'attendance' && (
-          <div className="relative z-10 w-full flex flex-row items-center justify-center gap-12 px-8">
+          <div className="relative z-10 w-full flex flex-row items-center justify-center gap-10">
             
-            {/* 1. 입장/귀가 키패드 영역 */}
+            {/* 1. 키패드 영역: 흑돌 컨셉 */}
             <div className="flex flex-col items-center w-full max-w-sm">
-              <h2 className="text-4xl font-black text-[#fdfbf7] tracking-tight mb-2">입장 / 귀가</h2>
-              <p className="text-lg font-bold h-6 text-[#e3c18b] mb-6">{message}</p>
+              <h2 className="text-4xl font-black text-stone-900 tracking-tight mb-2 drop-shadow-sm">입장 / 귀가</h2>
+              <p className="text-lg font-extrabold h-6 text-stone-800 mb-5">{message}</p>
 
               {confirmUser ? (
-                <div className="bg-[#3a291f] p-8 rounded-4xl border-4 border-[#9a5b28] shadow-2xl text-center w-full">
-                  <h2 className="text-4xl font-black text-[#fdfbf7] mb-2">{confirmUser.name}</h2>
-                  <p className="text-[#e3c18b] text-xl font-extrabold mb-8">{confirmUser.rank} / {confirmUser.tier}</p>
+                <div className="bg-[#1f1a16] p-8 rounded-4xl border-4 border-[#e8d5b5] shadow-2xl text-center w-full text-white">
+                  <h2 className="text-4xl font-black mb-2 text-[#e8d5b5]">{confirmUser.name}</h2>
+                  <p className="text-stone-300 text-xl font-extrabold mb-8">{confirmUser.rank} / {confirmUser.tier}</p>
                   {confirmUser.current_status !== '오프라인' ? (
-                    <button onClick={handleGoHome} disabled={isProcessing} className="w-full py-5 bg-[#1a110b] border-4 border-[#e3c18b] text-[#e3c18b] font-black rounded-2xl text-2xl shadow-xl disabled:opacity-50">
+                    <button onClick={handleGoHome} disabled={isProcessing} className="w-full py-5 bg-[#332a24] border-2 border-[#dcb36c] text-[#dcb36c] hover:bg-[#dcb36c] hover:text-stone-900 font-black rounded-2xl text-2xl shadow-xl transition-all disabled:opacity-50">
                       {isProcessing ? '처리중...' : '귀가하기 (퇴장)'}
                     </button>
                   ) : (
-                    <button onClick={handleConfirmAttendance} disabled={isProcessing} className="w-full py-5 bg-[#fdfbf7] text-[#2c1e16] font-black rounded-2xl text-2xl shadow-xl disabled:opacity-50">
+                    <button onClick={handleConfirmAttendance} disabled={isProcessing} className="w-full py-5 bg-white text-stone-900 hover:bg-stone-100 font-black rounded-2xl text-2xl shadow-xl transition-all disabled:opacity-50">
                       {isProcessing ? '처리중...' : '출석하기 (입장)'}
                     </button>
                   )}
-                  <button onClick={handleReset} className="w-full mt-4 py-3 text-stone-400 font-bold text-lg">취소</button>
+                  <button onClick={handleReset} className="w-full mt-4 py-3 text-stone-400 hover:text-white font-bold text-lg">취소</button>
                 </div>
               ) : candidates.length > 0 ? (
-                <div className="bg-[#3a291f] p-6 rounded-4xl shadow-2xl space-y-3 w-full">
-                  <p className="text-center text-[#e3c18b] font-bold text-lg mb-4">본인의 이름을 선택해주세요</p>
+                <div className="bg-[#1f1a16] p-6 rounded-4xl shadow-2xl space-y-3 w-full border-2 border-stone-800">
+                  <p className="text-center text-[#e8d5b5] font-bold text-lg mb-4">본인의 이름을 선택해주세요</p>
                   {candidates.map((cand) => (
-                    <button key={cand.id} onClick={() => { setConfirmUser(cand); setCandidates([]); }} className="w-full py-4 bg-[#fdfbf7] text-[#2c1e16] rounded-2xl text-xl font-extrabold shadow-lg flex justify-between px-6 items-center">
-                      <span>{cand.name}</span><span className="text-base bg-[#e3c18b] px-3 py-1 rounded-lg text-[#2c1e16]">{cand.rank}</span>
+                    <button key={cand.id} onClick={() => { setConfirmUser(cand); setCandidates([]); }} className="w-full py-4 bg-white text-stone-900 rounded-2xl text-xl font-extrabold shadow-md flex justify-between px-6 items-center hover:bg-stone-100">
+                      <span>{cand.name}</span><span className="text-base bg-[#dcb36c] px-3 py-1 rounded-lg text-stone-900 font-black">{cand.rank}</span>
                     </button>
                   ))}
                   <button onClick={handleReset} className="w-full py-3 text-stone-400 font-bold text-lg mt-2">다시 입력하기</button>
                 </div>
               ) : (
-                <div className="bg-[#3a291f] p-8 rounded-4xl shadow-2xl w-full">
-                  <div className="bg-[#1a110b] border-2 border-stone-800 rounded-2xl h-16 flex items-center justify-center mb-6 shadow-inner">
-                    <span className="text-4xl font-mono tracking-[0.4em] text-[#e3c18b] font-black">{phoneNumber.padEnd(4, '—')}</span>
+                <div className="bg-[#1f1a16] p-7 rounded-4xl shadow-2xl w-full border-4 border-stone-800">
+                  <div className="bg-[#120f0d] border border-stone-700 rounded-2xl h-16 flex items-center justify-center mb-5 shadow-inner">
+                    <span className="text-4xl font-mono tracking-[0.4em] text-[#e8d5b5] font-black">{phoneNumber.padEnd(4, '—')}</span>
                   </div>
-                  <div className="grid grid-cols-3 gap-4 mb-6">
+                  <div className="grid grid-cols-3 gap-3.5 mb-5">
                     {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map(num => (
-                      <button key={num} onClick={() => handleNumberClick(num)} className="w-20 h-20 mx-auto rounded-full bg-[#fdfbf7] text-[#2c1e16] text-4xl font-black shadow-[0_6px_0_#d1c8b8] active:translate-y-1.5 active:shadow-none flex items-center justify-center transition-transform">{num}</button>
+                      <button key={num} onClick={() => handleNumberClick(num)} className="w-20 h-20 mx-auto rounded-full bg-white text-stone-900 text-4xl font-black shadow-[0_5px_0_#999] active:translate-y-1 active:shadow-none flex items-center justify-center transition-all">{num}</button>
                     ))}
-                    <button onClick={handleDelete} className="w-20 h-20 mx-auto rounded-full bg-[#1a110b] border-4 border-stone-700 text-[#e3c18b] text-xl font-black shadow-[0_6px_0_#000] active:translate-y-1.5 flex items-center justify-center">지움</button>
-                    <button onClick={() => handleNumberClick('0')} className="w-20 h-20 mx-auto rounded-full bg-[#fdfbf7] text-[#2c1e16] text-4xl font-black shadow-[0_6px_0_#d1c8b8] active:translate-y-1.5 flex items-center justify-center">0</button>
-                    <button onClick={handleReset} className="w-20 h-20 mx-auto rounded-full bg-[#1a110b] border-4 border-stone-700 text-stone-400 text-xl font-black shadow-[0_6px_0_#000] active:translate-y-1.5 flex items-center justify-center">취소</button>
+                    <button onClick={handleDelete} className="w-20 h-20 mx-auto rounded-full bg-[#332a24] text-[#e8d5b5] text-xl font-black shadow-[0_5px_0_#1a1512] active:translate-y-1 flex items-center justify-center">지움</button>
+                    <button onClick={() => handleNumberClick('0')} className="w-20 h-20 mx-auto rounded-full bg-white text-stone-900 text-4xl font-black shadow-[0_5px_0_#999] active:translate-y-1 active:shadow-none flex items-center justify-center transition-all">0</button>
+                    <button onClick={handleReset} className="w-20 h-20 mx-auto rounded-full bg-[#332a24] text-stone-400 text-xl font-black shadow-[0_5px_0_#1a1512] active:translate-y-1 flex items-center justify-center">취소</button>
                   </div>
-                  <button onClick={handleSearchUser} disabled={isProcessing} className="w-full py-4 bg-[#9a5b28] text-white text-2xl font-black rounded-2xl shadow-[0_6px_0_#5c3516] active:translate-y-1.5 transition-transform disabled:opacity-50">
-                    {isProcessing ? '확인 중...' : '확인'}
+                  <button onClick={handleSearchUser} disabled={isProcessing} className="w-full py-4 bg-[#b88c42] hover:bg-[#a37934] text-stone-950 text-2xl font-black rounded-2xl shadow-[0_5px_0_#755520] active:translate-y-1 transition-all disabled:opacity-50">
+                    {isProcessing ? '확인 중...' : '확인 (입력완료)'}
                   </button>
                 </div>
               )}
             </div>
 
-            {/* 2. 우측 상단 액션 버튼 영역 */}
-            <div className="flex flex-col gap-6 w-56 shrink-0 pb-10">
-               <button onClick={() => setKioskMode('register')} className="w-full bg-stone-700 hover:bg-stone-600 text-white font-extrabold py-6 rounded-3xl shadow-xl text-2xl transition-all border-2 border-stone-500 hover:border-stone-400">📝 신규 가입</button>
-               <button onClick={openMatchWizard} className="w-full bg-[#9a5b28] hover:bg-[#854d20] text-white font-extrabold py-6 rounded-3xl shadow-xl text-2xl transition-all border-2 border-[#b46a30] hover:border-[#d98542]">⚔️ 대국 신청</button>
+            {/* 2. 우측 상단 액션 버튼: 백돌/바둑판 모티프 */}
+            <div className="flex flex-col gap-5 w-60 shrink-0 pb-10">
+               <button onClick={() => setKioskMode('register')} className="w-full bg-white hover:bg-stone-50 text-stone-900 font-extrabold py-6 rounded-3xl shadow-xl text-2xl transition-all border-4 border-[#b88c42] flex items-center justify-center gap-2">
+                 <span>📝</span> 신규 가입
+               </button>
+               <button onClick={openMatchWizard} className="w-full bg-[#1f1a16] hover:bg-[#332a24] text-[#e8d5b5] font-extrabold py-6 rounded-3xl shadow-xl text-2xl transition-all border-4 border-stone-800 flex items-center justify-center gap-2">
+                 <span>⚔️</span> 대국 신청
+               </button>
             </div>
 
           </div>
         )}
 
-        {/* 회원 프로필 상세 보기 모드 */}
+        {/* 회원 프로필 상세 팝업: 가로 폭 확장 및 바둑판 조화 */}
         {kioskMode === 'profile_detail' && selectedProfile && (
-          <div className="relative z-10 w-full max-w-md bg-[#3a291f] p-8 rounded-4xl shadow-2xl border-4 border-stone-700 text-center">
-            <h2 className="text-3xl font-black text-white mb-2">회원 프로필</h2>
-            <p className="text-stone-400 font-bold mb-6">가입일: {profileStats.joinedAt}</p>
+          <div className="relative z-10 w-full max-w-2xl bg-[#1f1a16] text-white p-10 rounded-4xl shadow-2xl border-4 border-[#b88c42] text-center">
+            <h2 className="text-3xl font-black text-[#e8d5b5] mb-1">회원 기력 및 프로필</h2>
+            <p className="text-stone-400 font-semibold mb-6">가입일: {profileStats.joinedAt}</p>
             
-            <div className="bg-[#1a110b] p-6 rounded-3xl mb-6 border-2 border-stone-800">
-               <h3 className="text-4xl font-black text-[#fdfbf7] mb-2">{selectedProfile.name}</h3>
-               <p className="text-xl font-extrabold text-[#e3c18b] mb-6">{selectedProfile.rank} / {selectedProfile.tier}</p>
+            <div className="bg-[#120f0d] p-8 rounded-3xl mb-8 border border-stone-800 shadow-inner">
+               <h3 className="text-5xl font-black text-white mb-2">{selectedProfile.name}</h3>
+               <p className="text-2xl font-extrabold text-[#dcb36c] mb-8">{selectedProfile.rank} / {selectedProfile.tier}</p>
                
                {isLoadingStats ? (
-                 <p className="text-stone-400 font-bold py-6 animate-pulse">전적 데이터를 불러오는 중...</p>
+                 <p className="text-stone-400 font-bold py-8 animate-pulse text-lg">전적 데이터를 집계하는 중...</p>
                ) : (
-                 <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-stone-800 p-4 rounded-xl border border-stone-700">
-                       <p className="text-stone-400 text-xs font-bold mb-1">통산 전적</p>
-                       <p className="text-2xl font-black text-white">
+                 <div className="grid grid-cols-2 gap-5">
+                    <div className="bg-[#241f1b] p-5 rounded-2xl border border-stone-700">
+                       <p className="text-stone-400 text-sm font-bold mb-2">대국 통산 전적</p>
+                       <p className="text-3xl font-black">
                          <span className="text-blue-400">{profileStats.wins}승</span> <span className="text-red-400">{profileStats.losses}패</span>
                        </p>
-                       <p className="text-stone-500 text-xs font-bold mt-1">승률: {profileStats.wins + profileStats.losses > 0 ? Math.round((profileStats.wins / (profileStats.wins + profileStats.losses)) * 100) : 0}%</p>
+                       <p className="text-stone-400 text-sm font-bold mt-2">승률 {profileStats.wins + profileStats.losses > 0 ? Math.round((profileStats.wins / (profileStats.wins + profileStats.losses)) * 100) : 0}%</p>
                     </div>
-                    <div className="bg-stone-800 p-4 rounded-xl border border-stone-700 flex flex-col justify-center items-center">
-                       <p className="text-stone-400 text-xs font-bold mb-1">최근 30일 출석률</p>
-                       <p className="text-3xl font-black text-[#e3c18b]">{profileStats.attendanceRate}%</p>
+                    <div className="bg-[#241f1b] p-5 rounded-2xl border border-stone-700 flex flex-col justify-center items-center">
+                       <p className="text-stone-400 text-sm font-bold mb-2">최근 30일 출석률</p>
+                       <p className="text-4xl font-black text-[#dcb36c]">{profileStats.attendanceRate}%</p>
                     </div>
                  </div>
                )}
             </div>
-            <button onClick={handleReset} className="w-full py-4 bg-[#9a5b28] hover:bg-[#854d20] text-white text-2xl font-black rounded-xl shadow-xl transition-all">
+            <button onClick={handleReset} className="w-full py-5 bg-[#b88c42] hover:bg-[#a37934] text-stone-950 text-2xl font-black rounded-2xl shadow-xl transition-all">
               확인 (닫기)
             </button>
           </div>
         )}
 
-        {/* 대국 상세 (종료 및 취소) 모드 */}
+        {/* 진행 대국 관리 팝업 */}
         {kioskMode === 'match_detail' && selectedMatch && (
-          <div className="relative z-10 w-full max-w-lg bg-[#3a291f] p-8 rounded-4xl shadow-2xl border-4 border-stone-700 text-center">
+          <div className="relative z-10 w-full max-w-2xl bg-[#1f1a16] text-white p-10 rounded-4xl shadow-2xl border-4 border-[#b88c42] text-center">
             <h2 className="text-3xl font-black text-white mb-6">진행 중인 대국 관리</h2>
-            <div className="bg-[#1a110b] p-6 rounded-2xl mb-6 flex flex-col gap-2 border-2 border-stone-800">
-               <p className="text-xl font-extrabold text-[#e3c18b]">{selectedMatch.match_type} / {selectedMatch.handicap}</p>
-               <p className="text-lg font-bold text-stone-400">경과 시간: <span className="text-white text-2xl">{matchElapsed}</span></p>
+            <div className="bg-[#120f0d] p-6 rounded-3xl mb-8 flex flex-col gap-2 border border-stone-800">
+               <p className="text-2xl font-extrabold text-[#dcb36c]">{selectedMatch.match_type} / {selectedMatch.handicap}</p>
+               <p className="text-lg font-bold text-stone-400">대국 경과 시간: <span className="text-white text-3xl ml-2 font-mono">{matchElapsed}</span></p>
             </div>
 
             {!confirmAction ? (
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <button onClick={() => setConfirmAction('black_win')} className="py-5 bg-stone-900 border-4 border-stone-600 text-white text-2xl font-black rounded-2xl hover:bg-stone-800">⚫ 흑 승리</button>
-                <button onClick={() => setConfirmAction('white_win')} className="py-5 bg-[#fdfbf7] border-4 border-stone-300 text-[#2c1e16] text-2xl font-black rounded-2xl hover:bg-white">⚪ 백 승리</button>
-                <button onClick={() => setConfirmAction('cancel')} className="col-span-2 py-3 bg-red-900/50 text-red-400 text-lg font-extrabold rounded-xl hover:bg-red-800 hover:text-white border-2 border-red-800">대국 무효 (취소하기)</button>
+              <div className="grid grid-cols-2 gap-5 mb-6">
+                <button onClick={() => setConfirmAction('black_win')} className="py-6 bg-stone-900 border-2 border-stone-600 text-white text-3xl font-black rounded-3xl hover:bg-black transition-all shadow-lg">⚫ 흑승</button>
+                <button onClick={() => setConfirmAction('white_win')} className="py-6 bg-white border-2 border-stone-300 text-stone-900 text-3xl font-black rounded-3xl hover:bg-stone-100 transition-all shadow-lg">⚪ 백승</button>
+                <button onClick={() => setConfirmAction('cancel')} className="col-span-2 py-4 bg-red-950/60 text-red-400 text-xl font-bold rounded-2xl hover:bg-red-900 hover:text-white border border-red-800 transition-all">대국 취소 (무효)</button>
               </div>
             ) : (
-              <div className="bg-red-950/40 p-6 rounded-2xl mb-6 border-2 border-red-500/50">
+              <div className="bg-red-950/40 p-6 rounded-3xl mb-6 border border-red-500/50">
                  <h3 className="text-2xl font-black text-white mb-6">
-                   {confirmAction === 'black_win' && '⚫ 흑 팀의 승리로 기록할까요?'}
-                   {confirmAction === 'white_win' && '⚪ 백 팀의 승리로 기록할까요?'}
-                   {confirmAction === 'cancel' && '정말 대국을 취소할까요?'}
+                   {confirmAction === 'black_win' && '⚫ 흑 팀의 승리로 확정할까요?'}
+                   {confirmAction === 'white_win' && '⚪ 백 팀의 승리로 확정할까요?'}
+                   {confirmAction === 'cancel' && '정말 대국을 무효 처리할까요?'}
                  </h3>
                  <div className="flex gap-4">
-                    <button onClick={() => setConfirmAction(null)} className="flex-1 py-4 bg-stone-700 text-white text-xl font-black rounded-xl">아니오</button>
-                    <button onClick={() => endMatch(confirmAction === 'cancel' ? '취소' : confirmAction === 'black_win' ? '흑승' : '백승')} disabled={isProcessing} className="flex-1 py-4 bg-green-600 text-white text-xl font-black rounded-xl disabled:opacity-50">
-                      {isProcessing ? '처리중' : '예, 확정'}
+                    <button onClick={() => setConfirmAction(null)} className="flex-1 py-4 bg-stone-700 text-white text-xl font-black rounded-xl">돌아가기</button>
+                    <button onClick={() => endMatch(confirmAction === 'cancel' ? '취소' : confirmAction === 'black_win' ? '흑승' : '백승')} disabled={isProcessing} className="flex-1 py-4 bg-green-700 hover:bg-green-600 text-white text-xl font-black rounded-xl disabled:opacity-50 transition-all">
+                      {isProcessing ? '처리중' : '확정'}
                     </button>
                  </div>
               </div>
             )}
-            <button onClick={handleReset} className="w-full py-3 text-stone-400 font-bold text-lg hover:text-white mt-2 bg-stone-900/50 rounded-xl">닫기</button>
+            <button onClick={handleReset} className="w-full py-4 text-stone-400 hover:text-white font-bold text-lg bg-stone-900 rounded-2xl">닫기</button>
           </div>
         )}
 
-        {/* 회원 가입 폼 */}
+        {/* 회원 가입 팝업 */}
         {kioskMode === 'register' && (
-           <div className="relative z-10 w-full max-w-md bg-[#3a291f] p-8 rounded-4xl shadow-2xl border-4 border-stone-700 text-center">
-              <h2 className="text-3xl font-black text-white mb-6">📝 신규 회원 등록</h2>
-              <div className="space-y-4 text-left">
+           <div className="relative z-10 w-full max-w-xl bg-[#1f1a16] text-white p-10 rounded-4xl shadow-2xl border-4 border-[#b88c42] text-center">
+              <h2 className="text-3xl font-black text-[#e8d5b5] mb-6">📝 신규 회원 등록</h2>
+              <div className="space-y-5 text-left">
                  <div>
-                    <label className="text-stone-400 text-sm font-bold mb-1 block">이름 (실명)</label>
-                    <input type="text" value={regName} onChange={e => setRegName(e.target.value)} className="w-full p-4 text-xl font-bold bg-[#1a110b] text-white rounded-xl border-2 border-stone-600 focus:border-[#e3c18b] outline-none" placeholder="홍길동" />
+                    <label className="text-stone-300 text-sm font-bold mb-1.5 block">회원 성함</label>
+                    <input type="text" value={regName} onChange={e => setRegName(e.target.value)} className="w-full p-4 text-2xl font-bold bg-[#120f0d] text-white rounded-2xl border-2 border-stone-700 focus:border-[#dcb36c] outline-none" placeholder="홍길동" />
                  </div>
                  <div>
-                    <label className="text-stone-400 text-sm font-bold mb-1 block">전화번호 뒷자리 4개 (출석용)</label>
-                    <input type="number" value={regPhone} onChange={e => setRegPhone(e.target.value)} className="w-full p-4 text-xl font-bold bg-[#1a110b] text-white rounded-xl border-2 border-stone-600 focus:border-[#e3c18b] outline-none" placeholder="1234" />
+                    <label className="text-stone-300 text-sm font-bold mb-1.5 block">전화번호 뒷자리 4개 (출석용)</label>
+                    <input type="number" value={regPhone} onChange={e => setRegPhone(e.target.value)} className="w-full p-4 text-2xl font-bold bg-[#120f0d] text-white rounded-2xl border-2 border-stone-700 focus:border-[#dcb36c] outline-none" placeholder="1234" />
                  </div>
                  <div>
-                    <label className="text-stone-400 text-sm font-bold mb-1 block">현재 기력 (급/단)</label>
-                    <div className="flex justify-between items-center bg-[#1a110b] p-3 rounded-xl border-2 border-stone-600">
-                       <button onClick={() => handleRankChange(-1)} className="w-12 h-12 bg-stone-700 rounded-full text-2xl font-black text-white hover:bg-stone-600 transition-colors">-</button>
-                       <span className="text-2xl font-black w-24 text-center text-[#e3c18b]">{regRank}</span>
-                       <button onClick={() => handleRankChange(1)} className="w-12 h-12 bg-stone-700 rounded-full text-2xl font-black text-white hover:bg-stone-600 transition-colors">+</button>
+                    <label className="text-stone-300 text-sm font-bold mb-1.5 block">기력 (급/단)</label>
+                    <div className="flex justify-between items-center bg-[#120f0d] p-3 rounded-2xl border-2 border-stone-700">
+                       <button onClick={() => handleRankChange(-1)} className="w-14 h-14 bg-stone-800 rounded-full text-3xl font-black text-white hover:bg-stone-700 transition-colors">-</button>
+                       <span className="text-3xl font-black w-28 text-center text-[#dcb36c]">{regRank}</span>
+                       <button onClick={() => handleRankChange(1)} className="w-14 h-14 bg-stone-800 rounded-full text-3xl font-black text-white hover:bg-stone-700 transition-colors">+</button>
                     </div>
                  </div>
               </div>
               <div className="flex gap-4 mt-8">
-                 <button onClick={handleReset} className="flex-1 py-4 bg-stone-700 text-white text-xl font-black rounded-xl">취소</button>
-                 <button onClick={submitRegister} disabled={isProcessing} className="flex-1 py-4 bg-green-600 text-white text-xl font-black rounded-xl disabled:opacity-50">
-                    {isProcessing ? '등록중' : '등록하기'}
+                 <button onClick={handleReset} className="flex-1 py-4 bg-stone-800 text-stone-300 text-xl font-black rounded-2xl hover:bg-stone-700">취소</button>
+                 <button onClick={submitRegister} disabled={isProcessing} className="flex-1 py-4 bg-[#b88c42] hover:bg-[#a37934] text-stone-950 text-xl font-black rounded-2xl disabled:opacity-50 transition-all">
+                    {isProcessing ? '등록중' : '등록 완료'}
                  </button>
               </div>
            </div>
         )}
 
-        {/* 대국 신청 마법사 */}
+        {/* 대국 신청 마법사: 큼직한 가로 폭(max-w-3xl)과 흑백 팀 슬롯 */}
         {kioskMode === 'match_wizard' && (
-          <div className="relative z-10 w-full max-w-xl bg-[#3a291f] p-8 rounded-4xl shadow-2xl border-4 border-stone-700">
-            <button onClick={closeMatchWizard} className="absolute top-5 right-5 text-stone-400 font-extrabold text-xl">✕</button>
-            <div className="flex gap-2 mb-6 justify-center">
-              {[1, 2, 3, 4].map(step => (<div key={step} className={`h-2 w-12 rounded-full ${matchStep >= step ? 'bg-[#9a5b28]' : 'bg-stone-700'}`} />))}
+          <div className="relative z-10 w-full max-w-3xl bg-[#1f1a16] text-white p-10 rounded-4xl shadow-2xl border-4 border-[#b88c42]">
+            <button onClick={closeMatchWizard} className="absolute top-6 right-6 text-stone-400 hover:text-white font-extrabold text-2xl">✕</button>
+            <div className="flex gap-3 mb-8 justify-center">
+              {[1, 2, 3, 4].map(step => (<div key={step} className={`h-2.5 w-16 rounded-full ${matchStep >= step ? 'bg-[#dcb36c]' : 'bg-stone-800'}`} />))}
             </div>
 
             {matchStep === 1 && (
               <div className="text-center">
-                <h2 className="text-2xl font-black text-white mb-6">1. 대국 방식을 선택하세요</h2>
-                <div className="grid grid-cols-2 gap-3">
+                <h2 className="text-3xl font-black text-white mb-8">1. 대국 방식을 선택하세요</h2>
+                <div className="grid grid-cols-2 gap-4">
                   {['랭킹전', '친선전', '페어전(2:2)', '페어전(3:3)', '페어전(4:4)'].map(type => (
-                    <button key={type} onClick={() => { setMatchType(type); setMatchStep(2); }} className="py-5 bg-[#1a110b] border-2 border-stone-700 rounded-2xl text-xl font-black text-stone-300 hover:bg-[#9a5b28] hover:text-white transition-all">
+                    <button key={type} onClick={() => { setMatchType(type); setMatchStep(2); }} className="py-6 bg-[#120f0d] border-2 border-stone-700 rounded-3xl text-2xl font-black text-stone-200 hover:bg-[#b88c42] hover:text-stone-950 hover:border-[#b88c42] transition-all shadow-md">
                       {type}
                     </button>
                   ))}
@@ -417,23 +427,25 @@ export default function KioskPage() {
 
             {matchStep === 2 && (
               <div className="text-center">
-                <h2 className="text-2xl font-black text-white mb-2">2. 대국자를 선택하세요</h2>
-                <p className="text-[#e3c18b] mb-4 text-sm font-bold">좌측 명단을 터치하여 팀을 구성하세요.</p>
-                <div className="flex gap-4">
-                  <div className="flex-1 bg-[#1a110b] p-3 rounded-2xl border-2 border-stone-600">
-                    <h3 className="text-xl font-black text-stone-300 mb-3">⚫ 흑 팀</h3>
-                    <div className="space-y-2 min-h-30">
-                      {blackTeam.map(m => <div key={m.id} className="bg-stone-800 py-2 px-3 rounded-xl font-black text-lg text-white flex justify-between"><span>{m.name}</span><span className="text-[#e3c18b]">{m.rank}</span></div>)}
+                <h2 className="text-3xl font-black text-white mb-2">2. 대국자를 선택하세요</h2>
+                <p className="text-[#dcb36c] mb-6 text-base font-bold">좌측 명단을 터치하여 팀을 구성하세요.</p>
+                <div className="flex gap-6">
+                  <div className="flex-1 bg-stone-900 p-5 rounded-3xl border-2 border-stone-700 shadow-inner">
+                    <h3 className="text-2xl font-black text-white mb-4 border-b border-stone-800 pb-2">⚫ 흑 팀</h3>
+                    <div className="space-y-3 min-h-[140px]">
+                      {blackTeam.map(m => <div key={m.id} className="bg-black/60 py-3 px-4 rounded-xl font-black text-xl text-white flex justify-between border border-stone-800"><span>{m.name}</span><span className="text-[#dcb36c]">{m.rank}</span></div>)}
+                      {blackTeam.length === 0 && <p className="text-stone-500 pt-8 text-sm">좌측에서 선수를 터치하세요</p>}
                     </div>
                   </div>
-                  <div className="flex-1 bg-[#fdfbf7] p-3 rounded-2xl border-2 border-stone-300">
-                    <h3 className="text-xl font-black text-[#2c1e16] mb-3">⚪ 백 팀</h3>
-                    <div className="space-y-2 min-h-30">
-                      {whiteTeam.map(m => <div key={m.id} className="bg-white py-2 px-3 rounded-xl font-black text-lg text-[#2c1e16] flex justify-between border"><span>{m.name}</span><span className="text-[#9a5b28]">{m.rank}</span></div>)}
+                  <div className="flex-1 bg-white text-stone-900 p-5 rounded-3xl border-2 border-stone-300 shadow-inner">
+                    <h3 className="text-2xl font-black text-stone-900 mb-4 border-b border-stone-200 pb-2">⚪ 백 팀</h3>
+                    <div className="space-y-3 min-h-[140px]">
+                      {whiteTeam.map(m => <div key={m.id} className="bg-stone-50 py-3 px-4 rounded-xl font-black text-xl text-stone-900 flex justify-between border border-stone-300"><span>{m.name}</span><span className="text-[#8a5a20]">{m.rank}</span></div>)}
+                      {whiteTeam.length === 0 && <p className="text-stone-400 pt-8 text-sm">흑팀 선발 후 자동 지정됩니다</p>}
                     </div>
                   </div>
                 </div>
-                <button onClick={() => setMatchStep(3)} disabled={blackTeam.length === 0 || whiteTeam.length === 0} className="mt-6 w-full py-4 bg-[#9a5b28] disabled:bg-stone-700 text-white font-black text-xl rounded-2xl">
+                <button onClick={() => setMatchStep(3)} disabled={blackTeam.length === 0 || whiteTeam.length === 0} className="mt-8 w-full py-5 bg-[#b88c42] hover:bg-[#a37934] disabled:bg-stone-800 text-stone-950 font-black text-2xl rounded-2xl transition-all">
                   다음 단계로 ➔
                 </button>
               </div>
@@ -441,49 +453,49 @@ export default function KioskPage() {
 
             {matchStep === 3 && (
               <div className="text-center">
-                <h2 className="text-2xl font-extrabold text-white mb-6">3. 돌 가리기 방식을 선택하세요</h2>
-                <div className="space-y-3">
-                  <button onClick={() => { setMatchStep(4); }} className="w-full py-5 bg-[#1a110b] border-2 border-stone-700 rounded-2xl text-xl font-black text-stone-300 hover:bg-[#9a5b28] hover:text-white">수동 (선택된 흑/백 그대로 진행)</button>
+                <h2 className="text-3xl font-black text-white mb-8">3. 돌 가리기 방식을 선택하세요</h2>
+                <div className="space-y-4">
+                  <button onClick={() => { setMatchStep(4); }} className="w-full py-6 bg-[#120f0d] border-2 border-stone-700 rounded-3xl text-2xl font-black text-stone-200 hover:bg-[#b88c42] hover:text-stone-950 hover:border-[#b88c42] transition-all">수동 (선택된 흑/백 순서대로 진행)</button>
                 </div>
-                <button onClick={() => setMatchStep(2)} className="mt-4 text-stone-400 font-bold text-lg">⬅ 이전 단계</button>
+                <button onClick={() => setMatchStep(2)} className="mt-6 text-stone-400 hover:text-white font-bold text-lg">⬅ 이전 단계</button>
               </div>
             )}
 
             {matchStep === 4 && (
               <div className="text-center">
-                <h2 className="text-2xl font-black text-white mb-4">4. 치수를 설정하세요</h2>
-                <div className="grid grid-cols-3 gap-3 mb-6">
+                <h2 className="text-3xl font-black text-white mb-6">4. 치수를 설정하세요</h2>
+                <div className="grid grid-cols-3 gap-4 mb-6">
                   {(['호선', '정선', '접바둑'] as const).map(type => (
-                    <button key={type} onClick={() => setHandicapType(type)} className={`py-3 border-2 rounded-xl font-black text-xl ${handicapType === type ? 'bg-[#fdfbf7] text-[#2c1e16] border-white scale-105' : 'bg-[#1a110b] text-stone-400 border-stone-700'}`}>{type}</button>
+                    <button key={type} onClick={() => setHandicapType(type)} className={`py-4 border-2 rounded-2xl font-black text-2xl transition-all ${handicapType === type ? 'bg-white text-stone-900 border-white scale-105 shadow-xl' : 'bg-[#120f0d] text-stone-400 border-stone-700'}`}>{type}</button>
                   ))}
                 </div>
                 {handicapType === '접바둑' && (
-                  <div className="bg-[#1a110b] p-5 rounded-2xl border-2 border-stone-700 mb-6 flex flex-col gap-4">
-                     <div className="flex justify-between items-center">
-                        <span className="text-lg font-black text-stone-300">깔아둘 돌</span>
-                        <div className="flex items-center gap-3 bg-stone-800 rounded-full p-1.5">
-                           <button onClick={() => setHandicapStones(p => p > 2 ? p - 1 : p === 2 ? 0 : 0)} className="w-10 h-10 bg-stone-700 rounded-full text-2xl font-black">-</button>
-                           <span className="text-2xl font-black w-16 text-center text-[#e3c18b]">{handicapStones}점</span>
-                           <button onClick={() => setHandicapStones(p => p === 0 ? 2 : p < 9 ? p + 1 : 9)} className="w-10 h-10 bg-stone-700 rounded-full text-2xl font-black">+</button>
+                  <div className="bg-[#120f0d] p-6 rounded-3xl border-2 border-stone-800 mb-6 flex flex-col gap-5">
+                     <div className="flex justify-between items-center px-2">
+                        <span className="text-xl font-black text-stone-300">깔아둘 돌</span>
+                        <div className="flex items-center gap-3 bg-stone-900 rounded-full p-1.5 border border-stone-700">
+                           <button onClick={() => setHandicapStones(p => p > 2 ? p - 1 : p === 2 ? 0 : 0)} className="w-12 h-12 bg-stone-800 rounded-full text-2xl font-black hover:bg-stone-700 transition-colors">-</button>
+                           <span className="text-2xl font-black w-20 text-center text-[#dcb36c]">{handicapStones}점</span>
+                           <button onClick={() => setHandicapStones(p => p === 0 ? 2 : p < 9 ? p + 1 : 9)} className="w-12 h-12 bg-stone-800 rounded-full text-2xl font-black hover:bg-stone-700 transition-colors">+</button>
                         </div>
                      </div>
-                     <div className="flex justify-between items-center">
-                        <span className="text-lg font-black text-stone-300">{handicapStones === 0 ? '역덤' : '덤'}</span>
-                        <div className="flex items-center gap-3 bg-stone-800 rounded-full p-1.5">
-                           <button onClick={() => setKomi(p => p > 0.5 ? p - 1 : 0.5)} className="w-10 h-10 bg-stone-700 rounded-full text-2xl font-black">-</button>
-                           <span className="text-2xl font-black w-20 text-center text-[#e3c18b]">{komi}집</span>
-                           <button onClick={() => setKomi(p => p < 99.5 ? p + 1 : 99.5)} className="w-10 h-10 bg-stone-700 rounded-full text-2xl font-black">+</button>
+                     <div className="flex justify-between items-center px-2">
+                        <span className="text-xl font-black text-stone-300">{handicapStones === 0 ? '역덤' : '덤'}</span>
+                        <div className="flex items-center gap-3 bg-stone-900 rounded-full p-1.5 border border-stone-700">
+                           <button onClick={() => setKomi(p => p > 0.5 ? p - 1 : 0.5)} className="w-12 h-12 bg-stone-800 rounded-full text-2xl font-black hover:bg-stone-700 transition-colors">-</button>
+                           <span className="text-2xl font-black w-24 text-center text-[#dcb36c]">{komi}집</span>
+                           <button onClick={() => setKomi(p => p < 99.5 ? p + 1 : 99.5)} className="w-12 h-12 bg-stone-800 rounded-full text-2xl font-black hover:bg-stone-700 transition-colors">+</button>
                         </div>
                      </div>
                      {handicapStones === 0 && komi < 15 && (
-                        <p className="text-red-400 font-bold text-sm bg-red-900/30 py-2 rounded-lg border border-red-500/50">⚠️ 0점 접바둑은 최소 15.5집 이상의 역덤이 필요합니다.</p>
+                        <p className="text-red-400 font-bold text-sm bg-red-950/40 py-2.5 rounded-xl border border-red-500/50">⚠️ 0점 접바둑은 최소 15.5집 이상의 역덤이 필요합니다.</p>
                      )}
                   </div>
                 )}
-                <button onClick={submitMatch} disabled={!isHandicapValid || isProcessing} className="w-full py-5 bg-green-600 disabled:bg-stone-700 text-white text-2xl font-black rounded-2xl disabled:text-stone-500">
+                <button onClick={submitMatch} disabled={!isHandicapValid || isProcessing} className="w-full py-5 bg-green-700 hover:bg-green-600 disabled:bg-stone-800 text-white text-2xl font-black rounded-2xl disabled:text-stone-600 transition-all shadow-xl">
                   {isProcessing ? '처리중' : '✅ 대국 시작하기'}
                 </button>
-                <button onClick={() => setMatchStep(3)} className="mt-4 text-stone-400 font-bold text-lg">⬅ 이전 단계</button>
+                <button onClick={() => setMatchStep(3)} className="mt-4 text-stone-400 hover:text-white font-bold text-lg">⬅ 이전 단계</button>
               </div>
             )}
           </div>

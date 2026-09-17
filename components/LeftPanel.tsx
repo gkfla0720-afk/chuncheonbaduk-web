@@ -27,37 +27,32 @@ export default function LeftPanel({
   openMatchDetail,
   openProfileDetail
 }: LeftPanelProps) {
-
-  // 💡 전체화면 토글(On/Off) 기능
   const toggleFullScreen = () => {
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen().catch((err) => {
         console.warn(`전체화면 전환 에러: ${err.message}`);
       });
-    } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
-      }
+    } else if (document.exitFullscreen) {
+      document.exitFullscreen();
     }
   };
 
   return (
-    <section className="w-[40%] h-full bg-[#fdfbf7] border-r-8 border-[#2c1e16] flex flex-col shadow-2xl relative z-10">
-      <header className="p-4 sm:p-6 bg-white border-b-4 border-stone-200 flex justify-between items-end">
+    <section className="w-[38%] h-full bg-[#f7f3ea] border-r-4 border-[#b88c42] flex flex-col shadow-2xl relative z-10">
+      <header className="p-5 bg-white border-b-2 border-[#d9c49d] flex justify-between items-end shadow-sm">
         <div>
-          {/* 💡 "현재 현황" 글씨에 전체화면 기능 연결 및 마우스 커서 변경 */}
           <h1 
             onClick={toggleFullScreen} 
-            className="text-3xl font-black text-[#2c1e16] tracking-tight cursor-pointer hover:text-[#9a5b28] transition-colors"
+            className="text-3xl font-black text-stone-800 tracking-tight cursor-pointer hover:text-[#b88c42] transition-colors flex items-center gap-2"
             title="클릭 시 전체화면"
           >
-            현재 현황 ⛶
+            현재 현황 <span className="text-xl opacity-60">⛶</span>
           </h1>
-          <p className="text-stone-500 font-bold mt-1 text-sm sm:text-base">이름을 터치하세요 (대국/프로필)</p>
+          <p className="text-stone-500 font-bold mt-1 text-sm">터치 시 대국 관리 / 프로필 조회</p>
         </div>
         <div className="text-right">
-          <span className="text-4xl sm:text-5xl font-black text-[#9a5b28]">{activeMembers.length}</span>
-          <span className="text-lg sm:text-xl font-bold text-stone-600"> 명</span>
+          <span className="text-5xl font-black text-[#8a5a20]">{activeMembers.length}</span>
+          <span className="text-xl font-bold text-stone-600"> 명</span>
         </div>
       </header>
 
@@ -65,7 +60,7 @@ export default function LeftPanel({
         {isLoadingList ? (
           <p className="text-center mt-10 text-stone-400 font-bold text-xl">목록을 불러오는 중...</p>
         ) : activeMembers.length === 0 ? (
-          <div className="text-center py-20">
+          <div className="text-center py-24">
             <p className="text-stone-400 font-bold text-xl">현재 기원에 계신 분이 없습니다.</p>
           </div>
         ) : (
@@ -84,17 +79,27 @@ export default function LeftPanel({
                   openProfileDetail(member);
                 }
               }}
-              className={`p-4 rounded-2xl shadow-sm border-2 flex justify-between items-center transition-all cursor-pointer hover:scale-[1.02] ${
-                member.current_status === '대국중' ? 'bg-red-50 border-red-200 hover:bg-red-100' : 'bg-white border-stone-200 hover:bg-stone-50'
+              className={`p-4 rounded-2xl border-2 flex justify-between items-center transition-all cursor-pointer hover:scale-[1.01] shadow-sm ${
+                member.current_status === '대국중' 
+                  ? 'bg-amber-50/80 border-amber-500 hover:bg-amber-100' 
+                  : 'bg-white border-[#e0cfb3] hover:border-[#b88c42]'
               }`}
             >
               <div className="flex flex-col">
-                <span className="font-black text-2xl text-[#2c1e16]">{member.name}</span>
-                <span className="text-xs sm:text-sm text-stone-500 font-bold mt-1">{new Date(member.last_check_in).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })} 도착</span>
+                <span className="font-black text-2xl text-stone-800">{member.name}</span>
+                <span className="text-xs text-stone-500 font-semibold mt-1">
+                  {new Date(member.last_check_in).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })} 도착
+                </span>
               </div>
               <div className="flex flex-col items-end gap-2">
-                <span className="px-3 py-1 bg-stone-100 text-[#2c1e16] border-2 border-stone-300 text-base sm:text-lg font-extrabold rounded-lg">{member.rank}</span>
-                {member.current_status === '대국중' && <span className="px-2 py-1 bg-red-600 text-white text-xs sm:text-sm font-black rounded-md shadow-md animate-pulse">대국중</span>}
+                <span className="px-3 py-1 bg-stone-100 text-stone-800 border border-stone-300 text-base font-extrabold rounded-lg shadow-inner">
+                  {member.rank}
+                </span>
+                {member.current_status === '대국중' && (
+                  <span className="px-2.5 py-0.5 bg-stone-900 text-amber-300 text-xs font-black rounded-md shadow-md animate-pulse border border-amber-400">
+                    대국중
+                  </span>
+                )}
               </div>
             </div>
           ))
