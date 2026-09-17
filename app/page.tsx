@@ -3,28 +3,25 @@
 import { useState, useRef, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 
-// --- 타입 정의 ---
-interface Profile { id: string; name: string; phone_last4: string; rank: string; tier: string; }
-interface ActiveMember { id: number; status: string; checked_in_at: string; user_id: string; profiles: Profile; }
+interface Profile { id: string; name: string; phone_last4: string; rank: string; tier: string; current_status: string; last_check_in: string; }
 interface Match { id: number; match_type: string; handicap: string; started_at: string; black_team: string[]; white_team: string[]; }
 
 export default function KioskPage() {
-  const [activeMembers, setActiveMembers] = useState<ActiveMember[]>([]);
+  const [activeMembers, setActiveMembers] = useState<Profile[]>([]);
   const [isLoadingList, setIsLoadingList] = useState(true);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const [phoneNumber, setPhoneNumber] = useState('');
   const [candidates, setCandidates] = useState<Profile[]>([]);
   const [confirmUser, setConfirmUser] = useState<Profile | null>(null);
-  const [activeAttendance, setActiveAttendance] = useState<{ id: number; status: string } | null>(null);
   const [message, setMessage] = useState('전화번호 뒷자리 4자리를 눌러주세요.');
   
   const [kioskMode, setKioskMode] = useState<'attendance' | 'match_wizard' | 'register' | 'match_detail' | 'profile_detail'>('attendance');
 
   const [matchStep, setMatchStep] = useState(1);
   const [matchType, setMatchType] = useState('친선전');
-  const [blackTeam, setBlackTeam] = useState<ActiveMember[]>([]);
-  const [whiteTeam, setWhiteTeam] = useState<ActiveMember[]>([]);
+  const [blackTeam, setBlackTeam] = useState<Profile[]>([]);
+  const [whiteTeam, setWhiteTeam] = useState<Profile[]>([]);
   const [handicapType, setHandicapType] = useState<'호선' | '정선' | '접바둑'>('호선');
   const [handicapStones, setHandicapStones] = useState(2);
   const [komi, setKomi] = useState(0.5);
@@ -46,22 +43,28 @@ export default function KioskPage() {
   useEffect(() => {
     let isMounted = true;
     const fetchActiveMembers = async () => {
-      const { data } = await supabase.from('attendance')
-        .select(`id, status, checked_in_at, user_id, profiles(name, rank, tier)`)
-        .neq('status', '귀가')
-        .order('checked_in_at', { ascending: false });
+      // 💡 핵심 기능: 새벽 4시 자동 귀가(체크아웃) 시스템
+      const now = new Date();
+      const limitTime = new Date();
+      limitTime.setHours(4, 0, 0, 0); // 기준점: 오늘 새벽 4시
+      if (now < limitTime) limitTime.setDate(limitTime.getDate() - 1); // 지금 시간이 새벽 4시 전이라면 어제 새벽 4시가 기준
+
+      const { data: staleData } = await supabase.from('profiles').select('id').neq('current_status', '오프라인').lt('last_check_in', limitTime.toISOString());
+      if (staleData && staleData.length > 0) {
+        const staleIds = staleData.map(d => d.id);
+        // 오래된 기록 오프라인 및 귀가 처리 (4시에 퇴장한 것으로 기록)
+        await supabase.from('profiles').update({ current_status: '오프라인' }).in('id', staleIds);
+        await supabase.from('attendance').update({ status: '귀가', checked_out_at: limitTime.toISOString() }).in('user_id', staleIds).neq('status', '귀가');
+      }
+
+      // 💡 현재 기원에 있는 회원 불러오기 (중복 없음)
+      const { data } = await supabase.from('profiles')
+        .select('*')
+        .neq('current_status', '오프라인')
+        .order('last_check_in', { ascending: false });
 
       if (data && isMounted) {
-        // 💡 맵에 명시적 타입 지정 및 불필요한 @ts-expect-error 제거
-        const uniqueMembersMap = new Map<string, ActiveMember>();
-        data.forEach(item => {
-          if (!uniqueMembersMap.has(item.user_id)) {
-            // @ts-expect-error: 내부 조인 타입 매칭
-            uniqueMembersMap.set(item.user_id, item);
-          }
-        });
-        
-        setActiveMembers(Array.from(uniqueMembersMap.values())); 
+        setActiveMembers(data); 
         setIsLoadingList(false);
       }
     };
@@ -70,7 +73,7 @@ export default function KioskPage() {
   }, [refreshTrigger]);
 
   useEffect(() => {
-    const channel = supabase.channel('attendance_status').on('postgres_changes', { event: '*', schema: 'public', table: 'attendance' }, () => setRefreshTrigger(p => p + 1)).subscribe();
+    const channel = supabase.channel('profiles_status').on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => setRefreshTrigger(p => p + 1)).subscribe();
     return () => { supabase.removeChannel(channel); };
   }, []);
 
@@ -79,8 +82,7 @@ export default function KioskPage() {
     if (kioskMode === 'match_detail' && selectedMatch) {
       const start = new Date(selectedMatch.started_at).getTime();
       timer = setInterval(() => {
-        const now = new Date().getTime();
-        const diff = Math.floor((now - start) / 1000);
+        const diff = Math.floor((new Date().getTime() - start) / 1000);
         setMatchElapsed(`${Math.floor(diff/3600) > 0 ? `${Math.floor(diff/3600)}시간 ` : ''}${Math.floor((diff%3600)/60)}분 ${diff%60}초`);
       }, 1000);
     }
@@ -89,7 +91,7 @@ export default function KioskPage() {
 
   const handleReset = () => {
     if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
-    setPhoneNumber(''); setCandidates([]); setConfirmUser(null); setActiveAttendance(null);
+    setPhoneNumber(''); setCandidates([]); setConfirmUser(null);
     setKioskMode('attendance'); setMessage('전화번호 뒷자리 4자리를 눌러주세요.');
     setConfirmAction(null); setSelectedMatch(null); setSelectedProfile(null);
   };
@@ -103,23 +105,24 @@ export default function KioskPage() {
     const { data } = await supabase.from('profiles').select('*').eq('phone_last4', phoneNumber);
     if (!data || data.length === 0) { setMessage('등록되지 않은 번호입니다.'); return; }
     if (data.length > 1) { setCandidates(data); setMessage('이름을 선택하세요.'); } 
-    else { 
-      setConfirmUser(data[0]); setCandidates([]);
-      const { data: att } = await supabase.from('attendance').select('id, status').eq('user_id', data[0].id).neq('status', '귀가').order('checked_in_at', { ascending: false }).limit(1);
-      setActiveAttendance(att && att.length > 0 ? att[0] : null); setMessage('');
-    }
+    else { setConfirmUser(data[0]); setCandidates([]); setMessage(''); }
   };
 
+  // 💡 입장 시 로직: 출석 기록은 쌓이고 프로필은 출석중으로 업데이트
   const handleConfirmAttendance = async () => {
     if (!confirmUser) return;
-    await supabase.from('attendance').insert([{ user_id: confirmUser.id, status: '출석중' }]);
+    const nowISO = new Date().toISOString();
+    await supabase.from('profiles').update({ current_status: '출석중', last_check_in: nowISO }).eq('id', confirmUser.id);
+    await supabase.from('attendance').insert([{ user_id: confirmUser.id, status: '출석중', checked_in_at: nowISO }]);
     setRefreshTrigger(p => p + 1); 
     resetTimerRef.current = setTimeout(() => handleReset(), 4000);
   };
 
+  // 💡 귀가 시 로직: 열려있던 출석 기록에 퇴장 시간을 기록하고 닫음
   const handleGoHome = async () => {
-    if (!activeAttendance) return;
-    await supabase.from('attendance').update({ status: '귀가' }).eq('id', activeAttendance.id);
+    if (!confirmUser) return;
+    await supabase.from('profiles').update({ current_status: '오프라인' }).eq('id', confirmUser.id);
+    await supabase.from('attendance').update({ status: '귀가', checked_out_at: new Date().toISOString() }).eq('user_id', confirmUser.id).neq('status', '귀가');
     setRefreshTrigger(p => p + 1);
     resetTimerRef.current = setTimeout(() => handleReset(), 4000);
   };
@@ -130,44 +133,33 @@ export default function KioskPage() {
     alert('가입이 완료되었습니다!'); handleReset();
   };
 
-  const openProfileDetail = async (member: ActiveMember) => {
-    setKioskMode('profile_detail');
-    setSelectedProfile(member.profiles);
-    setIsLoadingStats(true);
+  const openProfileDetail = async (member: Profile) => {
+    setKioskMode('profile_detail'); setSelectedProfile(member); setIsLoadingStats(true);
 
     try {
-      const { data: profData } = await supabase.from('profiles').select('created_at').eq('id', member.user_id).single();
+      const { data: profData } = await supabase.from('profiles').select('created_at').eq('id', member.id).single();
       const joinedAt = profData?.created_at ? new Date(profData.created_at).toLocaleDateString('ko-KR') : '정보 없음';
 
-      const { data: blackMatches } = await supabase.from('matches').select('winner').eq('phase', '종료').contains('black_team', [member.user_id]);
-      const { data: whiteMatches } = await supabase.from('matches').select('winner').eq('phase', '종료').contains('white_team', [member.user_id]);
+      const { data: blackMatches } = await supabase.from('matches').select('winner').eq('phase', '종료').contains('black_team', [member.id]);
+      const { data: whiteMatches } = await supabase.from('matches').select('winner').eq('phase', '종료').contains('white_team', [member.id]);
       
       let w = 0, l = 0;
       blackMatches?.forEach(m => { if (m.winner === '흑승') w++; else if (m.winner === '백승') l++; });
       whiteMatches?.forEach(m => { if (m.winner === '백승') w++; else if (m.winner === '흑승') l++; });
 
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-      const { data: attData } = await supabase.from('attendance').select('checked_in_at').eq('user_id', member.user_id).gte('checked_in_at', thirtyDaysAgo.toISOString());
+      const thirtyDaysAgo = new Date(); thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const { data: attData } = await supabase.from('attendance').select('checked_in_at').eq('user_id', member.id).gte('checked_in_at', thirtyDaysAgo.toISOString());
       
       const uniqueDays = new Set(attData?.map(a => new Date(a.checked_in_at).toLocaleDateString())).size;
       const attRate = Math.round((uniqueDays / 30) * 100);
 
       setProfileStats({ wins: w, losses: l, attendanceRate: attRate, joinedAt });
-    } catch (err) {
-      console.error(err);
-    }
+    } catch (err) { console.error(err); }
     setIsLoadingStats(false);
   };
 
-  const openMatchWizard = () => {
-    setKioskMode('match_wizard'); setMatchStep(1); setBlackTeam([]); setWhiteTeam([]); setHandicapType('호선'); setHandicapStones(2); setKomi(0.5);
-  };
-
-  // 💡 추가됨: 마법사를 닫는 함수
-  const closeMatchWizard = () => {
-    setKioskMode('attendance'); handleReset();
-  };
+  const openMatchWizard = () => { setKioskMode('match_wizard'); setMatchStep(1); setBlackTeam([]); setWhiteTeam([]); setHandicapType('호선'); setHandicapStones(2); setKomi(0.5); };
+  const closeMatchWizard = () => { setKioskMode('attendance'); handleReset(); };
 
   const openMatchDetail = async (userId: string) => {
     const { data } = await supabase.from('matches').select('*').neq('phase', '종료').neq('phase', '취소');
@@ -181,6 +173,7 @@ export default function KioskPage() {
     if (!selectedMatch) return;
     await supabase.from('matches').update({ phase: result === '취소' ? '취소' : '종료', winner: result }).eq('id', selectedMatch.id);
     const allIds = [...selectedMatch.black_team, ...selectedMatch.white_team];
+    await supabase.from('profiles').update({ current_status: '출석중' }).in('id', allIds);
     await supabase.from('attendance').update({ status: '출석중' }).in('user_id', allIds).neq('status', '귀가');
     alert(result === '취소' ? '대국이 취소되었습니다.' : '대국이 정상 종료되었습니다.');
     setRefreshTrigger(p => p + 1); handleReset();
@@ -190,8 +183,10 @@ export default function KioskPage() {
 
   const submitMatch = async () => {
     const finalHandicap = handicapType === '접바둑' ? `접바둑 ${handicapStones}점 (${handicapStones===0?'역덤':'덤'} ${komi}집)` : `${handicapType}(덤 ${handicapType==='호선'?'6.5':'0.5'}집)`;
-    await supabase.from('matches').insert([{ match_type: matchType, black_team: blackTeam.map(m => m.user_id), white_team: whiteTeam.map(m => m.user_id), handicap: finalHandicap }]);
-    await supabase.from('attendance').update({ status: '대국중' }).in('id', [...blackTeam, ...whiteTeam].map(m => m.id));
+    await supabase.from('matches').insert([{ match_type: matchType, black_team: blackTeam.map(m => m.id), white_team: whiteTeam.map(m => m.id), handicap: finalHandicap }]);
+    const allIds = [...blackTeam, ...whiteTeam].map(m => m.id);
+    await supabase.from('profiles').update({ current_status: '대국중' }).in('id', allIds);
+    await supabase.from('attendance').update({ status: '대국중' }).in('user_id', allIds).neq('status', '귀가');
     setRefreshTrigger(p => p + 1); handleReset();
   };
 
@@ -227,23 +222,23 @@ export default function KioskPage() {
                     const req = matchType.includes('2:2') ? 2 : matchType.includes('3:3') ? 3 : matchType.includes('4:4') ? 4 : 1;
                     if (blackTeam.length < req) setBlackTeam([...blackTeam, member]);
                     else if (whiteTeam.length < req) setWhiteTeam([...whiteTeam, member]);
-                  } else if (member.status === '대국중') {
-                    openMatchDetail(member.user_id);
+                  } else if (member.current_status === '대국중') {
+                    openMatchDetail(member.id);
                   } else {
                     openProfileDetail(member);
                   }
                 }}
                 className={`p-4 rounded-2xl shadow-sm border-2 flex justify-between items-center transition-all cursor-pointer hover:scale-[1.02] ${
-                  member.status === '대국중' ? 'bg-red-50 border-red-200 hover:bg-red-100' : 'bg-white border-stone-200 hover:bg-stone-50'
+                  member.current_status === '대국중' ? 'bg-red-50 border-red-200 hover:bg-red-100' : 'bg-white border-stone-200 hover:bg-stone-50'
                 }`}
               >
                 <div className="flex flex-col">
-                  <span className="font-black text-2xl text-[#2c1e16]">{member.profiles?.name}</span>
-                  <span className="text-sm text-stone-500 font-bold mt-1">{new Date(member.checked_in_at).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })} 도착</span>
+                  <span className="font-black text-2xl text-[#2c1e16]">{member.name}</span>
+                  <span className="text-sm text-stone-500 font-bold mt-1">{new Date(member.last_check_in).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })} 도착</span>
                 </div>
                 <div className="flex flex-col items-end gap-2">
-                  <span className="px-3 py-1 bg-stone-100 text-[#2c1e16] border-2 border-stone-300 text-lg font-extrabold rounded-lg">{member.profiles?.rank}</span>
-                  {member.status === '대국중' && <span className="px-3 py-1 bg-red-600 text-white text-sm font-black rounded-md shadow-md animate-pulse">대국중 (터치)</span>}
+                  <span className="px-3 py-1 bg-stone-100 text-[#2c1e16] border-2 border-stone-300 text-lg font-extrabold rounded-lg">{member.rank}</span>
+                  {member.current_status === '대국중' && <span className="px-3 py-1 bg-red-600 text-white text-sm font-black rounded-md shadow-md animate-pulse">대국중 (터치)</span>}
                 </div>
               </div>
             ))
@@ -251,7 +246,7 @@ export default function KioskPage() {
         </div>
       </section>
 
-      {/* ================= RIGHT (우측 영역 전체 스크롤 허용) ================= */}
+      {/* ================= RIGHT (우측 영역) ================= */}
       <section className="w-[60%] h-full bg-[#2c1e16] text-[#fdfbf7] p-8 overflow-y-auto flex flex-col items-center justify-center relative custom-scrollbar">
         <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'linear-gradient(#fdfbf7 2px, transparent 2px), linear-gradient(90deg, #fdfbf7 2px, transparent 2px)', backgroundSize: '60px 60px' }}></div>
 
@@ -268,7 +263,7 @@ export default function KioskPage() {
               <div className="bg-[#3a291f] p-8 rounded-[40px] border-4 border-[#9a5b28] shadow-2xl text-center w-full">
                 <h2 className="text-5xl font-black text-[#fdfbf7] mb-3">{confirmUser.name}</h2>
                 <p className="text-[#e3c18b] text-2xl font-extrabold mb-8">{confirmUser.rank} / {confirmUser.tier}</p>
-                {activeAttendance ? (
+                {confirmUser.current_status !== '오프라인' ? (
                   <button onClick={handleGoHome} className="w-full py-6 bg-[#1a110b] border-4 border-[#e3c18b] text-[#e3c18b] font-black rounded-2xl text-3xl shadow-xl">귀가하기 (퇴장)</button>
                 ) : (
                   <button onClick={handleConfirmAttendance} className="w-full py-6 bg-[#fdfbf7] text-[#2c1e16] font-black rounded-2xl text-3xl shadow-xl">출석하기 (입장)</button>
@@ -309,20 +304,16 @@ export default function KioskPage() {
           <div className="relative z-10 w-full max-w-lg bg-[#3a291f] p-10 rounded-[40px] shadow-2xl border-4 border-stone-700 text-center my-6">
             <h2 className="text-4xl font-black text-white mb-2">회원 프로필</h2>
             <p className="text-stone-400 font-bold mb-8">가입일: {profileStats.joinedAt}</p>
-            
             <div className="bg-[#1a110b] p-8 rounded-3xl mb-8 border-2 border-stone-800">
                <h3 className="text-5xl font-black text-[#fdfbf7] mb-2">{selectedProfile.name}</h3>
                <p className="text-2xl font-extrabold text-[#e3c18b] mb-8">{selectedProfile.rank} / {selectedProfile.tier}</p>
-               
                {isLoadingStats ? (
                  <p className="text-stone-400 font-bold text-xl py-6 animate-pulse">전적 데이터를 불러오는 중...</p>
                ) : (
                  <div className="grid grid-cols-2 gap-4">
                     <div className="bg-stone-800 p-4 rounded-2xl border border-stone-700">
                        <p className="text-stone-400 text-sm font-bold mb-1">통산 전적</p>
-                       <p className="text-3xl font-black text-white">
-                         <span className="text-blue-400">{profileStats.wins}승</span> <span className="text-red-400">{profileStats.losses}패</span>
-                       </p>
+                       <p className="text-3xl font-black text-white"><span className="text-blue-400">{profileStats.wins}승</span> <span className="text-red-400">{profileStats.losses}패</span></p>
                        <p className="text-stone-500 text-sm font-bold mt-2">승률: {profileStats.wins + profileStats.losses > 0 ? Math.round((profileStats.wins / (profileStats.wins + profileStats.losses)) * 100) : 0}%</p>
                     </div>
                     <div className="bg-stone-800 p-4 rounded-2xl border border-stone-700 flex flex-col justify-center items-center">
@@ -344,7 +335,6 @@ export default function KioskPage() {
                <p className="text-2xl font-extrabold text-[#e3c18b]">{selectedMatch.match_type} / {selectedMatch.handicap}</p>
                <p className="text-xl font-bold text-stone-400">경과 시간: <span className="text-white text-3xl">{matchElapsed}</span></p>
             </div>
-
             {!confirmAction ? (
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <button onClick={() => setConfirmAction('black_win')} className="py-6 bg-stone-900 border-4 border-stone-600 text-white text-3xl font-black rounded-3xl hover:bg-stone-800">⚫ 흑 팀 승리</button>
@@ -353,11 +343,7 @@ export default function KioskPage() {
               </div>
             ) : (
               <div className="bg-red-950/40 p-6 rounded-3xl mb-6 border-2 border-red-500/50">
-                 <h3 className="text-3xl font-black text-white mb-6">
-                   {confirmAction === 'black_win' && '⚫ 흑 팀의 승리로 기록할까요?'}
-                   {confirmAction === 'white_win' && '⚪ 백 팀의 승리로 기록할까요?'}
-                   {confirmAction === 'cancel' && '정말 대국을 취소(무효) 할까요?'}
-                 </h3>
+                 <h3 className="text-3xl font-black text-white mb-6">{confirmAction === 'black_win' && '⚫ 흑 팀의 승리로 기록할까요?'}{confirmAction === 'white_win' && '⚪ 백 팀의 승리로 기록할까요?'}{confirmAction === 'cancel' && '정말 대국을 취소(무효) 할까요?'}</h3>
                  <div className="flex gap-4">
                     <button onClick={() => setConfirmAction(null)} className="flex-1 py-4 bg-stone-700 text-white text-2xl font-black rounded-xl">아니오</button>
                     <button onClick={() => endMatch(confirmAction === 'cancel' ? '취소' : confirmAction === 'black_win' ? '흑승' : '백승')} className="flex-1 py-4 bg-green-600 text-white text-2xl font-black rounded-xl">예, 확정합니다</button>
@@ -424,13 +410,13 @@ export default function KioskPage() {
                   <div className="flex-1 bg-[#1a110b] p-4 rounded-3xl border-2 border-stone-600">
                     <h3 className="text-2xl font-black text-stone-300 mb-4">⚫ 흑 팀</h3>
                     <div className="space-y-3 min-h-30">
-                      {blackTeam.map(m => <div key={m.id} className="bg-stone-800 py-3 px-4 rounded-xl font-black text-xl text-white flex justify-between"><span>{m.profiles.name}</span><span className="text-[#e3c18b]">{m.profiles.rank}</span></div>)}
+                      {blackTeam.map(m => <div key={m.id} className="bg-stone-800 py-3 px-4 rounded-xl font-black text-xl text-white flex justify-between"><span>{m.name}</span><span className="text-[#e3c18b]">{m.rank}</span></div>)}
                     </div>
                   </div>
                   <div className="flex-1 bg-[#fdfbf7] p-4 rounded-3xl border-2 border-stone-300">
                     <h3 className="text-2xl font-black text-[#2c1e16] mb-4">⚪ 백 팀</h3>
                     <div className="space-y-3 min-h-30">
-                      {whiteTeam.map(m => <div key={m.id} className="bg-white py-3 px-4 rounded-xl font-black text-xl text-[#2c1e16] flex justify-between border"><span>{m.profiles.name}</span><span className="text-[#9a5b28]">{m.profiles.rank}</span></div>)}
+                      {whiteTeam.map(m => <div key={m.id} className="bg-white py-3 px-4 rounded-xl font-black text-xl text-[#2c1e16] flex justify-between border"><span>{m.name}</span><span className="text-[#9a5b28]">{m.rank}</span></div>)}
                     </div>
                   </div>
                 </div>
@@ -455,7 +441,7 @@ export default function KioskPage() {
                 <h2 className="text-3xl font-black text-white mb-6">4. 치수를 설정하세요</h2>
                 <div className="grid grid-cols-3 gap-4 mb-6">
                   {['호선', '정선', '접바둑'].map(type => (
-                    // @ts-expect-error: 문자열 강제 매칭 허용
+                    // @ts-expect-error
                     <button key={type} onClick={() => setHandicapType(type)} className={`py-4 border-2 rounded-2xl font-black text-2xl ${handicapType === type ? 'bg-[#fdfbf7] text-[#2c1e16] border-white scale-105' : 'bg-[#1a110b] text-stone-400 border-stone-700'}`}>{type}</button>
                   ))}
                 </div>

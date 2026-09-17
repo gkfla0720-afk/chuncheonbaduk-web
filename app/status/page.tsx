@@ -15,14 +15,10 @@ export default function StatusPage() {
   const [newMatchAlert, setNewMatchAlert] = useState(false);
 
   const fetchData = useCallback(async (showNotification = false) => {
-    const { count } = await supabase.from('attendance').select('*', { count: 'exact', head: true }).neq('status', '귀가');
+    // 💡 변경됨: profiles 테이블의 current_status로 정확한 인원 계산
+    const { count } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).neq('current_status', '오프라인');
     
-    // 💡 핵심 수정: '종료'뿐만 아니라 '취소'된 대국도 화면에서 제외하도록 수정했습니다.
-    const { data: matchesData } = await supabase.from('matches')
-      .select('*')
-      .neq('phase', '종료')
-      .neq('phase', '취소')
-      .order('started_at', { ascending: false });
+    const { data: matchesData } = await supabase.from('matches').select('*').neq('phase', '종료').neq('phase', '취소').order('started_at', { ascending: false });
     
     let enrichedMatches: Match[] = [];
     if (matchesData && matchesData.length > 0) {
