@@ -26,6 +26,7 @@ export default function KioskPage() {
 
   const [matchStep, setMatchStep] = useState(1);
   const [matchType, setMatchType] = useState('친선전');
+  const [drawMethod, setDrawMethod] = useState<'수동' | '랜덤'>('수동');
   const [blackTeam, setBlackTeam] = useState<Profile[]>([]);
   const [whiteTeam, setWhiteTeam] = useState<Profile[]>([]);
   const [handicapType, setHandicapType] = useState<'호선' | '정선' | '접바둑'>('호선');
@@ -180,7 +181,7 @@ export default function KioskPage() {
     setIsLoadingStats(false);
   };
 
-  const openMatchWizard = () => { setKioskMode('match_wizard'); setMatchStep(1); setBlackTeam([]); setWhiteTeam([]); setHandicapType('호선'); setHandicapStones(2); setKomi(0.5); };
+  const openMatchWizard = () => { setKioskMode('match_wizard'); setMatchStep(1); setDrawMethod('수동'); setBlackTeam([]); setWhiteTeam([]); setHandicapType('호선'); setHandicapStones(2); setKomi(0.5); };
   const closeMatchWizard = () => { setKioskMode('attendance'); handleReset(); };
 
   const openMatchDetail = async (userId: string) => {
@@ -203,6 +204,20 @@ export default function KioskPage() {
 
   const requiredPlayerCount = matchType.includes('2:2') ? 2 : matchType.includes('3:3') ? 3 : matchType.includes('4:4') ? 4 : 1;
   const isHandicapValid = handicapType !== '접바둑' || handicapStones >= 2 || (handicapStones === 0 && komi >= 15);
+
+  const applyAutoDraw = () => {
+    if (blackTeam.length === 0 && whiteTeam.length === 0) return;
+
+    const allPlayers = [...blackTeam, ...whiteTeam].filter(Boolean);
+    const shuffled = [...allPlayers].sort(() => Math.random() - 0.5);
+    const half = Math.ceil(shuffled.length / 2);
+
+    setBlackTeam(shuffled.slice(0, half));
+    setWhiteTeam(shuffled.slice(half));
+    setHandicapType('호선');
+    setDrawMethod('랜덤');
+    setMatchStep(4);
+  };
 
   const selectMemberToTeam = (member: Profile) => {
     if (member.current_status === '대국중') {
@@ -338,23 +353,23 @@ export default function KioskPage() {
           <div className="modal-card w-full max-w-lg rounded-[30px] border border-[#d4c3a2] bg-[#f8f4ee] p-6 shadow-[0_18px_45px_rgba(34,27,20,0.28)]">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-[10px] font-bold tracking-[0.18em] text-[#7e5d3d]">회원 등급</p>
-                <h3 className="mt-2 text-2xl font-black text-[#2a241d]">정회원 달성 조건</h3>
+                <p className="text-[12px] font-bold tracking-[0.18em] text-[#7e5d3d]">회원 등급</p>
+                <h3 className="mt-2 text-4xl font-black text-[#2a241d]">정회원 달성 조건</h3>
               </div>
-              <button onClick={() => setShowMembershipGuide(false)} className="rounded-full bg-stone-200 px-3 py-1 text-xs font-bold text-stone-700 transition hover:bg-stone-300">닫기</button>
+              <button onClick={() => setShowMembershipGuide(false)} className="rounded-full bg-stone-200 px-4 py-2 text-sm font-bold text-stone-700 transition hover:bg-stone-300">닫기</button>
             </div>
 
-            <div className="mt-5 rounded-[24px] border border-[#d9cab0] bg-[#f3ebdf] p-5">
-              <p className="text-base leading-7 text-stone-700">
+            <div className="mt-5 rounded-[24px] border border-[#d9cab0] bg-[#f3ebdf] p-6">
+              <p className="text-xl leading-8 text-stone-700">
                 정회원은 <span className="font-black text-[#8a5a2b]">기원 방문 10회 이상</span>과 <span className="font-black text-[#8a5a2b]">대국 10회 이상</span>을 충족한 회원에게 자동으로 승격됩니다.
               </p>
-              <ul className="mt-4 space-y-3 text-sm text-stone-700">
-                <li className="flex items-start gap-2"><span className="mt-1 inline-block h-2 w-2 rounded-full bg-[#8a5a2b]" /> 방문 기록과 대국 기록이 누적되면 자동으로 정회원으로 인정됩니다.</li>
-                <li className="flex items-start gap-2"><span className="mt-1 inline-block h-2 w-2 rounded-full bg-[#8a5a2b]" /> 승격 조건을 충족한 회원은 등급이 자연스럽게 정회원으로 바뀝니다.</li>
+              <ul className="mt-5 space-y-4 text-lg text-stone-700">
+                <li className="flex items-start gap-3"><span className="mt-2 inline-block h-2.5 w-2.5 rounded-full bg-[#8a5a2b]" /> 방문 기록과 대국 기록이 누적되면 자동으로 정회원으로 인정됩니다.</li>
+                <li className="flex items-start gap-3"><span className="mt-2 inline-block h-2.5 w-2.5 rounded-full bg-[#8a5a2b]" /> 승격 조건을 충족한 회원은 등급이 자연스럽게 정회원으로 바뀝니다.</li>
               </ul>
             </div>
 
-            <button onClick={() => setShowMembershipGuide(false)} className="mt-5 w-full rounded-2xl bg-[#2a241d] py-3 text-base font-bold text-[#f8f3eb] transition hover:bg-[#1f1b18]">
+            <button onClick={() => setShowMembershipGuide(false)} className="mt-6 w-full rounded-2xl bg-[#2a241d] py-4 text-lg font-bold text-[#f8f3eb] transition hover:bg-[#1f1b18]">
               확인
             </button>
           </div>
@@ -536,7 +551,8 @@ export default function KioskPage() {
               <div className="text-center">
                 <h2 className="text-3xl font-black text-white mb-8">3. 돌 가리기 방식을 선택하세요</h2>
                 <div className="space-y-4">
-                  <button onClick={() => { setMatchStep(4); }} className="w-full py-6 bg-[#120f0d] border-2 border-stone-700 rounded-3xl text-2xl font-black text-stone-200 hover:bg-[#b88c42] hover:text-stone-950 hover:border-[#b88c42] transition-all">수동 (선택된 흑/백 순서대로 진행)</button>
+                  <button onClick={() => { setDrawMethod('수동'); setMatchStep(4); }} className="w-full py-6 bg-[#120f0d] border-2 border-stone-700 rounded-3xl text-2xl font-black text-stone-200 hover:bg-[#b88c42] hover:text-stone-950 hover:border-[#b88c42] transition-all">수동 (선택된 흑/백 순서대로 진행)</button>
+                  <button onClick={() => { setDrawMethod('랜덤'); setHandicapType('호선'); applyAutoDraw(); }} className="w-full py-6 bg-[#1b1714] border-2 border-[#dcb36c] rounded-3xl text-2xl font-black text-[#f2d8a1] hover:bg-[#2c231d] transition-all">자동 (랜덤 돌 가리기, 호선만 적용)</button>
                 </div>
                 <button onClick={() => setMatchStep(2)} className="mt-6 text-stone-400 hover:text-white font-bold text-lg">⬅ 이전 단계</button>
               </div>
@@ -545,10 +561,20 @@ export default function KioskPage() {
             {matchStep === 4 && (
               <div className="text-center">
                 <h2 className="text-3xl font-black text-white mb-6">4. 치수를 설정하세요</h2>
+                {drawMethod === '랜덤' && (
+                  <div className="mb-5 rounded-2xl border border-[#dcb36c]/80 bg-[#1d1712]/80 px-4 py-3 text-base font-bold text-[#f4d9aa]">
+                    자동 돌 가리기에서는 호선만 허용됩니다. 안전한 대국 배치를 위해 접바둑과 정선은 선택할 수 없습니다.
+                  </div>
+                )}
                 <div className="grid grid-cols-3 gap-4 mb-6">
-                  {(['호선', '정선', '접바둑'] as const).map(type => (
-                    <button key={type} onClick={() => setHandicapType(type)} className={`py-4 border-2 rounded-2xl font-black text-2xl transition-all ${handicapType === type ? 'bg-white text-stone-900 border-white scale-105 shadow-xl' : 'bg-[#120f0d] text-stone-400 border-stone-700'}`}>{type}</button>
-                  ))}
+                  {(['호선', '정선', '접바둑'] as const).map(type => {
+                    const isLocked = drawMethod === '랜덤' && type !== '호선';
+                    return (
+                      <button key={type} onClick={() => !isLocked && setHandicapType(type)} disabled={isLocked} className={`py-4 border-2 rounded-2xl font-black text-2xl transition-all ${handicapType === type ? 'bg-white text-stone-900 border-white scale-105 shadow-xl' : 'bg-[#120f0d] text-stone-400 border-stone-700'} ${isLocked ? 'opacity-35 cursor-not-allowed' : ''}`}>
+                        {type}
+                      </button>
+                    );
+                  })}
                 </div>
                 {handicapType === '접바둑' && (
                   <div className="bg-[#120f0d] p-6 rounded-3xl border-2 border-stone-800 mb-6 flex flex-col gap-5">
