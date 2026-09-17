@@ -201,7 +201,37 @@ export default function KioskPage() {
     setRefreshTrigger(p => p + 1); handleReset();
   };
 
+  const requiredPlayerCount = matchType.includes('2:2') ? 2 : matchType.includes('3:3') ? 3 : matchType.includes('4:4') ? 4 : 1;
   const isHandicapValid = handicapType !== '접바둑' || handicapStones >= 2 || (handicapStones === 0 && komi >= 15);
+
+  const selectMemberToTeam = (member: Profile) => {
+    if (member.current_status === '대국중') {
+      alert('이미 대국 중인 회원은 중복으로 신청할 수 없습니다.');
+      return;
+    }
+    if (blackTeam.some(m => m.id === member.id) || whiteTeam.some(m => m.id === member.id)) return;
+
+    if (blackTeam.length < requiredPlayerCount) {
+      setBlackTeam([...blackTeam, member]);
+      return;
+    }
+    if (whiteTeam.length < requiredPlayerCount) {
+      setWhiteTeam([...whiteTeam, member]);
+      return;
+    }
+
+    if (blackTeam.length <= whiteTeam.length) {
+      setBlackTeam([...blackTeam, member]);
+    } else {
+      setWhiteTeam([...whiteTeam, member]);
+    }
+  };
+
+  const availableMembers = activeMembers.filter(member => {
+    if (member.current_status === '오프라인') return false;
+    if (member.current_status === '대국중') return false;
+    return !blackTeam.some(m => m.id === member.id) && !whiteTeam.some(m => m.id === member.id);
+  });
 
   const submitMatch = async () => {
     if (isProcessing) return;
@@ -446,32 +476,53 @@ export default function KioskPage() {
             {matchStep === 2 && (
               <div className="text-center">
                 <h2 className="text-3xl font-black text-white mb-2">2. 대국자를 선택하세요</h2>
-                <p className="text-[#dcb36c] mb-6 text-base font-bold">터치하여 명단에서 빼거나 추가할 수 있습니다.</p>
-                <div className="flex gap-6">
-                  {/* 💡 흑 팀 빼기 로직 추가 */}
-                  <div className="flex-1 bg-stone-900 p-5 rounded-3xl border-2 border-stone-700 shadow-inner">
-                    <h3 className="text-2xl font-black text-white mb-4 border-b border-stone-800 pb-2">⚫ 흑 팀</h3>
-                    <div className="space-y-3 min-h-[140px]">
-                      {blackTeam.map(m => (
-                        <div key={m.id} onClick={() => setBlackTeam(prev => prev.filter(p => p.id !== m.id))} className="bg-black/60 py-3 px-4 rounded-xl font-black text-xl text-white flex justify-between border border-stone-800 cursor-pointer hover:bg-red-900/80 transition-colors group">
-                          <span>{m.name}</span>
-                          <span className="text-[#dcb36c] group-hover:text-white">{m.rank} <span className="ml-2 text-red-400 group-hover:text-white">✕</span></span>
-                        </div>
-                      ))}
-                      {blackTeam.length === 0 && <p className="text-stone-500 pt-8 text-sm">좌측에서 선수를 터치하세요</p>}
+                <p className="text-[#dcb36c] mb-6 text-base font-bold">아래 목록에서 참가자를 선택하면 자동으로 흑/백 팀에 배치됩니다.</p>
+                <div className="flex gap-5 items-start">
+                  <div className="w-[32%] min-w-[220px] bg-[#120f0d] p-4 rounded-3xl border-2 border-stone-700 shadow-inner">
+                    <h3 className="text-xl font-black text-white mb-4 border-b border-stone-800 pb-2">참가 인원</h3>
+                    <div className="space-y-2 max-h-[320px] overflow-y-auto pr-1">
+                      {availableMembers.length === 0 ? (
+                        <p className="text-stone-500 pt-8 text-sm">선택 가능한 인원이 없습니다.</p>
+                      ) : (
+                        availableMembers.map(member => (
+                          <button
+                            key={member.id}
+                            onClick={() => selectMemberToTeam(member)}
+                            className="w-full flex items-center justify-between rounded-2xl border border-stone-700 bg-[#1b1714] px-3 py-2 text-left transition hover:border-[#dcb36c] hover:bg-[#2b221d]"
+                          >
+                            <span className="text-base font-black text-white">{member.name}</span>
+                            <span className="rounded-md bg-[#dcb36c] px-2 py-1 text-xs font-black text-stone-900">{member.rank}</span>
+                          </button>
+                        ))
+                      )}
                     </div>
                   </div>
-                  {/* 💡 백 팀 빼기 로직 추가 */}
-                  <div className="flex-1 bg-white text-stone-900 p-5 rounded-3xl border-2 border-stone-300 shadow-inner">
-                    <h3 className="text-2xl font-black text-stone-900 mb-4 border-b border-stone-200 pb-2">⚪ 백 팀</h3>
-                    <div className="space-y-3 min-h-[140px]">
-                      {whiteTeam.map(m => (
-                        <div key={m.id} onClick={() => setWhiteTeam(prev => prev.filter(p => p.id !== m.id))} className="bg-stone-50 py-3 px-4 rounded-xl font-black text-xl text-stone-900 flex justify-between border border-stone-300 cursor-pointer hover:bg-red-100 transition-colors group">
-                          <span>{m.name}</span>
-                          <span className="text-[#8a5a20] group-hover:text-red-500">{m.rank} <span className="ml-2 text-red-500">✕</span></span>
-                        </div>
-                      ))}
-                      {whiteTeam.length === 0 && <p className="text-stone-400 pt-8 text-sm">흑팀 선발 후 자동 지정됩니다</p>}
+
+                  <div className="flex-1 flex gap-4">
+                    <div className="flex-1 bg-stone-900 p-5 rounded-3xl border-2 border-stone-700 shadow-inner">
+                      <h3 className="text-2xl font-black text-white mb-4 border-b border-stone-800 pb-2">⚫ 흑 팀</h3>
+                      <div className="space-y-3 min-h-[140px]">
+                        {blackTeam.map(m => (
+                          <div key={m.id} onClick={() => setBlackTeam(prev => prev.filter(p => p.id !== m.id))} className="bg-black/60 py-3 px-4 rounded-xl font-black text-xl text-white flex justify-between border border-stone-800 cursor-pointer hover:bg-red-900/80 transition-colors group">
+                            <span>{m.name}</span>
+                            <span className="text-[#dcb36c] group-hover:text-white">{m.rank} <span className="ml-2 text-red-400 group-hover:text-white">✕</span></span>
+                          </div>
+                        ))}
+                        {blackTeam.length === 0 && <p className="text-stone-500 pt-8 text-sm">선수명을 선택해 주세요</p>}
+                      </div>
+                    </div>
+
+                    <div className="flex-1 bg-white text-stone-900 p-5 rounded-3xl border-2 border-stone-300 shadow-inner">
+                      <h3 className="text-2xl font-black text-stone-900 mb-4 border-b border-stone-200 pb-2">⚪ 백 팀</h3>
+                      <div className="space-y-3 min-h-[140px]">
+                        {whiteTeam.map(m => (
+                          <div key={m.id} onClick={() => setWhiteTeam(prev => prev.filter(p => p.id !== m.id))} className="bg-stone-50 py-3 px-4 rounded-xl font-black text-xl text-stone-900 flex justify-between border border-stone-300 cursor-pointer hover:bg-red-100 transition-colors group">
+                            <span>{m.name}</span>
+                            <span className="text-[#8a5a20] group-hover:text-red-500">{m.rank} <span className="ml-2 text-red-500">✕</span></span>
+                          </div>
+                        ))}
+                        {whiteTeam.length === 0 && <p className="text-stone-400 pt-8 text-sm">백 팀도 같은 방식으로 선택</p>}
+                      </div>
                     </div>
                   </div>
                 </div>
