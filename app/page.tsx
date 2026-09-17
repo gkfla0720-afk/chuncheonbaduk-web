@@ -13,6 +13,7 @@ const RANKS = [
 
 export default function KioskPage() {
   const [activeMembers, setActiveMembers] = useState<Profile[]>([]);
+  const [liveMatches, setLiveMatches] = useState<Match[]>([]);
   const [isLoadingList, setIsLoadingList] = useState(true);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -74,6 +75,14 @@ export default function KioskPage() {
     };
     fetchActiveMembers();
     return () => { isMounted = false; };
+  }, [refreshTrigger]);
+
+  useEffect(() => {
+    const fetchLiveMatches = async () => {
+      const { data } = await supabase.from('matches').select('*').neq('phase', '종료').neq('phase', '취소').order('started_at', { ascending: false });
+      setLiveMatches(data || []);
+    };
+    fetchLiveMatches();
   }, [refreshTrigger]);
 
   useEffect(() => {
@@ -280,6 +289,43 @@ export default function KioskPage() {
         {/* 💡 레이아웃 100% 최적화: 스크롤을 막기 위해 가로(flex-row) 배치 적용 */}
         {kioskMode === 'attendance' && (
           <div className="relative z-10 w-full h-full flex flex-row items-center justify-center gap-8 xl:gap-12 px-2">
+            <div className="flex flex-col items-center gap-5 w-[53%] max-w-[620px] shrink-0">
+              {liveMatches.length > 0 && (
+                <div className="w-full rounded-[28px] border-2 border-[#d8c4a2] bg-[#1d1714]/85 p-5 shadow-[0_14px_30px_rgba(10,8,7,0.28)] backdrop-blur-sm">
+                  <div className="flex items-center justify-between gap-3 mb-3">
+                    <p className="text-[12px] font-extrabold tracking-[0.22em] text-[#e0c48f] uppercase">LIVE</p>
+                    <span className="rounded-full bg-[#e9cc96] px-2.5 py-1 text-[11px] font-black text-[#2a1d13]">진행 중 대국</span>
+                  </div>
+                  <div className="space-y-3">
+                    {liveMatches.slice(0, 2).map((match) => {
+                      const blackPlayers = (match.black_team || []).map(id => activeMembers.find(member => member.id === id)).filter(Boolean) as Profile[];
+                      const whitePlayers = (match.white_team || []).map(id => activeMembers.find(member => member.id === id)).filter(Boolean) as Profile[];
+                      return (
+                        <div key={match.id} className="rounded-[22px] border border-[#6b4d30] bg-[#120f0d]/80 p-3 text-white">
+                          <div className="flex items-center justify-between gap-3 mb-2">
+                            <span className="text-[12px] font-black tracking-[0.14em] text-[#dcb36c]">{match.match_type}</span>
+                            <span className="text-[12px] font-bold text-[#f7e7c4]">{match.handicap}</span>
+                          </div>
+                          <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+                            <div className="space-y-1 text-left">
+                              {blackPlayers.length > 0 ? blackPlayers.map(player => (
+                                <div key={player.id} className="text-[15px] font-black text-[#f3e8d1] whitespace-nowrap">{player.name}</div>
+                              )) : <div className="text-[14px] text-stone-400">-</div>}
+                            </div>
+                            <div className="text-[15px] font-black tracking-[0.2em] text-[#dcb36c]">VS</div>
+                            <div className="space-y-1 text-right">
+                              {whitePlayers.length > 0 ? whitePlayers.map(player => (
+                                <div key={player.id} className="text-[15px] font-black text-[#f3e8d1] whitespace-nowrap">{player.name}</div>
+                              )) : <div className="text-[14px] text-stone-400">-</div>}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
             
             {/* 중앙: 콤팩트하고 세련된 입력 키패드 영역 */}
             <div className="flex flex-col items-center w-full max-w-[420px]">
