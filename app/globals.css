@@ -25,28 +25,37 @@ html {
 
 body {
   min-height: 100vh;
-  background:
-    linear-gradient(rgba(83, 62, 41, 0.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(83, 62, 41, 0.06) 1px, transparent 1px),
-    #f3ead9;
-  background-size: 32px 32px, 32px 32px, cover;
+  background: #1d1a17;
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
 
 .board-surface {
-  background:
-    radial-gradient(circle at 12% 18%, rgba(24, 20, 15, 0.25) 0 9%, transparent 10%),
-    radial-gradient(circle at 75% 22%, rgba(24, 20, 15, 0.18) 0 8%, transparent 9%),
-    radial-gradient(circle at 46% 62%, rgba(24, 20, 15, 0.2) 0 7%, transparent 8%),
-    radial-gradient(circle at 28% 74%, rgba(24, 20, 15, 0.16) 0 9%, transparent 10%),
-    linear-gradient(135deg, rgba(255,255,255,0.26), rgba(201,176,131,0.14)),
-    linear-gradient(135deg, #d7b77e 0%, #b88a52 32%, #d9b77d 100%);
-  background-size: auto, auto, auto, auto, cover, cover;
+  position: relative;
+  background-image: url('/go-board-scene.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  isolation: isolate;
+}
+
+.board-surface::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(17, 13, 10, 0.46);
+  backdrop-filter: blur(2px);
+  z-index: 0;
+}
+
+.board-surface > * {
+  position: relative;
+  z-index: 1;
 }
 
 .board-panel {
-  background:
-    linear-gradient(135deg, rgba(249, 244, 235, 0.96), rgba(234, 220, 194, 0.9));
-  box-shadow: 0 18px 38px rgba(99, 77, 48, 0.08);
+  background: rgba(248, 243, 236, 0.84);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 18px 38px rgba(30, 24, 18, 0.18);
+  border: 1px solid rgba(207, 190, 162, 0.7);
 }
