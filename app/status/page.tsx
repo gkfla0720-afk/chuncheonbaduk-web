@@ -123,7 +123,7 @@ export default function StatusPage() {
           </div>
         </header>
 
-        <section className="mt-6 rounded-[32px] border border-[#d8c7a8] bg-[linear-gradient(135deg,#f5f0e8_0%,#e7dcc2_100%)]/95 p-5 shadow-[0_14px_30px_rgba(10,8,7,0.22)] sm:p-6 backdrop-blur-[1px]">
+        <section className="mt-6 rounded-[32px] border border-[#d8c7a8] bg-[#f5efe6]/95 p-5 shadow-[0_14px_30px_rgba(10,8,7,0.22)] sm:p-6 backdrop-blur-[1px]">
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="text-[10px] font-bold tracking-[0.18em] text-[#7e5d3d]">춘천기원 LIVE</p>
@@ -144,7 +144,7 @@ export default function StatusPage() {
           )}
         </section>
 
-        <section className="mt-8">
+        <section className="mt-8 rounded-[28px] border border-[#d7c7a8] bg-[#f7f1e7]/95 p-4 shadow-[0_12px_26px_rgba(10,8,7,0.16)] sm:p-5">
           <div className="mb-4 flex items-center justify-between">
             <h3 className="text-xl font-black text-[#2a241d] sm:text-2xl">진행 중인 대국 현황</h3>
             <span className="inline-flex items-center gap-2 rounded-full border border-[#d0b38c] bg-[#f6efe6] px-3 py-1 text-xs font-semibold text-[#6d553f]">

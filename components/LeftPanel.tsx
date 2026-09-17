@@ -38,8 +38,8 @@ export default function LeftPanel({
   };
 
   return (
-    <section className="w-[38%] h-full board-panel border-r-4 border-[#b88c42] flex flex-col shadow-2xl relative z-10">
-      <header className="p-5 xl:p-6 bg-[#f9f4ea]/90 border-b-2 border-[#d9c49d] flex justify-between items-end shadow-sm">
+    <section className="w-[38%] h-full board-panel border-r-4 border-[#c59d62] flex flex-col shadow-2xl relative z-10 bg-[#d9c7a1]">
+      <header className="p-5 xl:p-6 bg-[#f3ead3]/90 border-b-2 border-[#caa96f] flex justify-between items-end shadow-sm">
         <div>
           <h1 
             onClick={toggleFullScreen} 
