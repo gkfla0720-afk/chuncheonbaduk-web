@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
-// 💡 경로 수정: status 폴더 안에 있으므로 두 칸(../../)을 올라가야 합니다!
 import { Profile, Match as BaseMatch } from '../../types';
 
 interface Match extends BaseMatch {
@@ -18,14 +17,12 @@ export default function StatusPage() {
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [newMatchAlert, setNewMatchAlert] = useState(false);
 
-  // 스마트폰용 프로필 상세 보기 상태
   const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
   const [profileStats, setProfileStats] = useState({ wins: 0, losses: 0, attendanceRate: 0, joinedAt: '', tier: '' });
   const [isLoadingStats, setIsLoadingStats] = useState(false);
 
   const fetchData = useCallback(async (showNotification = false) => {
     const { count } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).neq('current_status', '오프라인');
-    
     const { data: matchesData } = await supabase.from('matches').select('*').neq('phase', '종료').neq('phase', '취소').order('started_at', { ascending: false });
     
     let enrichedMatches: Match[] = [];
@@ -61,7 +58,6 @@ export default function StatusPage() {
     setIsCooldown(true); fetchData(true); setTimeout(() => setIsCooldown(false), 10000);
   };
 
-  // 스마트폰에서 프로필을 불러오는 함수
   const openProfileDetail = async (profile: Profile) => {
     setSelectedProfile(profile);
     setIsLoadingStats(true);
@@ -89,87 +85,82 @@ export default function StatusPage() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-900 font-sans p-6 select-none pb-16 relative">
+    <main className="min-h-screen bg-slate-50 text-slate-900 font-sans p-6 select-none pb-12 relative">
       {newMatchAlert && (
         <div className="fixed top-6 left-0 right-0 z-50 flex justify-center animate-bounce">
-          <div className="bg-amber-500 text-white px-10 py-6 rounded-full font-bold text-3xl shadow-2xl flex items-center gap-3">
+          <div className="bg-amber-500 text-white px-8 py-4 rounded-full font-bold text-xl shadow-2xl flex items-center gap-3">
             <span>🔥 새로운 대국이 시작되었습니다!</span>
           </div>
         </div>
       )}
 
-      {/* 초대형 헤더 영역 */}
-      <header className="py-10 flex flex-col items-center relative mb-8">
-        <h1 className="text-6xl sm:text-7xl font-extrabold text-slate-800 tracking-tight">춘천기원 라이브 📡</h1>
-        <p className="text-slate-500 text-2xl sm:text-3xl mt-4 font-bold">
+      <header className="py-8 flex flex-col items-center relative mb-4">
+        <h1 className="text-4xl font-extrabold text-slate-800 tracking-tight">춘천기원 라이브 📡</h1>
+        <p className="text-slate-500 text-lg mt-2 font-bold">
           업데이트: {lastUpdated.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
         </p>
-        <button onClick={handleRefresh} disabled={isCooldown} className={`mt-8 px-10 py-5 rounded-3xl font-bold text-3xl sm:text-4xl shadow-xl transition-all ${isCooldown ? 'bg-slate-300 text-slate-500 cursor-not-allowed' : 'bg-white border-4 border-slate-300 text-slate-800 hover:bg-slate-100 active:scale-95'}`}>
+        <button onClick={handleRefresh} disabled={isCooldown} className={`mt-6 px-6 py-3 rounded-2xl font-bold text-lg shadow-md transition-all ${isCooldown ? 'bg-slate-300 text-slate-500 cursor-not-allowed' : 'bg-white border-2 border-slate-300 text-slate-800 hover:bg-slate-100 active:scale-95'}`}>
           {isCooldown ? '대기중...' : '🔄 새로고침 (10초)'}
         </button>
       </header>
 
-      {/* 초대형 인원 현황 영역 */}
-      <section className="bg-white rounded-[3rem] shadow-xl border-4 border-slate-200 p-12 mb-12 text-center">
-        <h2 className="text-slate-500 font-extrabold text-4xl sm:text-5xl mb-6">현재 기원에 계신 분</h2>
+      <section className="bg-white rounded-3xl shadow-md border-2 border-slate-200 p-8 mb-8 text-center">
+        <h2 className="text-slate-500 font-extrabold text-2xl mb-4">현재 기원에 계신 분</h2>
         {isLoading ? (
-          <div className="text-7xl font-extrabold text-slate-300 animate-pulse">...</div>
+          <div className="text-5xl font-extrabold text-slate-300 animate-pulse">...</div>
         ) : (
           <div className="flex items-center justify-center gap-4">
-            <span className="text-[10rem] sm:text-[12rem] font-black text-[#9a5b28] leading-none">{activeCount}</span>
-            <span className="text-6xl sm:text-7xl font-extrabold text-slate-600 mt-12">명</span>
+            <span className="text-8xl font-black text-[#9a5b28] leading-none">{activeCount}</span>
+            <span className="text-4xl font-extrabold text-slate-600 mt-6">명</span>
           </div>
         )}
       </section>
 
-      {/* 초대형 진행 중인 대국 영역 */}
       <section>
-        <div className="flex justify-between items-center mb-8 px-4">
-          <h3 className="font-extrabold text-4xl sm:text-5xl text-slate-800 flex items-center gap-4">
+        <div className="flex justify-between items-center mb-6 px-4">
+          <h3 className="font-extrabold text-2xl text-slate-800 flex items-center gap-3">
             🔥 진행 중인 대국 현황
-            <span className="flex h-8 w-8 relative">
+            <span className="flex h-5 w-5 relative">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-8 w-8 bg-red-500"></span>
+              <span className="relative inline-flex rounded-full h-5 w-5 bg-red-500"></span>
             </span>
           </h3>
         </div>
 
         {isLoading ? (
-          <p className="text-center text-slate-400 text-3xl font-bold mt-16">대국 정보를 불러오는 중...</p>
+          <p className="text-center text-slate-400 text-xl font-bold mt-10">대국 정보를 불러오는 중...</p>
         ) : activeMatches.length === 0 ? (
-          <div className="text-center py-24 bg-white rounded-[3rem] border-4 border-slate-200 border-dashed">
-            <p className="text-slate-500 text-3xl font-bold leading-relaxed">현재 진행 중인 대국이 없습니다.<br/>방문하셔서 첫 대국을 시작해보세요!</p>
+          <div className="text-center py-16 bg-white rounded-3xl border-2 border-slate-200 border-dashed">
+            <p className="text-slate-500 text-xl font-bold leading-relaxed">현재 진행 중인 대국이 없습니다.<br/>방문하셔서 첫 대국을 시작해보세요!</p>
           </div>
         ) : (
-          <ul className="space-y-8">
+          <ul className="space-y-6">
             {activeMatches.map((match) => (
-              <li key={match.id} className="bg-white p-8 rounded-[3rem] shadow-2xl border-4 border-slate-200 relative overflow-hidden">
-                <div className="absolute top-6 right-6">
-                  <span className="px-6 py-3 rounded-full text-2xl font-black bg-blue-100 text-blue-800 border-2 border-blue-200 shadow-sm">{match.match_type}</span>
+              <li key={match.id} className="bg-white p-6 rounded-3xl shadow-lg border-2 border-slate-200 relative overflow-hidden">
+                <div className="absolute top-5 right-5">
+                  <span className="px-4 py-2 rounded-full text-sm font-black bg-blue-100 text-blue-800 border-2 border-blue-200 shadow-sm">{match.match_type}</span>
                 </div>
                 
-                <p className="text-3xl text-slate-500 font-extrabold mb-8 mt-2">
+                <p className="text-base text-slate-500 font-extrabold mb-5 mt-1">
                   {new Date(match.started_at).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })} 시작
-                  <span className="ml-4 text-red-500 bg-red-50 px-3 py-1 rounded-xl">{match.handicap}</span>
+                  <span className="ml-3 text-red-500 bg-red-50 px-2 py-1 rounded-lg">{match.handicap}</span>
                 </p>
 
-                <div className="flex justify-between items-stretch mt-4 bg-slate-50 rounded-[2.5rem] p-6 border-2 border-slate-200">
-                  {/* 흑팀 (선수 터치 시 프로필 오픈) */}
-                  <div className="flex flex-col items-center flex-1 justify-center gap-4">
+                <div className="flex justify-between items-stretch mt-4 bg-slate-50 rounded-2xl p-4 border-2 border-slate-200">
+                  <div className="flex flex-col items-center flex-1 justify-center gap-3">
                     {match.blackProfiles?.map(p => (
-                      <div key={p.id} onClick={() => openProfileDetail(p)} className="text-center bg-slate-800 text-white w-full py-4 rounded-2xl shadow-lg cursor-pointer hover:opacity-80 active:scale-95 transition-all">
-                        <span className="text-4xl sm:text-5xl font-black">{p.name}</span> <span className="text-2xl sm:text-3xl text-slate-300 ml-2">{p.rank}</span>
+                      <div key={p.id} onClick={() => openProfileDetail(p)} className="text-center bg-slate-800 text-white w-full py-3 rounded-xl shadow-md cursor-pointer hover:opacity-80 active:scale-95 transition-all">
+                        <span className="text-2xl font-black">{p.name}</span> <span className="text-lg text-slate-300 ml-1">{p.rank}</span>
                       </div>
                     ))}
                   </div>
-                  <div className="flex items-center justify-center px-8">
-                    <span className="text-5xl font-black text-slate-400 italic">VS</span>
+                  <div className="flex items-center justify-center px-4">
+                    <span className="text-3xl font-black text-slate-400 italic">VS</span>
                   </div>
-                  {/* 백팀 (선수 터치 시 프로필 오픈) */}
-                  <div className="flex flex-col items-center flex-1 justify-center gap-4">
+                  <div className="flex flex-col items-center flex-1 justify-center gap-3">
                     {match.whiteProfiles?.map(p => (
-                      <div key={p.id} onClick={() => openProfileDetail(p)} className="text-center bg-white border-4 border-slate-300 text-slate-800 w-full py-4 rounded-2xl shadow-lg cursor-pointer hover:bg-slate-100 active:scale-95 transition-all">
-                        <span className="text-4xl sm:text-5xl font-black">{p.name}</span> <span className="text-2xl sm:text-3xl text-slate-500 ml-2">{p.rank}</span>
+                      <div key={p.id} onClick={() => openProfileDetail(p)} className="text-center bg-white border-2 border-slate-300 text-slate-800 w-full py-3 rounded-xl shadow-md cursor-pointer hover:bg-slate-100 active:scale-95 transition-all">
+                        <span className="text-2xl font-black">{p.name}</span> <span className="text-lg text-slate-500 ml-1">{p.rank}</span>
                       </div>
                     ))}
                   </div>
@@ -180,36 +171,36 @@ export default function StatusPage() {
         )}
       </section>
 
-      {/* 스마트폰용 모달 프로필 팝업 (초대형 글씨 적용) */}
+      {/* 모달 프로필 팝업 */}
       {selectedProfile && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-6">
-          <div className="bg-white rounded-[3rem] w-full max-w-2xl p-10 shadow-2xl border-4 border-slate-300 relative text-center">
-            <h2 className="text-4xl font-black text-slate-800 mb-2">회원 기력 및 프로필</h2>
-            <p className="text-slate-500 font-bold mb-8 text-xl">가입일: {profileStats.joinedAt}</p>
+          <div className="bg-white rounded-3xl w-full max-w-lg p-8 shadow-2xl border-2 border-slate-300 relative text-center">
+            <h2 className="text-2xl font-black text-slate-800 mb-2">회원 기력 및 프로필</h2>
+            <p className="text-slate-500 font-bold mb-6 text-sm">가입일: {profileStats.joinedAt}</p>
             
-            <div className="bg-slate-50 p-8 rounded-3xl mb-8 border-2 border-slate-200">
-               <h3 className="text-6xl font-black text-slate-900 mb-4">{selectedProfile.name}</h3>
-               <p className="text-4xl font-extrabold text-[#9a5b28] mb-8">{selectedProfile.rank} / {profileStats.tier}</p>
+            <div className="bg-slate-50 p-6 rounded-2xl mb-6 border-2 border-slate-200">
+               <h3 className="text-4xl font-black text-slate-900 mb-3">{selectedProfile.name}</h3>
+               <p className="text-2xl font-extrabold text-[#9a5b28] mb-6">{selectedProfile.rank} / {profileStats.tier}</p>
                
                {isLoadingStats ? (
-                 <p className="text-slate-400 font-bold py-8 animate-pulse text-2xl">전적 데이터를 집계하는 중...</p>
+                 <p className="text-slate-400 font-bold py-6 animate-pulse text-lg">데이터 집계 중...</p>
                ) : (
-                 <div className="grid grid-cols-2 gap-6">
-                    <div className="bg-white p-6 rounded-2xl border-2 border-slate-200 shadow-sm">
-                       <p className="text-slate-500 text-xl font-bold mb-3">대국 통산 전적</p>
-                       <p className="text-5xl font-black">
+                 <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-white p-4 rounded-xl border-2 border-slate-200 shadow-sm">
+                       <p className="text-slate-500 text-sm font-bold mb-2">대국 전적</p>
+                       <p className="text-3xl font-black">
                          <span className="text-blue-500">{profileStats.wins}승</span> <span className="text-red-500">{profileStats.losses}패</span>
                        </p>
-                       <p className="text-slate-400 text-xl font-bold mt-4">승률 {profileStats.wins + profileStats.losses > 0 ? Math.round((profileStats.wins / (profileStats.wins + profileStats.losses)) * 100) : 0}%</p>
+                       <p className="text-slate-400 text-sm font-bold mt-2">승률 {profileStats.wins + profileStats.losses > 0 ? Math.round((profileStats.wins / (profileStats.wins + profileStats.losses)) * 100) : 0}%</p>
                     </div>
-                    <div className="bg-white p-6 rounded-2xl border-2 border-slate-200 shadow-sm flex flex-col justify-center items-center">
-                       <p className="text-slate-500 text-xl font-bold mb-3">최근 30일 출석률</p>
-                       <p className="text-6xl font-black text-[#9a5b28]">{profileStats.attendanceRate}%</p>
+                    <div className="bg-white p-4 rounded-xl border-2 border-slate-200 shadow-sm flex flex-col justify-center items-center">
+                       <p className="text-slate-500 text-sm font-bold mb-2">최근 출석률</p>
+                       <p className="text-4xl font-black text-[#9a5b28]">{profileStats.attendanceRate}%</p>
                     </div>
                  </div>
                )}
             </div>
-            <button onClick={() => setSelectedProfile(null)} className="w-full py-6 bg-slate-800 hover:bg-slate-700 text-white text-3xl font-black rounded-2xl shadow-xl transition-all">
+            <button onClick={() => setSelectedProfile(null)} className="w-full py-4 bg-slate-800 hover:bg-slate-700 text-white text-xl font-black rounded-xl shadow-md transition-all">
               확인 (닫기)
             </button>
           </div>
