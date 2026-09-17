@@ -2,10 +2,8 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-
-// --- 타입 정의 ---
-interface Profile { id: string; name: string; phone_last4: string; rank: string; tier: string; current_status: string; last_check_in: string; }
-interface Match { id: number; match_type: string; handicap: string; started_at: string; black_team: string[]; white_team: string[]; }
+import { Profile, Match } from '../types';
+import LeftPanel from '../components/LeftPanel';
 
 const RANKS = [
   '18급', '17급', '16급', '15급', '14급', '13급', '12급', '11급', '10급', '9급',
@@ -17,9 +15,7 @@ export default function KioskPage() {
   const [activeMembers, setActiveMembers] = useState<Profile[]>([]);
   const [isLoadingList, setIsLoadingList] = useState(true);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-
   const [isProcessing, setIsProcessing] = useState(false);
-
   const [phoneNumber, setPhoneNumber] = useState('');
   const [candidates, setCandidates] = useState<Profile[]>([]);
   const [confirmUser, setConfirmUser] = useState<Profile | null>(null);
@@ -219,115 +215,83 @@ export default function KioskPage() {
   return (
     <main className="flex flex-row w-full h-screen bg-[#e3c18b] font-sans select-none overflow-hidden text-slate-900">
       
-      {/* ================= LEFT (실시간 현황판) ================= */}
-      <section className="w-[40%] h-full bg-[#fdfbf7] border-r-8 border-[#2c1e16] flex flex-col shadow-2xl relative z-10">
-        <header className="p-4 sm:p-6 bg-white border-b-4 border-stone-200 flex justify-between items-end">
-          <div>
-            <h1 className="text-3xl font-black text-[#2c1e16] tracking-tight">현재 현황</h1>
-            <p className="text-stone-500 font-bold mt-1 text-sm sm:text-base">이름을 터치하세요 (대국/프로필)</p>
-          </div>
-          <div className="text-right">
-            <span className="text-4xl sm:text-5xl font-black text-[#9a5b28]">{activeMembers.length}</span><span className="text-lg sm:text-xl font-bold text-stone-600"> 명</span>
-          </div>
-        </header>
+      <LeftPanel
+        activeMembers={activeMembers}
+        isLoadingList={isLoadingList}
+        kioskMode={kioskMode}
+        matchStep={matchStep}
+        matchType={matchType}
+        blackTeam={blackTeam}
+        whiteTeam={whiteTeam}
+        setBlackTeam={setBlackTeam}
+        setWhiteTeam={setWhiteTeam}
+        openMatchDetail={openMatchDetail}
+        openProfileDetail={openProfileDetail}
+      />
 
-        <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
-          {isLoadingList ? (
-            <p className="text-center mt-10 text-stone-400 font-bold text-xl">목록을 불러오는 중...</p>
-          ) : activeMembers.length === 0 ? (
-            <div className="text-center py-20">
-              <p className="text-stone-400 font-bold text-xl">현재 기원에 계신 분이 없습니다.</p>
-            </div>
-          ) : (
-            activeMembers.map((member) => (
-              <div 
-                key={member.id} 
-                onClick={() => {
-                  if (kioskMode === 'match_wizard' && matchStep === 2) {
-                    if (blackTeam.find(m => m.id === member.id) || whiteTeam.find(m => m.id === member.id)) return;
-                    const req = matchType.includes('2:2') ? 2 : matchType.includes('3:3') ? 3 : matchType.includes('4:4') ? 4 : 1;
-                    if (blackTeam.length < req) setBlackTeam([...blackTeam, member]);
-                    else if (whiteTeam.length < req) setWhiteTeam([...whiteTeam, member]);
-                  } else if (member.current_status === '대국중') {
-                    openMatchDetail(member.id);
-                  } else {
-                    openProfileDetail(member);
-                  }
-                }}
-                className={`p-4 rounded-2xl shadow-sm border-2 flex justify-between items-center transition-all cursor-pointer hover:scale-[1.02] ${
-                  member.current_status === '대국중' ? 'bg-red-50 border-red-200 hover:bg-red-100' : 'bg-white border-stone-200 hover:bg-stone-50'
-                }`}
-              >
-                <div className="flex flex-col">
-                  <span className="font-black text-2xl text-[#2c1e16]">{member.name}</span>
-                  <span className="text-xs sm:text-sm text-stone-500 font-bold mt-1">{new Date(member.last_check_in).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })} 도착</span>
-                </div>
-                <div className="flex flex-col items-end gap-2">
-                  <span className="px-3 py-1 bg-stone-100 text-[#2c1e16] border-2 border-stone-300 text-base sm:text-lg font-extrabold rounded-lg">{member.rank}</span>
-                  {member.current_status === '대국중' && <span className="px-2 py-1 bg-red-600 text-white text-xs sm:text-sm font-black rounded-md shadow-md animate-pulse">대국중</span>}
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      </section>
-
-      {/* ================= RIGHT (키오스크/마법사/가입) ================= */}
-      <section className="w-[60%] h-full bg-[#2c1e16] text-[#fdfbf7] flex flex-col items-center justify-center relative overflow-hidden">
+      <section className="w-[60%] h-full bg-[#2c1e16] text-[#fdfbf7] flex flex-col items-center justify-center relative overflow-y-auto custom-scrollbar">
         <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'linear-gradient(#fdfbf7 2px, transparent 2px), linear-gradient(90deg, #fdfbf7 2px, transparent 2px)', backgroundSize: '60px 60px' }}></div>
 
+        {/* 💡 새로운 레이아웃: 키패드는 가운데-좌측, 액션 버튼은 우측에 큼직하게 배치 */}
         {kioskMode === 'attendance' && (
-          <div className="relative z-10 w-full max-w-md flex flex-col items-center py-6">
-            <div className="w-full flex justify-between mb-4 gap-3 px-2">
-               <button onClick={() => setKioskMode('register')} className="flex-1 bg-stone-700 hover:bg-stone-600 text-white font-extrabold py-3 rounded-2xl shadow-md text-lg transition-all">📝 신규 가입</button>
-               <button onClick={openMatchWizard} className="flex-1 bg-[#9a5b28] hover:bg-[#854d20] text-white font-extrabold py-3 rounded-2xl shadow-md text-lg transition-all">⚔️ 대국 신청</button>
-            </div>
-            <h2 className="text-4xl font-black text-[#fdfbf7] tracking-tight mb-2">입장 / 귀가</h2>
-            <p className="text-lg font-bold h-6 text-[#e3c18b] mb-4">{message}</p>
+          <div className="relative z-10 w-full flex flex-row items-center justify-center gap-12 px-8">
+            
+            {/* 1. 입장/귀가 키패드 영역 */}
+            <div className="flex flex-col items-center w-full max-w-sm">
+              <h2 className="text-4xl font-black text-[#fdfbf7] tracking-tight mb-2">입장 / 귀가</h2>
+              <p className="text-lg font-bold h-6 text-[#e3c18b] mb-6">{message}</p>
 
-            {confirmUser ? (
-              <div className="bg-[#3a291f] p-6 rounded-3xl border-4 border-[#9a5b28] shadow-2xl text-center w-full max-w-90">
-                <h2 className="text-4xl font-black text-[#fdfbf7] mb-2">{confirmUser.name}</h2>
-                <p className="text-[#e3c18b] text-xl font-extrabold mb-6">{confirmUser.rank} / {confirmUser.tier}</p>
-                {confirmUser.current_status !== '오프라인' ? (
-                  <button onClick={handleGoHome} disabled={isProcessing} className="w-full py-5 bg-[#1a110b] border-4 border-[#e3c18b] text-[#e3c18b] font-black rounded-2xl text-2xl shadow-xl disabled:opacity-50">
-                    {isProcessing ? '처리중...' : '귀가하기 (퇴장)'}
-                  </button>
-                ) : (
-                  <button onClick={handleConfirmAttendance} disabled={isProcessing} className="w-full py-5 bg-[#fdfbf7] text-[#2c1e16] font-black rounded-2xl text-2xl shadow-xl disabled:opacity-50">
-                    {isProcessing ? '처리중...' : '출석하기 (입장)'}
-                  </button>
-                )}
-                <button onClick={handleReset} className="w-full mt-4 py-3 text-stone-400 font-bold text-lg">취소</button>
-              </div>
-            ) : candidates.length > 0 ? (
-              <div className="bg-[#3a291f] p-6 rounded-3xl shadow-2xl space-y-3 w-full max-w-90">
-                <p className="text-center text-[#e3c18b] font-bold text-lg mb-2">본인의 이름을 선택해주세요</p>
-                {candidates.map((cand) => (
-                  <button key={cand.id} onClick={() => { setConfirmUser(cand); setCandidates([]); }} className="w-full py-4 bg-[#fdfbf7] text-[#2c1e16] rounded-2xl text-xl font-extrabold shadow-lg flex justify-between px-6 items-center">
-                    <span>{cand.name}</span><span className="text-base bg-[#e3c18b] px-3 py-1 rounded-lg text-[#2c1e16]">{cand.rank}</span>
-                  </button>
-                ))}
-                <button onClick={handleReset} className="w-full py-3 text-stone-400 font-bold text-lg mt-2">다시 입력하기</button>
-              </div>
-            ) : (
-              <div className="bg-[#3a291f] p-6 rounded-4xl shadow-2xl w-full max-w-90">
-                <div className="bg-[#1a110b] border-2 border-stone-800 rounded-2xl h-16 flex items-center justify-center mb-5 shadow-inner">
-                  <span className="text-4xl font-mono tracking-[0.4em] text-[#e3c18b] font-black">{phoneNumber.padEnd(4, '—')}</span>
+              {confirmUser ? (
+                <div className="bg-[#3a291f] p-8 rounded-4xl border-4 border-[#9a5b28] shadow-2xl text-center w-full">
+                  <h2 className="text-4xl font-black text-[#fdfbf7] mb-2">{confirmUser.name}</h2>
+                  <p className="text-[#e3c18b] text-xl font-extrabold mb-8">{confirmUser.rank} / {confirmUser.tier}</p>
+                  {confirmUser.current_status !== '오프라인' ? (
+                    <button onClick={handleGoHome} disabled={isProcessing} className="w-full py-5 bg-[#1a110b] border-4 border-[#e3c18b] text-[#e3c18b] font-black rounded-2xl text-2xl shadow-xl disabled:opacity-50">
+                      {isProcessing ? '처리중...' : '귀가하기 (퇴장)'}
+                    </button>
+                  ) : (
+                    <button onClick={handleConfirmAttendance} disabled={isProcessing} className="w-full py-5 bg-[#fdfbf7] text-[#2c1e16] font-black rounded-2xl text-2xl shadow-xl disabled:opacity-50">
+                      {isProcessing ? '처리중...' : '출석하기 (입장)'}
+                    </button>
+                  )}
+                  <button onClick={handleReset} className="w-full mt-4 py-3 text-stone-400 font-bold text-lg">취소</button>
                 </div>
-                <div className="grid grid-cols-3 gap-3 mb-5">
-                  {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map(num => (
-                    <button key={num} onClick={() => handleNumberClick(num)} className="w-20 h-20 mx-auto rounded-full bg-[#fdfbf7] text-[#2c1e16] text-4xl font-black shadow-[0_6px_0_#d1c8b8] active:translate-y-1.5 active:shadow-none flex items-center justify-center transition-transform">{num}</button>
+              ) : candidates.length > 0 ? (
+                <div className="bg-[#3a291f] p-6 rounded-4xl shadow-2xl space-y-3 w-full">
+                  <p className="text-center text-[#e3c18b] font-bold text-lg mb-4">본인의 이름을 선택해주세요</p>
+                  {candidates.map((cand) => (
+                    <button key={cand.id} onClick={() => { setConfirmUser(cand); setCandidates([]); }} className="w-full py-4 bg-[#fdfbf7] text-[#2c1e16] rounded-2xl text-xl font-extrabold shadow-lg flex justify-between px-6 items-center">
+                      <span>{cand.name}</span><span className="text-base bg-[#e3c18b] px-3 py-1 rounded-lg text-[#2c1e16]">{cand.rank}</span>
+                    </button>
                   ))}
-                  <button onClick={handleDelete} className="w-20 h-20 mx-auto rounded-full bg-[#1a110b] border-4 border-stone-700 text-[#e3c18b] text-xl font-black shadow-[0_6px_0_#000] active:translate-y-1.5 flex items-center justify-center">지움</button>
-                  <button onClick={() => handleNumberClick('0')} className="w-20 h-20 mx-auto rounded-full bg-[#fdfbf7] text-[#2c1e16] text-4xl font-black shadow-[0_6px_0_#d1c8b8] active:translate-y-1.5 flex items-center justify-center">0</button>
-                  <button onClick={handleReset} className="w-20 h-20 mx-auto rounded-full bg-[#1a110b] border-4 border-stone-700 text-stone-400 text-xl font-black shadow-[0_6px_0_#000] active:translate-y-1.5 flex items-center justify-center">취소</button>
+                  <button onClick={handleReset} className="w-full py-3 text-stone-400 font-bold text-lg mt-2">다시 입력하기</button>
                 </div>
-                <button onClick={handleSearchUser} disabled={isProcessing} className="w-full py-4 bg-[#9a5b28] text-white text-2xl font-black rounded-2xl shadow-[0_6px_0_#5c3516] active:translate-y-1.5 transition-transform disabled:opacity-50">
-                  {isProcessing ? '확인 중...' : '확인'}
-                </button>
-              </div>
-            )}
+              ) : (
+                <div className="bg-[#3a291f] p-8 rounded-4xl shadow-2xl w-full">
+                  <div className="bg-[#1a110b] border-2 border-stone-800 rounded-2xl h-16 flex items-center justify-center mb-6 shadow-inner">
+                    <span className="text-4xl font-mono tracking-[0.4em] text-[#e3c18b] font-black">{phoneNumber.padEnd(4, '—')}</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4 mb-6">
+                    {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map(num => (
+                      <button key={num} onClick={() => handleNumberClick(num)} className="w-20 h-20 mx-auto rounded-full bg-[#fdfbf7] text-[#2c1e16] text-4xl font-black shadow-[0_6px_0_#d1c8b8] active:translate-y-1.5 active:shadow-none flex items-center justify-center transition-transform">{num}</button>
+                    ))}
+                    <button onClick={handleDelete} className="w-20 h-20 mx-auto rounded-full bg-[#1a110b] border-4 border-stone-700 text-[#e3c18b] text-xl font-black shadow-[0_6px_0_#000] active:translate-y-1.5 flex items-center justify-center">지움</button>
+                    <button onClick={() => handleNumberClick('0')} className="w-20 h-20 mx-auto rounded-full bg-[#fdfbf7] text-[#2c1e16] text-4xl font-black shadow-[0_6px_0_#d1c8b8] active:translate-y-1.5 flex items-center justify-center">0</button>
+                    <button onClick={handleReset} className="w-20 h-20 mx-auto rounded-full bg-[#1a110b] border-4 border-stone-700 text-stone-400 text-xl font-black shadow-[0_6px_0_#000] active:translate-y-1.5 flex items-center justify-center">취소</button>
+                  </div>
+                  <button onClick={handleSearchUser} disabled={isProcessing} className="w-full py-4 bg-[#9a5b28] text-white text-2xl font-black rounded-2xl shadow-[0_6px_0_#5c3516] active:translate-y-1.5 transition-transform disabled:opacity-50">
+                    {isProcessing ? '확인 중...' : '확인'}
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* 2. 우측 상단 액션 버튼 영역 */}
+            <div className="flex flex-col gap-6 w-56 shrink-0 pb-10">
+               <button onClick={() => setKioskMode('register')} className="w-full bg-stone-700 hover:bg-stone-600 text-white font-extrabold py-6 rounded-3xl shadow-xl text-2xl transition-all border-2 border-stone-500 hover:border-stone-400">📝 신규 가입</button>
+               <button onClick={openMatchWizard} className="w-full bg-[#9a5b28] hover:bg-[#854d20] text-white font-extrabold py-6 rounded-3xl shadow-xl text-2xl transition-all border-2 border-[#b46a30] hover:border-[#d98542]">⚔️ 대국 신청</button>
+            </div>
+
           </div>
         )}
 
@@ -432,7 +396,7 @@ export default function KioskPage() {
 
         {/* 대국 신청 마법사 */}
         {kioskMode === 'match_wizard' && (
-          <div className="relative z-10 w-full max-w-xl bg-[#3a291f] p-8 rounded-4xl shadow-2xl border-4 border-stone-700 my-6">
+          <div className="relative z-10 w-full max-w-xl bg-[#3a291f] p-8 rounded-4xl shadow-2xl border-4 border-stone-700">
             <button onClick={closeMatchWizard} className="absolute top-5 right-5 text-stone-400 font-extrabold text-xl">✕</button>
             <div className="flex gap-2 mb-6 justify-center">
               {[1, 2, 3, 4].map(step => (<div key={step} className={`h-2 w-12 rounded-full ${matchStep >= step ? 'bg-[#9a5b28]' : 'bg-stone-700'}`} />))}
@@ -516,7 +480,7 @@ export default function KioskPage() {
                      )}
                   </div>
                 )}
-                <button onClick={submitMatch} disabled={!isHandicapValid || isProcessing} className="w-full py-5 bg-green-600 disabled:bg-stone-700 text-white font-black text-xl rounded-2xl disabled:text-stone-500">
+                <button onClick={submitMatch} disabled={!isHandicapValid || isProcessing} className="w-full py-5 bg-green-600 disabled:bg-stone-700 text-white text-2xl font-black rounded-2xl disabled:text-stone-500">
                   {isProcessing ? '처리중' : '✅ 대국 시작하기'}
                 </button>
                 <button onClick={() => setMatchStep(3)} className="mt-4 text-stone-400 font-bold text-lg">⬅ 이전 단계</button>
