@@ -87,7 +87,7 @@ export default function StatusPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#f3efe7] text-stone-800 font-sans select-none relative">
+    <main className="min-h-screen text-stone-800 font-sans select-none relative board-surface">
       <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
         {newMatchAlert && (
           <div className="fixed top-4 left-0 right-0 z-50 flex justify-center animate-bounce pointer-events-none">
@@ -97,10 +97,10 @@ export default function StatusPage() {
           </div>
         )}
 
-        <header className="mb-6 rounded-[28px] border border-[#d6c4a4] bg-[#f9f4ea] px-5 py-5 shadow-[0_10px_30px_rgba(95,72,46,0.08)] sm:px-7">
+        <header className="mb-6 rounded-[28px] border border-[#d6c4a4] bg-[#f9f4ea]/95 px-5 py-5 shadow-[0_10px_30px_rgba(95,72,46,0.08)] sm:px-7">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#8b6d4a]">춘천기원 LIVE</p>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-[#8b6d4a]">춘천기원 LIVE</p>
               <h1 className="mt-2 text-3xl font-black tracking-tight text-[#2a241d] sm:text-4xl">기원 현황</h1>
             </div>
             <div className="flex items-center gap-3 text-sm text-stone-500">
@@ -110,8 +110,8 @@ export default function StatusPage() {
           </div>
 
           <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <p className="max-w-xl text-sm leading-6 text-stone-600">
-              오늘 기원에 모인 분위기와 진행 중인 대국을 한눈에 살펴보는 공간입니다. 바둑을 두는 기원 회원들의 자연스러운 일상을 보며 외부 방문객에게 기원의 활기를 전달합니다.
+            <p className="max-w-2xl text-sm leading-6 text-stone-600">
+              춘천에서 바둑을 사랑하는 바둑인들이 모인 공간입니다. 춘천기원의 바둑 열기를 느껴보세요.
             </p>
             <button
               onClick={handleRefresh}
@@ -123,28 +123,23 @@ export default function StatusPage() {
           </div>
         </header>
 
-        <section className="mt-6 grid gap-4 md:grid-cols-3">
-          <div className="rounded-[26px] border border-[#d7c9b4] bg-[#f5f0e8] p-5 shadow-[0_8px_20px_rgba(88,70,50,0.06)]">
-            <p className="text-xs font-bold tracking-[0.18em] text-[#7f6348]">오늘의 기원</p>
-            <p className="mt-4 text-3xl font-black text-[#2a241d]">{activeMatches.length}</p>
-            <p className="mt-2 text-sm text-stone-600">진행 중인 대국</p>
-          </div>
-          <div className="rounded-[26px] border border-[#d7c9b4] bg-[#f5f0e8] p-5 shadow-[0_8px_20px_rgba(88,70,50,0.06)]">
-            <p className="text-xs font-bold tracking-[0.18em] text-[#7f6348]">기원 인원</p>
+        <section className="mt-6 grid gap-4 md:grid-cols-2">
+          <div className="board-panel rounded-[26px] border border-[#d7c9b4] p-5">
+            <p className="text-[10px] font-bold tracking-[0.18em] text-[#7f6348]">기원 인원</p>
             <p className="mt-4 text-3xl font-black text-[#2a241d]">{isLoading ? '...' : activeCount}</p>
-            <p className="mt-2 text-sm text-stone-600">현재 자리한 분</p>
+            <p className="mt-2 text-sm text-stone-600">현재 기원에 계신 분</p>
           </div>
-          <div className="rounded-[26px] border border-[#d7c9b4] bg-[#f5f0e8] p-5 shadow-[0_8px_20px_rgba(88,70,50,0.06)]">
-            <p className="text-xs font-bold tracking-[0.18em] text-[#7f6348]">기원 분위기</p>
-            <p className="mt-4 text-lg font-bold text-[#2a241d]">차분하고 활기찬</p>
-            <p className="mt-2 text-sm text-stone-600">오랜 정성과 한 수 한 수의 집중이 느껴집니다.</p>
+          <div className="board-panel rounded-[26px] border border-[#d7c9b4] p-5">
+            <p className="text-[10px] font-bold tracking-[0.18em] text-[#7f6348]">실시간 대국</p>
+            <p className="mt-4 text-3xl font-black text-[#2a241d]">{activeMatches.length}</p>
+            <p className="mt-2 text-sm text-stone-600">진행 중인 대국 현황</p>
           </div>
         </section>
 
         <section className="mt-6 rounded-[32px] border border-[#d8c7a8] bg-[linear-gradient(135deg,#f5f0e8_0%,#e7dcc2_100%)] p-5 shadow-[0_14px_30px_rgba(82,64,40,0.08)] sm:p-6">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-xs font-bold tracking-[0.18em] text-[#7e5d3d]">현재 기원에 계신 분</p>
+              <p className="text-[10px] font-bold tracking-[0.18em] text-[#7e5d3d]">현장 인원</p>
               <h2 className="mt-2 text-2xl font-black text-[#2a241d] sm:text-3xl">오늘의 참여 인원</h2>
             </div>
             <div className="rounded-full border border-[#cdb48b] bg-[#f7f3ec] px-3 py-1 text-xs font-semibold text-[#6d553f]">

@@ -229,7 +229,7 @@ export default function KioskPage() {
         openProfileDetail={openProfileDetail}
       />
 
-      <section className="w-[62%] h-full bg-[#d5a758] text-stone-900 flex flex-col items-center justify-center relative overflow-hidden p-6">
+      <section className="w-[62%] h-full board-surface text-stone-900 flex flex-col items-center justify-center relative overflow-hidden p-6">
         <div className="absolute inset-0 opacity-25 pointer-events-none" style={{ backgroundImage: 'linear-gradient(#291b0f 1px, transparent 1px), linear-gradient(90deg, #291b0f 1px, transparent 1px)', backgroundSize: '36px 36px' }} />
 
         {/* 💡 레이아웃 100% 최적화: 스크롤을 막기 위해 가로(flex-row) 배치 적용 */}

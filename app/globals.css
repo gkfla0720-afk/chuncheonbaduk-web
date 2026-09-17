@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f2eadb;
+  --foreground: #201c18;
 }
 
 @theme inline {
@@ -19,8 +19,31 @@
   }
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
-  background: var(--background);
+  min-height: 100vh;
+  background:
+    linear-gradient(rgba(83, 62, 41, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(83, 62, 41, 0.06) 1px, transparent 1px),
+    #f3ead9;
+  background-size: 32px 32px, 32px 32px, cover;
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+.board-surface {
+  background:
+    linear-gradient(rgba(80, 61, 35, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(80, 61, 35, 0.05) 1px, transparent 1px),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.45), rgba(236, 224, 203, 0.72));
+  background-size: 24px 24px, 24px 24px, cover;
+}
+
+.board-panel {
+  background:
+    linear-gradient(135deg, rgba(249, 244, 235, 0.96), rgba(234, 220, 194, 0.9));
+  box-shadow: 0 18px 38px rgba(99, 77, 48, 0.08);
 }

@@ -38,8 +38,8 @@ export default function LeftPanel({
   };
 
   return (
-    <section className="w-[38%] h-full bg-[#f7f3ea] border-r-4 border-[#b88c42] flex flex-col shadow-2xl relative z-10">
-      <header className="p-5 xl:p-6 bg-white border-b-2 border-[#d9c49d] flex justify-between items-end shadow-sm">
+    <section className="w-[38%] h-full board-panel border-r-4 border-[#b88c42] flex flex-col shadow-2xl relative z-10">
+      <header className="p-5 xl:p-6 bg-[#f9f4ea]/90 border-b-2 border-[#d9c49d] flex justify-between items-end shadow-sm">
         <div>
           <h1 
             onClick={toggleFullScreen} 
@@ -48,7 +48,7 @@ export default function LeftPanel({
           >
             현재 현황 <span className="text-xl opacity-60">⛶</span>
           </h1>
-          <p className="text-stone-500 font-bold mt-1 text-sm xl:text-base">터치 시 대국 관리 / 프로필 조회</p>
+          <p className="text-stone-500 font-bold mt-1 text-sm xl:text-base">춘천에서 바둑을 사랑하는 바둑인들이 모인 공간입니다.</p>
         </div>
         <div className="text-right">
           <span className="text-5xl xl:text-6xl font-black text-[#8a5a20]">{activeMembers.length}</span>
