@@ -1,7 +1,16 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+
+// --- 타입 정의 ---
+interface Profile {
+  id: string;
+  name: string;
+  phone_last4: string;
+  rank: string;
+  tier: string;
+}
 
 interface ActiveMember {
   id: number;
@@ -14,133 +23,306 @@ interface ActiveMember {
   };
 }
 
-export default function StatusPage() {
+export default function KioskPage() {
+  // === 왼쪽 화면(실시간 현황) 상태 ===
   const [activeMembers, setActiveMembers] = useState<ActiveMember[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingList, setIsLoadingList] = useState(true);
 
+  // === 오른쪽 화면(키오스크) 상태 ===
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [candidates, setCandidates] = useState<Profile[]>([]);
+  const [confirmUser, setConfirmUser] = useState<Profile | null>(null);
+  const [activeAttendance, setActiveAttendance] = useState<{ id: number; status: string } | null>(null);
+  const [lastAttendanceId, setLastAttendanceId] = useState<number | null>(null);
+  const [message, setMessage] = useState('전화번호 뒷자리 4자리를 눌러주세요.');
+  const [isSuccess, setIsSuccess] = useState(false);
+  const resetTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // ----------------------------------------------------
+  // 1. 왼쪽 화면: 실시간 현황 불러오기 로직 (useEffect 내부로 안전하게 이동)
+  // ----------------------------------------------------
   useEffect(() => {
-    // 💡 해결 1: 함수를 useEffect 안으로 이동하고, 화면이 켜져 있을 때만(isMounted) 데이터를 넣도록 보호합니다.
-    let isMounted = true; 
+    let isMounted = true;
 
     const fetchActiveMembers = async () => {
       const { data, error } = await supabase
         .from('attendance')
-        .select(`
-          id,
-          status,
-          checked_in_at,
-          profiles (
-            name,
-            rank,
-            tier
-          )
-        `)
+        .select(`id, status, checked_in_at, profiles(name, rank, tier)`)
         .neq('status', '귀가')
         .order('checked_in_at', { ascending: false });
 
-      if (error) {
-        console.error('데이터를 불러오지 못했습니다:', error);
-      } else if (isMounted) {
-        // @ts-expect-error (초보자용 빠른 진행을 위해 복잡한 타입 체크 생략)
+      if (!error && data && isMounted) {
+        // 💡 해결 1: @ts-expect-error 뒤에 3글자 이상의 설명을 추가했습니다.
+        // @ts-expect-error: Supabase 조인(Join) 데이터의 복잡한 타입 추론 생략
         setActiveMembers(data);
-        setIsLoading(false);
+        setIsLoadingList(false);
       }
     };
 
-    // 1. 페이지 접속 시 최초 데이터 불러오기
+    // 최초 로드 시 데이터 불러오기
     fetchActiveMembers();
 
-    // 2. 실시간 동기화 (Realtime) 설정
+    // 실시간 동기화 채널 설정
     const channel = supabase
       .channel('attendance_status')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'attendance' },
-        () => {
-          fetchActiveMembers(); // 누군가 출석하면 함수 다시 실행
-        }
-      )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'attendance' }, () => {
+        fetchActiveMembers();
+      })
       .subscribe();
 
-    // 컴포넌트가 화면에서 사라질 때 실행되는 정리(Cleanup) 코드
     return () => {
       isMounted = false;
       supabase.removeChannel(channel);
     };
-  }, []); // 의존성 배열이 빈칸([])이 되어 코드가 훨씬 깔끔해졌습니다.
+  }, []); // 💡 해결 2: 의존성 배열이 깔끔하게 비워져 렌더링 최적화 완료!
 
+  // ----------------------------------------------------
+  // 2. 오른쪽 화면: 키오스크 조작 로직
+  // ----------------------------------------------------
+  const handleReset = () => {
+    if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
+    setPhoneNumber('');
+    setCandidates([]);
+    setConfirmUser(null);
+    setActiveAttendance(null);
+    setLastAttendanceId(null);
+    setMessage('전화번호 뒷자리 4자리를 눌러주세요.');
+    setIsSuccess(false);
+  };
+
+  const handleNumberClick = (num: string) => {
+    if (phoneNumber.length < 4) setPhoneNumber((prev) => prev + num);
+  };
+
+  const handleDelete = () => setPhoneNumber((prev) => prev.slice(0, -1));
+
+  const handleSelectUser = async (user: Profile) => {
+    setConfirmUser(user);
+    setCandidates([]);
+    setMessage('출석 상태 확인 중...');
+
+    const { data } = await supabase
+      .from('attendance')
+      .select('id, status')
+      .eq('user_id', user.id)
+      .neq('status', '귀가')
+      .order('checked_in_at', { ascending: false })
+      .limit(1);
+
+    if (data && data.length > 0) setActiveAttendance(data[0]);
+    else setActiveAttendance(null);
+    
+    setMessage('');
+  };
+
+  const handleSearchUser = async () => {
+    if (phoneNumber.length !== 4) {
+      setMessage('뒷자리 4자리를 모두 입력해주세요.');
+      return;
+    }
+    setMessage('회원 정보 확인 중...');
+    const { data, error } = await supabase.from('profiles').select('*').eq('phone_last4', phoneNumber);
+
+    if (error || !data || data.length === 0) {
+      setMessage('등록되지 않은 번호입니다.');
+      return;
+    }
+    if (data.length > 1) {
+      setCandidates(data);
+      setMessage('본인 이름을 선택해주세요.');
+    } else {
+      handleSelectUser(data[0]);
+    }
+  };
+
+  const handleConfirmAttendance = async () => {
+    if (!confirmUser) return;
+    const { data, error } = await supabase
+      .from('attendance')
+      .insert([{ user_id: confirmUser.id, status: '출석중' }])
+      .select('id')
+      .single();
+
+    if (!error && data) {
+      setLastAttendanceId(data.id);
+      setIsSuccess(true);
+      setMessage(`환영합니다! ${confirmUser.name}님`);
+      setConfirmUser(null);
+      resetTimerRef.current = setTimeout(() => handleReset(), 4000);
+    }
+  };
+
+  const handleGoHome = async () => {
+    if (!activeAttendance || !confirmUser) return;
+    const { error } = await supabase.from('attendance').update({ status: '귀가' }).eq('id', activeAttendance.id);
+
+    if (!error) {
+      setIsSuccess(true);
+      setMessage(`안녕히 가십시오. ${confirmUser.name}님!`);
+      setConfirmUser(null);
+      setActiveAttendance(null);
+      resetTimerRef.current = setTimeout(() => handleReset(), 4000);
+    }
+  };
+
+  const handleCancelAttendance = async () => {
+    if (!lastAttendanceId) return;
+    if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
+    await supabase.from('attendance').delete().eq('id', lastAttendanceId);
+    handleReset();
+  };
+
+  // ----------------------------------------------------
+  // 3. 화면 렌더링
+  // ----------------------------------------------------
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-900 font-sans p-4 select-none">
-      <header className="py-6 text-center">
-        <h1 className="text-2xl font-extrabold text-slate-800 tracking-tight">
-          춘천기원 실시간 현황
-        </h1>
-        <p className="text-slate-500 text-sm mt-1">지금 방문하시면 바로 대국 가능합니다!</p>
-      </header>
-
-      <section className="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 mb-6 text-center">
-        <h2 className="text-slate-500 font-medium text-sm mb-2">현재 기원에 계신 분</h2>
-        {isLoading ? (
-          <div className="text-4xl font-extrabold text-slate-300 animate-pulse">...</div>
-        ) : (
-          <div className="flex items-center justify-center gap-2">
-            <span className="text-6xl font-extrabold text-amber-500">
-              {activeMembers.length}
-            </span>
-            <span className="text-2xl font-bold text-slate-600 mt-4">명</span>
+    <main className="flex flex-row w-full h-screen bg-[#e3c18b] font-sans select-none overflow-hidden text-slate-900">
+      
+      {/* ================= LEFT ================= */}
+      <section className="w-[45%] h-full bg-[#fdfbf7] border-r-8 border-[#2c1e16] flex flex-col shadow-2xl relative z-10">
+        <header className="p-6 bg-white border-b-2 border-stone-200 flex justify-between items-end">
+          <div>
+            <h1 className="text-3xl font-extrabold text-[#2c1e16] tracking-tight">현재 현황</h1>
+            {/* 💡 해결 3: 작은따옴표를 HTML 표준 기호(&apos;)로 변경했습니다. */}
+            <p className="text-stone-500 font-bold mt-1">내가 목록에 있다면 &apos;귀가&apos;를 눌러주세요</p>
           </div>
-        )}
-      </section>
-
-      <section>
-        <div className="flex justify-between items-center mb-4 px-2">
-          <h3 className="font-bold text-slate-700">출석 회원 목록</h3>
-          <span className="flex h-3 w-3 relative">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
-          </span>
-        </div>
-
-        {isLoading ? (
-          <p className="text-center text-slate-400 mt-10">목록을 불러오는 중...</p>
-        ) : activeMembers.length === 0 ? (
-          <div className="text-center py-12 bg-white rounded-3xl border border-slate-100 border-dashed">
-            <p className="text-slate-400">현재 기원에 계신 분이 없습니다.<br/>가장 먼저 방문해 보세요!</p>
+          <div className="text-right">
+            <span className="text-4xl font-extrabold text-[#9a5b28]">{activeMembers.length}</span>
+            <span className="text-xl font-bold text-stone-600"> 명</span>
           </div>
-        ) : (
-          <ul className="space-y-3">
-            {activeMembers.map((member) => (
-              <li
-                key={member.id}
-                className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex justify-between items-center"
-              >
+        </header>
+
+        <div className="flex-1 overflow-y-auto p-6 space-y-3 bg-[#fdfbf7]">
+          {isLoadingList ? (
+            <p className="text-center mt-10 text-stone-400 font-bold">목록을 불러오는 중...</p>
+          ) : activeMembers.length === 0 ? (
+            <div className="text-center py-20">
+              <p className="text-stone-400 font-bold text-lg">현재 기원에 계신 분이 없습니다.</p>
+            </div>
+          ) : (
+            activeMembers.map((member) => (
+              <div key={member.id} className="bg-white p-4 rounded-xl shadow-sm border border-stone-200 flex justify-between items-center">
                 <div className="flex flex-col">
-                  <span className="font-bold text-lg text-slate-800">
-                    {member.profiles?.name}
-                  </span>
-                  <span className="text-xs text-slate-400 font-medium">
-                    {new Date(member.checked_in_at).toLocaleTimeString('ko-KR', {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })} 도착
+                  <span className="font-extrabold text-xl text-[#2c1e16]">{member.profiles?.name}</span>
+                  <span className="text-sm text-stone-500 font-bold mt-1">
+                    {new Date(member.checked_in_at).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })} 도착
                   </span>
                 </div>
-                
-                <div className="flex flex-col items-end gap-1">
-                  <span className="px-3 py-1 bg-amber-100 text-amber-700 text-sm font-bold rounded-lg">
+                <div className="flex flex-col items-end gap-2">
+                  <span className="px-3 py-1 bg-stone-100 text-[#2c1e16] border border-stone-300 text-sm font-bold rounded-lg shadow-sm">
                     {member.profiles?.rank}
                   </span>
                   {member.status === '대국중' && (
-                    /* 💡 해결 2: py-[2px] 대신 py-0.5 사용 */
-                    <span className="px-2 py-0.5 bg-red-100 text-red-600 text-[10px] font-bold rounded-md">
+                    <span className="px-2 py-0.5 bg-stone-800 text-white text-[11px] font-bold rounded-md">
                       대국중
                     </span>
                   )}
                 </div>
-              </li>
-            ))}
-          </ul>
-        )}
+              </div>
+            ))
+          )}
+        </div>
+      </section>
+
+      {/* ================= RIGHT ================= */}
+      <section className="w-[55%] h-full bg-[#2c1e16] text-[#fdfbf7] p-8 flex flex-col items-center justify-center relative">
+        <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'linear-gradient(#fdfbf7 1px, transparent 1px), linear-gradient(90deg, #fdfbf7 1px, transparent 1px)', backgroundSize: '40px 40px' }}></div>
+
+        <div className="text-center mb-8 relative z-10">
+          <span className="bg-[#9a5b28] text-white text-sm font-bold px-4 py-1.5 rounded-full tracking-widest shadow-md">
+            CHUNCHEON BADUK CLUB
+          </span>
+          <h2 className="text-5xl font-extrabold mt-6 text-[#fdfbf7] tracking-tight">출석 및 귀가 확인</h2>
+          <p className={`mt-5 text-xl font-bold h-8 ${isSuccess ? 'text-green-400 text-3xl' : 'text-[#e3c18b]'}`}>
+            {message}
+          </p>
+        </div>
+
+        <div className="relative z-10 w-full max-w-md">
+          {isSuccess ? (
+            <div className="bg-[#3a291f] p-8 rounded-3xl border border-green-500/30 text-center shadow-2xl">
+              <div className="text-6xl mb-4">✅</div>
+              <p className="text-stone-400 font-bold mb-6">잠시 후 초기화면으로 돌아갑니다.</p>
+              {lastAttendanceId && (
+                <button onClick={handleCancelAttendance} className="w-full py-5 mb-3 bg-red-800 hover:bg-red-700 text-white font-extrabold rounded-2xl text-xl shadow-lg transition">
+                  앗, 잘못 눌렀어요! (취소)
+                </button>
+              )}
+              <button onClick={handleReset} className="w-full py-4 bg-[#1a110b] text-stone-300 font-bold rounded-2xl transition">
+                다음 분 진행하기
+              </button>
+            </div>
+          ) : confirmUser ? (
+            <div className="bg-[#3a291f] p-8 rounded-3xl border border-[#9a5b28] shadow-2xl text-center">
+              <div className="bg-[#1a110b] p-6 rounded-2xl mb-6 shadow-inner">
+                <h2 className="text-4xl font-extrabold text-[#fdfbf7]">{confirmUser.name}</h2>
+                <p className="text-[#e3c18b] text-xl font-bold mt-3">{confirmUser.rank} / {confirmUser.tier}</p>
+              </div>
+              
+              {activeAttendance ? (
+                <>
+                  <p className="text-2xl font-bold text-[#e3c18b] mb-4">현재 목록에 계십니다.</p>
+                  <button onClick={handleGoHome} className="w-full py-5 bg-[#1a110b] border-2 border-[#e3c18b] hover:bg-[#e3c18b] hover:text-[#1a110b] text-[#e3c18b] font-extrabold rounded-2xl text-3xl shadow-xl transition">
+                    귀가하기 (퇴장)
+                  </button>
+                </>
+              ) : (
+                <>
+                  <p className="text-2xl font-bold text-white mb-4">본인이 맞으십니까?</p>
+                  <button onClick={handleConfirmAttendance} className="w-full py-5 bg-[#fdfbf7] text-[#2c1e16] hover:bg-white font-extrabold rounded-2xl text-3xl shadow-xl transition">
+                    출석하기 (입장)
+                  </button>
+                </>
+              )}
+              <button onClick={handleReset} className="w-full mt-4 py-4 bg-transparent text-stone-400 font-bold text-lg hover:text-white transition">
+                취소하고 처음으로
+              </button>
+            </div>
+          ) : candidates.length > 0 ? (
+            <div className="bg-[#3a291f] p-8 rounded-3xl shadow-2xl space-y-4">
+              <p className="text-center text-[#e3c18b] font-bold text-xl mb-4">본인의 이름을 선택해주세요</p>
+              {candidates.map((cand) => (
+                <button key={cand.id} onClick={() => handleSelectUser(cand)} className="w-full py-5 bg-[#fdfbf7] text-[#2c1e16] rounded-2xl text-2xl font-extrabold shadow-lg flex justify-between px-8 items-center hover:bg-white transition">
+                  <span>{cand.name}</span>
+                  <span className="text-lg bg-[#e3c18b] px-3 py-1 rounded-lg text-[#2c1e16]">{cand.rank}</span>
+                </button>
+              ))}
+              <button onClick={handleReset} className="w-full py-4 bg-[#1a110b] rounded-2xl font-bold text-stone-300 mt-4">
+                다시 입력하기
+              </button>
+            </div>
+          ) : (
+            <div className="bg-[#3a291f] p-8 rounded-[40px] shadow-2xl">
+              <div className="bg-[#1a110b] border border-stone-800 rounded-3xl h-24 flex items-center justify-center mb-8 shadow-inner">
+                <span className="text-6xl font-mono tracking-[0.3em] text-[#e3c18b] font-bold">
+                  {phoneNumber.padEnd(4, '—')}
+                </span>
+              </div>
+
+              {/* 💡 해결 4: 키패드 버튼의 active:translate-y-[6px]를 표준인 active:translate-y-1.5로 수정했습니다. */}
+              <div className="grid grid-cols-3 gap-5 mb-8">
+                {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((num) => (
+                  <button key={num} onClick={() => handleNumberClick(num)} className="w-20 h-20 mx-auto rounded-full bg-[#fdfbf7] text-[#2c1e16] text-4xl font-extrabold shadow-[0_6px_0_#d1c8b8] active:translate-y-1.5 active:shadow-none transition-all flex items-center justify-center">
+                    {num}
+                  </button>
+                ))}
+                <button onClick={handleDelete} className="w-20 h-20 mx-auto rounded-full bg-[#1a110b] border-2 border-stone-700 text-[#e3c18b] text-xl font-bold shadow-[0_6px_0_#000] active:translate-y-1.5 active:shadow-none transition-all flex items-center justify-center">
+                  지움
+                </button>
+                <button onClick={() => handleNumberClick('0')} className="w-20 h-20 mx-auto rounded-full bg-[#fdfbf7] text-[#2c1e16] text-4xl font-extrabold shadow-[0_6px_0_#d1c8b8] active:translate-y-1.5 active:shadow-none transition-all flex items-center justify-center">
+                  0
+                </button>
+                <button onClick={handleReset} className="w-20 h-20 mx-auto rounded-full bg-[#1a110b] border-2 border-stone-700 text-stone-400 text-xl font-bold shadow-[0_6px_0_#000] active:translate-y-1.5 active:shadow-none transition-all flex items-center justify-center">
+                  취소
+                </button>
+              </div>
+
+              <button onClick={handleSearchUser} className="w-full h-20 bg-[#9a5b28] hover:bg-[#854d20] text-white text-3xl font-extrabold rounded-2xl shadow-[0_6px_0_#5c3516] active:translate-y-1.5 active:shadow-none transition-all">
+                확인 (입력완료)
+              </button>
+            </div>
+          )}
+        </div>
       </section>
     </main>
   );
