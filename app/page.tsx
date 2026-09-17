@@ -214,7 +214,7 @@ export default function KioskPage() {
   };
 
   return (
-    <main className="flex flex-row w-full h-screen bg-[#dcb36c] font-sans select-none overflow-hidden text-stone-900">
+    <main className="relative flex flex-row w-full h-screen bg-[#dcb36c] font-sans select-none overflow-visible text-stone-900">
       
       <LeftPanel
         activeMembers={activeMembers}
@@ -289,49 +289,51 @@ export default function KioskPage() {
 
             {/* 우측: 여백 공간을 활용한 큼직한 액션 버튼 */}
             <div className="flex flex-col gap-6 w-64 xl:w-72 shrink-0">
-               <button onClick={() => setShowMembershipGuide(true)} className="w-full bg-[#f5efe5] hover:bg-[#efe4d4] text-stone-900 font-extrabold py-4 rounded-2xl shadow-md text-lg transition-all border-2 border-[#b88c42]">
+               <button onClick={() => setShowMembershipGuide(true)} className="w-full bg-[#f7f0e5] hover:bg-[#efe1cb] text-stone-900 font-extrabold py-4 rounded-[18px] shadow-[0_10px_18px_rgba(25,18,12,0.12)] text-lg transition-all border border-[#c69b5c] tracking-[0.02em]">
                  정회원 달성 조건
                </button>
-               <button onClick={() => setKioskMode('register')} className="w-full bg-white hover:bg-stone-50 text-stone-900 font-extrabold py-8 rounded-3xl shadow-xl text-2xl xl:text-3xl transition-all border-4 border-[#b88c42] flex items-center justify-center gap-3">
+               <button onClick={() => setKioskMode('register')} className="w-full bg-[#f8f5f1] hover:bg-[#f1e7d8] text-stone-900 font-black py-7 rounded-[24px] shadow-[0_12px_24px_rgba(25,18,12,0.18)] text-2xl xl:text-3xl transition-all border-2 border-[#c69b5c] flex items-center justify-center gap-3 tracking-[0.02em]">
                  <span>📝</span> 신규 가입
                </button>
-               <button onClick={openMatchWizard} className="w-full bg-[#1f1a16] hover:bg-[#332a24] text-[#e8d5b5] font-extrabold py-8 rounded-3xl shadow-xl text-2xl xl:text-3xl transition-all border-4 border-stone-800 flex items-center justify-center gap-3">
+               <button onClick={openMatchWizard} className="w-full bg-[#1e1a17] hover:bg-[#2b231e] text-[#efdfba] font-black py-7 rounded-[24px] shadow-[0_12px_24px_rgba(25,18,12,0.2)] text-2xl xl:text-3xl transition-all border-2 border-[#b88c42] flex items-center justify-center gap-3 tracking-[0.02em]">
                  <span>⚔️</span> 대국 신청
                </button>
             </div>
           </div>
         )}
+      </section>
 
-        {showMembershipGuide && (
-          <div className="absolute inset-0 z-40 flex items-center justify-center bg-[rgba(28,24,20,0.36)] p-4 backdrop-blur-[1px]">
-            <div className="w-full max-w-lg rounded-[30px] border border-[#d4c3a2] bg-[#f8f4ee] p-6 shadow-[0_18px_45px_rgba(34,27,20,0.28)]">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-[10px] font-bold tracking-[0.18em] text-[#7e5d3d]">회원 등급</p>
-                  <h3 className="mt-2 text-2xl font-black text-[#2a241d]">정회원 달성 조건</h3>
-                </div>
-                <button onClick={() => setShowMembershipGuide(false)} className="rounded-full bg-stone-200 px-3 py-1 text-xs font-bold text-stone-700">닫기</button>
+      {showMembershipGuide && (
+        <div className="modal-backdrop fixed inset-0 z-[60] flex items-center justify-center bg-[rgba(22,16,12,0.56)] p-4 backdrop-blur-[2px]">
+          <div className="modal-card w-full max-w-lg rounded-[30px] border border-[#d4c3a2] bg-[#f8f4ee] p-6 shadow-[0_18px_45px_rgba(34,27,20,0.28)]">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-[10px] font-bold tracking-[0.18em] text-[#7e5d3d]">회원 등급</p>
+                <h3 className="mt-2 text-2xl font-black text-[#2a241d]">정회원 달성 조건</h3>
               </div>
-
-              <div className="mt-5 rounded-[24px] border border-[#d9cab0] bg-[#f3ebdf] p-5">
-                <p className="text-base leading-7 text-stone-700">
-                  정회원은 <span className="font-black text-[#8a5a2b]">기원 방문 10회 이상</span>과 <span className="font-black text-[#8a5a2b]">대국 10회 이상</span>을 충족한 회원에게 자동으로 승격됩니다.
-                </p>
-                <ul className="mt-4 space-y-3 text-sm text-stone-700">
-                  <li className="flex items-start gap-2"><span className="mt-1 inline-block h-2 w-2 rounded-full bg-[#8a5a2b]" /> 방문 기록과 대국 기록이 누적되면 자동으로 정회원으로 인정됩니다.</li>
-                  <li className="flex items-start gap-2"><span className="mt-1 inline-block h-2 w-2 rounded-full bg-[#8a5a2b]" /> 승격 조건을 충족한 회원은 등급이 자연스럽게 정회원으로 바뀝니다.</li>
-                </ul>
-              </div>
-
-              <button onClick={() => setShowMembershipGuide(false)} className="mt-5 w-full rounded-2xl bg-[#2a241d] py-3 text-base font-bold text-[#f8f3eb] transition hover:bg-[#1f1b18]">
-                확인
-              </button>
+              <button onClick={() => setShowMembershipGuide(false)} className="rounded-full bg-stone-200 px-3 py-1 text-xs font-bold text-stone-700 transition hover:bg-stone-300">닫기</button>
             </div>
-          </div>
-        )}
 
-        {kioskMode === 'profile_detail' && selectedProfile && (
-          <div className="relative z-10 w-full max-w-2xl bg-[#1f1a16] text-white p-10 rounded-4xl shadow-2xl border-4 border-[#b88c42] text-center">
+            <div className="mt-5 rounded-[24px] border border-[#d9cab0] bg-[#f3ebdf] p-5">
+              <p className="text-base leading-7 text-stone-700">
+                정회원은 <span className="font-black text-[#8a5a2b]">기원 방문 10회 이상</span>과 <span className="font-black text-[#8a5a2b]">대국 10회 이상</span>을 충족한 회원에게 자동으로 승격됩니다.
+              </p>
+              <ul className="mt-4 space-y-3 text-sm text-stone-700">
+                <li className="flex items-start gap-2"><span className="mt-1 inline-block h-2 w-2 rounded-full bg-[#8a5a2b]" /> 방문 기록과 대국 기록이 누적되면 자동으로 정회원으로 인정됩니다.</li>
+                <li className="flex items-start gap-2"><span className="mt-1 inline-block h-2 w-2 rounded-full bg-[#8a5a2b]" /> 승격 조건을 충족한 회원은 등급이 자연스럽게 정회원으로 바뀝니다.</li>
+              </ul>
+            </div>
+
+            <button onClick={() => setShowMembershipGuide(false)} className="mt-5 w-full rounded-2xl bg-[#2a241d] py-3 text-base font-bold text-[#f8f3eb] transition hover:bg-[#1f1b18]">
+              확인
+            </button>
+          </div>
+        </div>
+      )}
+
+      {kioskMode === 'profile_detail' && selectedProfile && (
+        <div className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-[rgba(22,16,12,0.56)] p-4 backdrop-blur-[2px]">
+          <div className="modal-card w-full max-w-2xl bg-[#1f1a16] text-white p-10 rounded-[30px] shadow-[0_18px_45px_rgba(34,27,20,0.28)] border-4 border-[#b88c42] text-center">
             <h2 className="text-3xl font-black text-[#e8d5b5] mb-1">회원 기력 및 프로필</h2>
             <p className="text-stone-400 font-semibold mb-6">가입일: {profileStats.joinedAt}</p>
             <div className="bg-[#120f0d] p-8 rounded-3xl mb-8 border border-stone-800 shadow-inner">
@@ -355,10 +357,12 @@ export default function KioskPage() {
             </div>
             <button onClick={handleReset} className="w-full py-5 bg-[#b88c42] hover:bg-[#a37934] text-stone-950 text-2xl font-black rounded-2xl shadow-xl transition-all">확인 (닫기)</button>
           </div>
-        )}
+        </div>
+      )}
 
-        {kioskMode === 'match_detail' && selectedMatch && (
-          <div className="relative z-10 w-full max-w-2xl bg-[#1f1a16] text-white p-10 rounded-4xl shadow-2xl border-4 border-[#b88c42] text-center">
+      {kioskMode === 'match_detail' && selectedMatch && (
+        <div className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-[rgba(22,16,12,0.56)] p-4 backdrop-blur-[2px]">
+          <div className="modal-card w-full max-w-2xl bg-[#1f1a16] text-white p-10 rounded-[30px] shadow-[0_18px_45px_rgba(34,27,20,0.28)] border-4 border-[#b88c42] text-center">
             <h2 className="text-3xl font-black text-white mb-6">진행 중인 대국 관리</h2>
             <div className="bg-[#120f0d] p-6 rounded-3xl mb-8 flex flex-col gap-2 border border-stone-800">
                <p className="text-2xl font-extrabold text-[#dcb36c]">{selectedMatch.match_type} / {selectedMatch.handicap}</p>
@@ -383,40 +387,44 @@ export default function KioskPage() {
             )}
             <button onClick={handleReset} className="w-full py-4 text-stone-400 hover:text-white font-bold text-lg bg-stone-900 rounded-2xl">닫기</button>
           </div>
-        )}
+        </div>
+      )}
 
-        {kioskMode === 'register' && (
-           <div className="relative z-10 w-full max-w-xl bg-[#1f1a16] text-white p-10 rounded-4xl shadow-2xl border-4 border-[#b88c42] text-center">
-              <h2 className="text-3xl font-black text-[#e8d5b5] mb-6">📝 신규 회원 등록</h2>
-              <div className="space-y-5 text-left">
-                 <div>
-                    <label className="text-stone-300 text-sm font-bold mb-1.5 block">회원 성함</label>
-                    <input type="text" value={regName} onChange={e => setRegName(e.target.value)} className="w-full p-4 text-2xl font-bold bg-[#120f0d] text-white rounded-2xl border-2 border-stone-700 focus:border-[#dcb36c] outline-none" placeholder="홍길동" />
-                 </div>
-                 <div>
-                    <label className="text-stone-300 text-sm font-bold mb-1.5 block">전화번호 뒷자리 4개 (출석용)</label>
-                    <input type="number" value={regPhone} onChange={e => setRegPhone(e.target.value)} className="w-full p-4 text-2xl font-bold bg-[#120f0d] text-white rounded-2xl border-2 border-stone-700 focus:border-[#dcb36c] outline-none" placeholder="1234" />
-                 </div>
-                 <div>
-                    <label className="text-stone-300 text-sm font-bold mb-1.5 block">기력 (급/단)</label>
-                    <div className="flex justify-between items-center bg-[#120f0d] p-3 rounded-2xl border-2 border-stone-700">
-                       <button onClick={() => handleRankChange(-1)} className="w-14 h-14 bg-stone-800 rounded-full text-3xl font-black text-white hover:bg-stone-700 transition-colors">-</button>
-                       <span className="text-3xl font-black w-28 text-center text-[#dcb36c]">{regRank}</span>
-                       <button onClick={() => handleRankChange(1)} className="w-14 h-14 bg-stone-800 rounded-full text-3xl font-black text-white hover:bg-stone-700 transition-colors">+</button>
-                    </div>
-                 </div>
+      {kioskMode === 'register' && (
+        <div className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-[rgba(22,16,12,0.56)] p-4 backdrop-blur-[2px]">
+          <div className="modal-card w-full max-w-xl bg-[#1f1a16] text-white p-10 rounded-[30px] shadow-[0_18px_45px_rgba(34,27,20,0.28)] border-4 border-[#b88c42] text-center">
+            <h2 className="text-3xl font-black text-[#e8d5b5] mb-6">📝 신규 회원 등록</h2>
+            <div className="space-y-5 text-left">
+              <div>
+                <label className="text-stone-300 text-sm font-bold mb-1.5 block">회원 성함</label>
+                <input type="text" value={regName} onChange={e => setRegName(e.target.value)} className="w-full p-4 text-2xl font-bold bg-[#120f0d] text-white rounded-2xl border-2 border-stone-700 focus:border-[#dcb36c] outline-none" placeholder="홍길동" />
               </div>
-              <div className="flex gap-4 mt-8">
-                 <button onClick={handleReset} className="flex-1 py-4 bg-stone-800 text-stone-300 text-xl font-black rounded-2xl hover:bg-stone-700">취소</button>
-                 <button onClick={submitRegister} disabled={isProcessing} className="flex-1 py-4 bg-[#b88c42] hover:bg-[#a37934] text-stone-950 text-xl font-black rounded-2xl disabled:opacity-50 transition-all">
-                    {isProcessing ? '등록중' : '등록 완료'}
-                 </button>
+              <div>
+                <label className="text-stone-300 text-sm font-bold mb-1.5 block">전화번호 뒷자리 4개 (출석용)</label>
+                <input type="number" value={regPhone} onChange={e => setRegPhone(e.target.value)} className="w-full p-4 text-2xl font-bold bg-[#120f0d] text-white rounded-2xl border-2 border-stone-700 focus:border-[#dcb36c] outline-none" placeholder="1234" />
               </div>
-           </div>
-        )}
+              <div>
+                <label className="text-stone-300 text-sm font-bold mb-1.5 block">기력 (급/단)</label>
+                <div className="flex justify-between items-center bg-[#120f0d] p-3 rounded-2xl border-2 border-stone-700">
+                  <button onClick={() => handleRankChange(-1)} className="w-14 h-14 bg-stone-800 rounded-full text-3xl font-black text-white hover:bg-stone-700 transition-colors">-</button>
+                  <span className="text-3xl font-black w-28 text-center text-[#dcb36c]">{regRank}</span>
+                  <button onClick={() => handleRankChange(1)} className="w-14 h-14 bg-stone-800 rounded-full text-3xl font-black text-white hover:bg-stone-700 transition-colors">+</button>
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-4 mt-8">
+              <button onClick={handleReset} className="flex-1 py-4 bg-stone-800 text-stone-300 text-xl font-black rounded-2xl hover:bg-stone-700">취소</button>
+              <button onClick={submitRegister} disabled={isProcessing} className="flex-1 py-4 bg-[#b88c42] hover:bg-[#a37934] text-stone-950 text-xl font-black rounded-2xl disabled:opacity-50 transition-all">
+                {isProcessing ? '등록중' : '등록 완료'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
-        {kioskMode === 'match_wizard' && (
-          <div className="relative z-10 w-full max-w-3xl bg-[#1f1a16] text-white p-10 rounded-4xl shadow-2xl border-4 border-[#b88c42]">
+      {kioskMode === 'match_wizard' && (
+        <div className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-[rgba(22,16,12,0.56)] p-4 backdrop-blur-[2px]">
+          <div className="modal-card w-full max-w-3xl bg-[#1f1a16] text-white p-10 rounded-[30px] shadow-[0_18px_45px_rgba(34,27,20,0.28)] border-4 border-[#b88c42]">
             <button onClick={closeMatchWizard} className="absolute top-6 right-6 text-stone-400 hover:text-white font-extrabold text-2xl">✕</button>
             <div className="flex gap-3 mb-8 justify-center">
               {[1, 2, 3, 4].map(step => (<div key={step} className={`h-2.5 w-16 rounded-full ${matchStep >= step ? 'bg-[#dcb36c]' : 'bg-stone-800'}`} />))}
@@ -520,9 +528,10 @@ export default function KioskPage() {
                 <button onClick={() => setMatchStep(3)} className="mt-4 text-stone-400 hover:text-white font-bold text-lg">⬅ 이전 단계</button>
               </div>
             )}
+
           </div>
-        )}
-      </section>
+        </div>
+      )}
     </main>
   );
 }
