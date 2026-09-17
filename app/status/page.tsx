@@ -166,12 +166,12 @@ export default function StatusPage() {
                 <li key={match.id} className="rounded-[28px] border border-[#d7c7a8] bg-[#faf5ee] p-4 shadow-[0_12px_24px_rgba(90,69,45,0.06)] sm:p-5">
                   <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                     <div className="flex items-center gap-3">
-                      <span className="rounded-full border border-[#cab38b] bg-[#fffaf2] px-2.5 py-1 text-[11px] font-bold tracking-[0.18em] text-[#7f6348] sm:text-[12px]">{match.match_type}</span>
-                      <p className="text-[15px] font-medium text-stone-500 sm:text-base">
+                      <span className="rounded-full border border-[#cab38b] bg-[#fffaf2] px-3 py-1.5 text-[22px] font-black tracking-[0.15em] text-[#7f6348] sm:text-[24px]">{match.match_type}</span>
+                      <p className="text-[30px] font-bold text-stone-500 sm:text-[32px]">
                         {new Date(match.started_at).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })} 시작
                       </p>
                     </div>
-                    <span className="inline-flex items-center rounded-full bg-[#efe2c7] px-2.5 py-1 text-[13px] font-bold text-[#725739] sm:text-sm">{match.handicap}</span>
+                    <span className="inline-flex items-center rounded-full bg-[#efe2c7] px-3 py-1.5 text-[26px] font-black text-[#725739] sm:text-[28px]">{match.handicap}</span>
                   </div>
 
                   <div className="mt-4 rounded-[24px] border border-[#d5c3a4] bg-[linear-gradient(90deg,#1d1b19_0%,#1d1b19_49.5%,#f9f6f2_49.5%,#f9f6f2_100%)] p-3 shadow-inner sm:p-4">
@@ -183,14 +183,14 @@ export default function StatusPage() {
                             onClick={() => openProfileDetail(p)}
                             className="w-full rounded-2xl border border-[#322c28] bg-[#1d1b19] px-3 py-2.5 text-left text-white shadow-sm transition hover:brightness-110"
                           >
-                            <span className="block text-[1.05rem] font-black sm:text-lg">{p.name}</span>
-                            <span className="text-[13px] text-stone-300 sm:text-sm">{p.rank}</span>
+                            <span className="block text-[2.1rem] font-black leading-tight sm:text-[2.3rem]">{p.name}</span>
+                            <span className="block text-[2.6rem] font-black text-stone-300 sm:text-[2.9rem]">{p.rank}</span>
                           </button>
                         ))}
                       </div>
 
                       <div className="flex items-center justify-center px-1 sm:px-2">
-                        <span className="text-[1.3rem] font-black tracking-[0.2em] text-[#7a6348] sm:text-[1.6rem]">VS</span>
+                        <span className="text-[2.6rem] font-black tracking-[0.2em] text-[#7a6348] sm:text-[3rem]">VS</span>
                       </div>
 
                       <div className="min-w-0 flex flex-col gap-2">
@@ -200,8 +200,8 @@ export default function StatusPage() {
                             onClick={() => openProfileDetail(p)}
                             className="w-full rounded-2xl border border-[#d7d0c7] bg-[#f9f5f1] px-3 py-2.5 text-left text-stone-800 shadow-sm transition hover:bg-[#f1ece6]"
                           >
-                            <span className="block text-[1.05rem] font-black sm:text-lg">{p.name}</span>
-                            <span className="text-[13px] text-stone-500 sm:text-sm">{p.rank}</span>
+                            <span className="block text-[2.1rem] font-black leading-tight sm:text-[2.3rem]">{p.name}</span>
+                            <span className="block text-[2.6rem] font-black text-stone-500 sm:text-[2.9rem]">{p.rank}</span>
                           </button>
                         ))}
                       </div>
