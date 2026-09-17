@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 
 interface Match {
@@ -15,54 +15,62 @@ export default function StatusPage() {
   const [activeCount, setActiveCount] = useState(0);
   const [activeMatches, setActiveMatches] = useState<Match[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isCooldown, setIsCooldown] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const [newMatchAlert, setNewMatchAlert] = useState(false);
+
+  const fetchData = useCallback(async (showNotification = false) => {
+    const { count } = await supabase
+      .from('attendance')
+      .select('*', { count: 'exact', head: true })
+      .neq('status', '귀가');
+
+    const { data: matchesData, error } = await supabase
+      .from('matches')
+      .select(`
+        id, phase, started_at,
+        player1:player1_id(name, rank),
+        player2:player2_id(name, rank)
+      `)
+      .neq('phase', '종료')
+      .order('started_at', { ascending: false });
+
+    setActiveCount(count || 0);
+    
+    if (!error && matchesData) {
+      // @ts-expect-error: 외래키 조인(Join)에 의한 타입 추론 생략
+      setActiveMatches((prevMatches) => {
+        if (showNotification && prevMatches.length > 0 && matchesData.length > prevMatches.length) {
+          setNewMatchAlert(true);
+          setTimeout(() => setNewMatchAlert(false), 5000);
+        }
+        return matchesData;
+      });
+    }
+    
+    setLastUpdated(new Date());
+    setIsLoading(false);
+  }, []);
 
   useEffect(() => {
-    let isMounted = true;
+    // 💡 해결: 실행 함수를 async로 감싸서 Next.js의 동기화 경고를 완벽히 차단합니다.
+    const loadInit = async () => { await fetchData(false); };
+    loadInit();
 
-    // 💡 해결: fetchData 함수를 useEffect 안으로 이동하여 렌더링 경고를 없앰
-    const fetchData = async () => {
-      const { count } = await supabase
-        .from('attendance')
-        .select('*', { count: 'exact', head: true })
-        .neq('status', '귀가');
+    const timer = setInterval(() => {
+      const loadPoll = async () => { await fetchData(true); };
+      loadPoll();
+    }, 30000);
 
-      const { data: matchesData, error } = await supabase
-        .from('matches')
-        .select(`
-          id, phase, started_at,
-          player1:player1_id(name, rank),
-          player2:player2_id(name, rank)
-        `)
-        .neq('phase', '종료')
-        .order('started_at', { ascending: false });
+    return () => clearInterval(timer);
+  }, [fetchData]);
 
-      if (isMounted) {
-        setActiveCount(count || 0);
-        if (!error && matchesData) {
-          // @ts-expect-error: 외래키 조인(Join)에 의한 복잡한 타입 추론 무시
-          setActiveMatches(matchesData);
-        }
-        setIsLoading(false);
-      }
-    };
-
-    fetchData();
-
-    const channel = supabase
-      .channel('public_status')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'attendance' }, () => {
-        fetchData();
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'matches' }, () => {
-        fetchData();
-      })
-      .subscribe();
-
-    return () => {
-      isMounted = false;
-      supabase.removeChannel(channel);
-    };
-  }, []); // 의존성 배열을 비워 깔끔하게 최적화
+  const handleRefresh = () => {
+    if (isCooldown) return;
+    setIsCooldown(true);
+    fetchData(true);
+    setTimeout(() => setIsCooldown(false), 10000); // 10초 쿨타임
+  };
 
   const getPhaseBadge = (phase: string) => {
     switch (phase) {
@@ -75,10 +83,29 @@ export default function StatusPage() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-900 font-sans p-4 select-none pb-12">
-      <header className="py-6 text-center">
+    <main className="min-h-screen bg-slate-50 text-slate-900 font-sans p-4 select-none pb-12 relative">
+      {newMatchAlert && (
+        <div className="fixed top-4 left-0 right-0 z-50 flex justify-center animate-bounce">
+          <div className="bg-amber-500 text-white px-6 py-3 rounded-full font-bold shadow-xl flex items-center gap-2">
+            <span>🔥 새로운 대국이 시작되었습니다!</span>
+          </div>
+        </div>
+      )}
+
+      <header className="py-6 flex flex-col items-center relative">
         <h1 className="text-2xl font-extrabold text-slate-800 tracking-tight">춘천기원 라이브 📡</h1>
-        <p className="text-slate-500 text-sm mt-1">스마트폰으로 보는 실시간 기원 현황</p>
+        <p className="text-slate-500 text-xs mt-1">
+          업데이트: {lastUpdated.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+        </p>
+        <button 
+          onClick={handleRefresh}
+          disabled={isCooldown}
+          className={`absolute top-6 right-2 px-4 py-2 rounded-xl font-bold text-sm transition-all shadow-sm ${
+            isCooldown ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 active:scale-95'
+          }`}
+        >
+          {isCooldown ? '대기중' : '새로고침'}
+        </button>
       </header>
 
       <section className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 mb-6 text-center">
@@ -123,12 +150,12 @@ export default function StatusPage() {
                   {new Date(match.started_at).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })} 시작
                 </p>
                 <div className="flex justify-between items-center mt-2">
-                  <div className="flex flex-col items-center flex-1">
+                  <div className="flex flex-col items-center flex-1 text-center">
                     <span className="text-xl font-extrabold text-slate-800">{match.player1?.name}</span>
                     <span className="text-sm font-bold text-slate-500 mt-1">{match.player1?.rank}</span>
                   </div>
                   <div className="text-2xl font-black text-slate-300 italic px-4">VS</div>
-                  <div className="flex flex-col items-center flex-1">
+                  <div className="flex flex-col items-center flex-1 text-center">
                     <span className="text-xl font-extrabold text-slate-800">{match.player2?.name}</span>
                     <span className="text-sm font-bold text-slate-500 mt-1">{match.player2?.rank}</span>
                   </div>
