@@ -38,7 +38,10 @@ export default function LeftPanel({
   };
 
   return (
-    <section className="w-[38%] h-full board-panel border-r-4 border-[#c59d62] flex flex-col shadow-2xl relative z-10 bg-[#d9c7a1]">
+    <section
+      className="w-[38%] h-full board-panel border-r-4 border-[#c59d62] flex flex-col shadow-2xl relative z-10"
+      style={{ backgroundColor: '#d9c7a1' }}
+    >
       <header className="p-5 xl:p-6 bg-[#f3ead3]/90 border-b-2 border-[#caa96f] flex justify-between items-end shadow-sm">
         <div>
           <h1 

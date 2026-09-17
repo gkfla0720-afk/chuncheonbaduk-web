@@ -303,8 +303,8 @@ export default function KioskPage() {
         )}
 
         {showMembershipGuide && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[rgba(28,24,20,0.68)] p-4 backdrop-blur-sm">
-            <div className="w-full max-w-lg rounded-[30px] border border-[#d4c3a2] bg-[#f8f4ee] p-6 shadow-[0_18px_45px_rgba(34,27,20,0.28)] translate-y-0">
+          <div className="absolute inset-0 z-40 flex items-center justify-center bg-[rgba(28,24,20,0.36)] p-4 backdrop-blur-[1px]">
+            <div className="w-full max-w-lg rounded-[30px] border border-[#d4c3a2] bg-[#f8f4ee] p-6 shadow-[0_18px_45px_rgba(34,27,20,0.28)]">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="text-[10px] font-bold tracking-[0.18em] text-[#7e5d3d]">회원 등급</p>
