@@ -8,12 +8,10 @@ interface Profile { id: string; name: string; phone_last4: string; rank: string;
 interface ActiveMember { id: number; status: string; checked_in_at: string; user_id: string; profiles: { name: string; rank: string; tier: string; }; }
 
 export default function KioskPage() {
-  // === 기본 키오스크 상태 ===
   const [activeMembers, setActiveMembers] = useState<ActiveMember[]>([]);
   const [isLoadingList, setIsLoadingList] = useState(true);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  // 출석용 상태
   const [phoneNumber, setPhoneNumber] = useState('');
   const [candidates, setCandidates] = useState<Profile[]>([]);
   const [confirmUser, setConfirmUser] = useState<Profile | null>(null);
@@ -26,15 +24,21 @@ export default function KioskPage() {
   // === 💡 대국 신청 마법사 상태 ===
   const [kioskMode, setKioskMode] = useState<'attendance' | 'match_wizard'>('attendance');
   const [matchStep, setMatchStep] = useState(1);
-  
-  // 마법사 데이터 보관함
-  const [matchType, setMatchType] = useState('친선전'); // 랭킹전, 친선전, 페어전(2:2) 등
+  const [matchType, setMatchType] = useState('친선전');
   const [blackTeam, setBlackTeam] = useState<ActiveMember[]>([]);
   const [whiteTeam, setWhiteTeam] = useState<ActiveMember[]>([]);
   const [ruleType, setRuleType] = useState('자동');
-  const [handicap, setHandicap] = useState('호선(덤 6.5집)');
+  
+  // 💡 고급 치수 설정 상태
+  const [handicapType, setHandicapType] = useState<'호선' | '정선' | '접바둑'>('호선');
+  const [handicapStones, setHandicapStones] = useState(2);
+  const [komi, setKomi] = useState(0.5);
 
-  // 1. 왼쪽 화면 실시간 현황 불러오기
+  const isHandicapValid = 
+    handicapType !== '접바둑' || 
+    handicapStones >= 2 || 
+    (handicapStones === 0 && komi >= 15);
+
   useEffect(() => {
     let isMounted = true;
     const fetchActiveMembers = async () => {
@@ -50,9 +54,7 @@ export default function KioskPage() {
         setIsLoadingList(false);
       }
     };
-    
-    const load = async () => { await fetchActiveMembers(); };
-    load();
+    fetchActiveMembers();
     return () => { isMounted = false; };
   }, [refreshTrigger]);
 
@@ -64,7 +66,6 @@ export default function KioskPage() {
     return () => { supabase.removeChannel(channel); };
   }, []);
 
-  // 2. 기본 출석/귀가 로직
   const handleReset = () => {
     if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
     setPhoneNumber(''); setCandidates([]); setConfirmUser(null); setActiveAttendance(null); setLastAttendanceId(null);
@@ -118,44 +119,64 @@ export default function KioskPage() {
     setRefreshTrigger((prev) => prev + 1); handleReset();
   };
 
-  // 3. 💡 대국 신청 마법사 로직
   const openMatchWizard = () => {
     setKioskMode('match_wizard'); setMatchStep(1); setBlackTeam([]); setWhiteTeam([]);
+    setHandicapType('호선'); setHandicapStones(2); setKomi(0.5); 
   };
 
   const closeMatchWizard = () => {
     setKioskMode('attendance'); handleReset();
   };
 
-  // 대국자 선택 모드에서 왼쪽 목록을 클릭했을 때의 동작
   const handleMemberClickForMatch = (member: ActiveMember) => {
     if (kioskMode !== 'match_wizard' || matchStep !== 2) return;
-    
-    // 이미 선택된 사람인지 확인
     if (blackTeam.find(m => m.id === member.id) || whiteTeam.find(m => m.id === member.id)) return;
 
-    // 필요 인원수 계산
     const requiredPlayers = matchType.includes('2:2') ? 2 : matchType.includes('3:3') ? 3 : matchType.includes('4:4') ? 4 : 1;
+    if (blackTeam.length < requiredPlayers) setBlackTeam([...blackTeam, member]);
+    else if (whiteTeam.length < requiredPlayers) setWhiteTeam([...whiteTeam, member]);
+  };
 
-    // 흑팀 먼저 채우고 백팀 채우기
-    if (blackTeam.length < requiredPlayers) {
-      setBlackTeam([...blackTeam, member]);
-    } else if (whiteTeam.length < requiredPlayers) {
-      setWhiteTeam([...whiteTeam, member]);
-    }
+  const handleStonesChange = (delta: number) => {
+    setHandicapStones(prev => {
+      const next = prev + delta;
+      if (next === 1 && delta === -1) return 0;
+      if (next === 1 && delta === 1) return 2;
+      if (next < 0) return 0;
+      if (next > 9) return 9;
+      return next;
+    });
+  };
+
+  const handleKomiChange = (delta: number) => {
+    setKomi(prev => {
+      const next = prev + delta;
+      if (next < 0.5) return 0.5;
+      if (next > 99.5) return 99.5;
+      return next;
+    });
   };
 
   const submitMatch = async () => {
+    let finalHandicap = '';
+    if (handicapType === '호선') finalHandicap = '호선(덤 6.5집)';
+    else if (handicapType === '정선') finalHandicap = '정선(덤 0.5집)';
+    else finalHandicap = `접바둑 ${handicapStones}점 (${handicapStones === 0 ? '역덤' : '덤'} ${komi}집)`;
+
     const { error } = await supabase.from('matches').insert([{
       match_type: matchType,
       black_team: blackTeam.map(m => m.user_id),
       white_team: whiteTeam.map(m => m.user_id),
       rule_type: ruleType,
-      handicap: handicap,
+      handicap: finalHandicap,
       phase: '초반'
     }]);
 
+    const allPlayerIds = [...blackTeam, ...whiteTeam].map(m => m.id);
+    await supabase.from('attendance').update({ status: '대국중' }).in('id', allPlayerIds);
+
     if (!error) {
+      setRefreshTrigger(prev => prev + 1);
       alert('대국 신청이 완료되었습니다!');
       closeMatchWizard();
     } else {
@@ -163,7 +184,6 @@ export default function KioskPage() {
     }
   };
 
-  // 4. 화면 렌더링
   return (
     <main className="flex flex-row w-full h-screen bg-[#e3c18b] font-sans select-none overflow-hidden text-slate-900">
       
@@ -230,29 +250,22 @@ export default function KioskPage() {
         <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'linear-gradient(#fdfbf7 1px, transparent 1px), linear-gradient(90deg, #fdfbf7 1px, transparent 1px)', backgroundSize: '40px 40px' }}></div>
 
         {kioskMode === 'attendance' ? (
-          // ==================== A. 기본 출석 모드 ====================
           <>
             <button onClick={openMatchWizard} className="absolute top-6 right-6 bg-[#9a5b28] hover:bg-[#854d20] text-white font-extrabold py-3 px-6 rounded-2xl shadow-lg transition-transform active:scale-95 z-20">
               ⚔️ 대국 신청하기
             </button>
-
             <div className="text-center mb-8 relative z-10">
-              <span className="bg-[#9a5b28] text-white text-sm font-bold px-4 py-1.5 rounded-full tracking-widest shadow-md">
-                CHUNCHEON BADUK CLUB
-              </span>
+              <span className="bg-[#9a5b28] text-white text-sm font-bold px-4 py-1.5 rounded-full tracking-widest shadow-md">CHUNCHEON BADUK CLUB</span>
               <h2 className="text-5xl font-extrabold mt-6 text-[#fdfbf7] tracking-tight">출석 및 귀가 확인</h2>
               <p className={`mt-5 text-xl font-bold h-8 ${isSuccess ? 'text-green-400 text-3xl' : 'text-[#e3c18b]'}`}>{message}</p>
             </div>
-
             <div className="relative z-10 w-full max-w-md">
               {isSuccess ? (
                 <div className="bg-[#3a291f] p-8 rounded-3xl border border-green-500/30 text-center shadow-2xl">
                   <div className="text-6xl mb-4">✅</div>
                   <p className="text-stone-400 font-bold mb-6">잠시 후 초기화면으로 돌아갑니다.</p>
                   {lastAttendanceId && (
-                    <button onClick={handleCancelAttendance} className="w-full py-5 mb-3 bg-red-800 hover:bg-red-700 text-white font-extrabold rounded-2xl text-xl shadow-lg transition">
-                      앗, 잘못 눌렀어요! (취소)
-                    </button>
+                    <button onClick={handleCancelAttendance} className="w-full py-5 mb-3 bg-red-800 hover:bg-red-700 text-white font-extrabold rounded-2xl text-xl shadow-lg transition">앗, 잘못 눌렀어요! (취소)</button>
                   )}
                 </div>
               ) : confirmUser ? (
@@ -262,13 +275,9 @@ export default function KioskPage() {
                     <p className="text-[#e3c18b] text-xl font-bold mt-3">{confirmUser.rank} / {confirmUser.tier}</p>
                   </div>
                   {activeAttendance ? (
-                    <button onClick={handleGoHome} className="w-full py-5 bg-[#1a110b] border-2 border-[#e3c18b] text-[#e3c18b] font-extrabold rounded-2xl text-3xl shadow-xl transition">
-                      귀가하기 (퇴장)
-                    </button>
+                    <button onClick={handleGoHome} className="w-full py-5 bg-[#1a110b] border-2 border-[#e3c18b] text-[#e3c18b] font-extrabold rounded-2xl text-3xl shadow-xl transition">귀가하기 (퇴장)</button>
                   ) : (
-                    <button onClick={handleConfirmAttendance} className="w-full py-5 bg-[#fdfbf7] text-[#2c1e16] font-extrabold rounded-2xl text-3xl shadow-xl transition">
-                      출석하기 (입장)
-                    </button>
+                    <button onClick={handleConfirmAttendance} className="w-full py-5 bg-[#fdfbf7] text-[#2c1e16] font-extrabold rounded-2xl text-3xl shadow-xl transition">출석하기 (입장)</button>
                   )}
                   <button onClick={handleReset} className="w-full mt-4 py-4 text-stone-400 font-bold text-lg">취소하고 처음으로</button>
                 </div>
@@ -300,13 +309,10 @@ export default function KioskPage() {
             </div>
           </>
         ) : (
-          // ==================== B. 대국 신청 마법사 모드 ====================
           <div className="relative z-10 w-full max-w-2xl bg-[#3a291f] p-10 rounded-[40px] shadow-2xl border border-stone-700">
             <button onClick={closeMatchWizard} className="absolute top-6 right-6 text-stone-400 hover:text-white font-bold text-xl">✕ 닫기</button>
             <div className="flex gap-2 mb-8 justify-center">
-              {[1, 2, 3, 4].map(step => (
-                <div key={step} className={`h-2 w-16 rounded-full ${matchStep >= step ? 'bg-[#9a5b28]' : 'bg-stone-700'}`} />
-              ))}
+              {[1, 2, 3, 4].map(step => (<div key={step} className={`h-2 w-16 rounded-full ${matchStep >= step ? 'bg-[#9a5b28]' : 'bg-stone-700'}`} />))}
             </div>
 
             {matchStep === 1 && (
@@ -327,20 +333,16 @@ export default function KioskPage() {
                 <h2 className="text-3xl font-extrabold text-white mb-2">2. 대국자를 선택하세요</h2>
                 <p className="text-[#e3c18b] mb-8 font-bold">좌측 현황판에서 터치하여 팀을 구성해주세요.</p>
                 <div className="flex gap-6">
-                  {/* 흑팀 슬롯 */}
                   <div className="flex-1 bg-[#1a110b] p-4 rounded-3xl border-2 border-stone-600">
                     <h3 className="text-xl font-bold text-stone-300 mb-4 border-b border-stone-700 pb-2">⚫ 흑 팀</h3>
-                    <div className="space-y-3 min-h-[120px]">
+                    <div className="space-y-3 min-h-30">
                       {blackTeam.map(m => <div key={m.id} className="bg-stone-800 py-3 px-4 rounded-xl font-bold text-lg text-white shadow-sm flex justify-between"><span>{m.profiles.name}</span><span className="text-[#e3c18b]">{m.profiles.rank}</span></div>)}
-                      {blackTeam.length === 0 && <p className="text-stone-500 mt-6 text-sm">터치하여 추가...</p>}
                     </div>
                   </div>
-                  {/* 백팀 슬롯 */}
                   <div className="flex-1 bg-[#fdfbf7] p-4 rounded-3xl border-2 border-stone-300">
                     <h3 className="text-xl font-bold text-[#2c1e16] mb-4 border-b border-stone-300 pb-2">⚪ 백 팀</h3>
-                    <div className="space-y-3 min-h-[120px]">
+                    <div className="space-y-3 min-h-30">
                       {whiteTeam.map(m => <div key={m.id} className="bg-white py-3 px-4 rounded-xl font-bold text-lg text-[#2c1e16] shadow-sm border border-stone-200 flex justify-between"><span>{m.profiles.name}</span><span className="text-[#9a5b28]">{m.profiles.rank}</span></div>)}
-                      {whiteTeam.length === 0 && <p className="text-stone-400 mt-6 text-sm">터치하여 추가...</p>}
                     </div>
                   </div>
                 </div>
@@ -371,14 +373,53 @@ export default function KioskPage() {
             {matchStep === 4 && (
               <div className="text-center animate-fade-in">
                 <h2 className="text-3xl font-extrabold text-white mb-6">4. 치수를 설정하세요</h2>
-                <div className="grid grid-cols-3 gap-3 mb-8 h-48 overflow-y-auto pr-2 custom-scrollbar">
-                  {['호선(덤 6.5집)', '정선', '2점', '3점', '4점', '5점', '6점', '7점', '8점', '9점'].map(h => (
-                    <button key={h} onClick={() => setHandicap(h)} className={`py-4 border-2 rounded-2xl font-bold text-lg transition-all ${handicap === h ? 'bg-[#fdfbf7] text-[#2c1e16] border-white shadow-lg scale-105' : 'bg-[#1a110b] text-stone-400 border-stone-700'}`}>
-                      {h}
+                
+                <div className="grid grid-cols-3 gap-4 mb-6">
+                  {['호선', '정선', '접바둑'].map(type => (
+                    <button 
+                      key={type} 
+                      // @ts-expect-error: 상태 업데이트 타입 추론 무시
+                      onClick={() => setHandicapType(type)} 
+                      className={`py-4 border-2 rounded-2xl font-bold text-xl transition-all ${handicapType === type ? 'bg-[#fdfbf7] text-[#2c1e16] border-white shadow-lg scale-105' : 'bg-[#1a110b] text-stone-400 border-stone-700 hover:border-stone-500'}`}
+                    >
+                      {type}
                     </button>
                   ))}
                 </div>
-                <button onClick={submitMatch} className="w-full py-5 bg-green-600 hover:bg-green-500 text-white text-3xl font-extrabold rounded-2xl shadow-xl transition active:scale-95">
+
+                {handicapType === '접바둑' && (
+                  <div className="bg-[#1a110b] p-6 rounded-3xl border border-stone-700 mb-6 flex flex-col gap-6">
+                     <div className="flex justify-between items-center px-4">
+                        <span className="text-xl font-bold text-stone-300">깔아둘 돌 (접바둑)</span>
+                        <div className="flex items-center gap-4 bg-stone-800 rounded-full p-1">
+                           <button onClick={() => handleStonesChange(-1)} className="w-12 h-12 bg-stone-700 rounded-full text-2xl font-bold hover:bg-stone-600">-</button>
+                           <span className="text-2xl font-extrabold w-12 text-center text-[#e3c18b]">{handicapStones}점</span>
+                           <button onClick={() => handleStonesChange(1)} className="w-12 h-12 bg-stone-700 rounded-full text-2xl font-bold hover:bg-stone-600">+</button>
+                        </div>
+                     </div>
+
+                     <div className="flex justify-between items-center px-4">
+                        <span className="text-xl font-bold text-stone-300">{handicapStones === 0 ? '역덤' : '덤'}</span>
+                        <div className="flex items-center gap-4 bg-stone-800 rounded-full p-1">
+                           <button onClick={() => handleKomiChange(-1)} className="w-12 h-12 bg-stone-700 rounded-full text-2xl font-bold hover:bg-stone-600">-</button>
+                           <span className="text-2xl font-extrabold w-20 text-center text-[#e3c18b]">{komi}집</span>
+                           <button onClick={() => handleKomiChange(1)} className="w-12 h-12 bg-stone-700 rounded-full text-2xl font-bold hover:bg-stone-600">+</button>
+                        </div>
+                     </div>
+                     
+                     {handicapStones === 0 && komi < 15 && (
+                        <p className="text-red-400 font-bold text-sm bg-red-900/30 py-2 rounded-xl border border-red-500/50">
+                          ⚠️ 0점 접바둑일 경우 최소 15.5집 이상의 역덤이 필요합니다.
+                        </p>
+                     )}
+                  </div>
+                )}
+
+                <button 
+                  onClick={submitMatch} 
+                  disabled={!isHandicapValid}
+                  className="w-full py-5 bg-green-600 disabled:bg-stone-700 hover:bg-green-500 text-white text-3xl font-extrabold rounded-2xl shadow-xl transition active:scale-95 disabled:active:scale-100 disabled:text-stone-500"
+                >
                   ✅ 대국 시작하기
                 </button>
                 <button onClick={() => setMatchStep(3)} className="mt-6 text-stone-400 font-bold hover:text-white">⬅ 이전 단계</button>
