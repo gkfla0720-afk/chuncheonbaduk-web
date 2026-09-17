@@ -69,7 +69,13 @@ export default function LeftPanel({
               key={member.id} 
               onClick={() => {
                 if (kioskMode === 'match_wizard' && matchStep === 2) {
+                  // 💡 중복 대국 차단 로직
+                  if (member.current_status === '대국중') {
+                    alert('이미 대국 중인 회원은 중복으로 신청할 수 없습니다.');
+                    return;
+                  }
                   if (blackTeam.find(m => m.id === member.id) || whiteTeam.find(m => m.id === member.id)) return;
+                  
                   const req = matchType.includes('2:2') ? 2 : matchType.includes('3:3') ? 3 : matchType.includes('4:4') ? 4 : 1;
                   if (blackTeam.length < req) setBlackTeam([...blackTeam, member]);
                   else if (whiteTeam.length < req) setWhiteTeam([...whiteTeam, member]);
