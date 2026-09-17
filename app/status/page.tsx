@@ -97,11 +97,11 @@ export default function StatusPage() {
           </div>
         )}
 
-        <header className="mb-6 rounded-[28px] border border-[#d6c4a4] bg-[#f9f4ea]/95 px-5 py-5 shadow-[0_10px_30px_rgba(95,72,46,0.08)] sm:px-7">
+        <header className="mb-6 rounded-[28px] border border-[#d6c4a4] bg-[#f9f4ea]/90 px-5 py-5 shadow-[0_12px_30px_rgba(10,8,7,0.25)] sm:px-7 backdrop-blur-[1px]">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-[#8b6d4a]">춘천기원 LIVE</p>
-              <h1 className="mt-2 text-3xl font-black tracking-tight text-[#2a241d] sm:text-4xl">기원 현황</h1>
+              <h1 className="mt-2 text-3xl font-black tracking-tight text-[#2a241d] sm:text-4xl drop-shadow-[0_1px_0_rgba(255,255,255,0.55)]">기원 현황</h1>
             </div>
             <div className="flex items-center gap-3 text-sm text-stone-500">
               <span className="inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500 shadow-[0_0_0_4px_rgba(16,185,129,0.12)]" />
@@ -123,7 +123,7 @@ export default function StatusPage() {
           </div>
         </header>
 
-        <section className="mt-6 rounded-[32px] border border-[#d8c7a8] bg-[linear-gradient(135deg,#f5f0e8_0%,#e7dcc2_100%)] p-5 shadow-[0_14px_30px_rgba(82,64,40,0.08)] sm:p-6">
+        <section className="mt-6 rounded-[32px] border border-[#d8c7a8] bg-[linear-gradient(135deg,#f5f0e8_0%,#e7dcc2_100%)]/95 p-5 shadow-[0_14px_30px_rgba(10,8,7,0.22)] sm:p-6 backdrop-blur-[1px]">
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="text-[10px] font-bold tracking-[0.18em] text-[#7e5d3d]">춘천기원 LIVE</p>

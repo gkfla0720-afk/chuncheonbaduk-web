@@ -238,11 +238,11 @@ export default function KioskPage() {
             
             {/* 중앙: 콤팩트하고 세련된 입력 키패드 영역 */}
             <div className="flex flex-col items-center w-full max-w-[420px]">
-              <h2 className="text-4xl xl:text-5xl font-black text-stone-900 tracking-tight mb-2 drop-shadow-sm">입장 / 귀가</h2>
-              <p className="text-lg xl:text-xl font-extrabold h-8 text-stone-800 mb-2">{message}</p>
+              <h2 className="text-4xl xl:text-5xl font-black text-white tracking-tight mb-2 drop-shadow-[0_3px_12px_rgba(0,0,0,0.7)]">입장 / 귀가</h2>
+              <p className="text-lg xl:text-xl font-extrabold h-8 text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.75)] mb-2">{message}</p>
 
               {confirmUser ? (
-                <div className="bg-[#1f1a16] p-8 rounded-[2.5rem] border-4 border-[#e8d5b5] shadow-2xl text-center w-full text-white">
+                <div className="bg-[#1a1411]/85 p-8 rounded-[2.5rem] border-4 border-[#e8d5b5]/70 shadow-[0_15px_35px_rgba(0,0,0,0.4)] text-center w-full text-white backdrop-blur-sm">
                   <h2 className="text-4xl font-black mb-2 text-[#e8d5b5]">{confirmUser.name}</h2>
                   <p className="text-stone-300 text-xl font-extrabold mb-8">{confirmUser.rank} / {confirmUser.tier}</p>
                   {confirmUser.current_status !== '오프라인' ? (
@@ -257,7 +257,7 @@ export default function KioskPage() {
                   <button onClick={handleReset} className="w-full mt-4 py-3 text-stone-400 hover:text-white font-bold text-lg">취소</button>
                 </div>
               ) : candidates.length > 0 ? (
-                <div className="bg-[#1f1a16] p-6 rounded-[2.5rem] shadow-2xl space-y-3 w-full border-2 border-stone-800">
+                <div className="bg-[#1a1411]/85 p-6 rounded-[2.5rem] shadow-[0_15px_35px_rgba(0,0,0,0.35)] space-y-3 w-full border-2 border-stone-700/80 backdrop-blur-sm">
                   <p className="text-center text-[#e8d5b5] font-bold text-lg mb-4">본인의 이름을 선택해주세요</p>
                   {candidates.map((cand) => (
                     <button key={cand.id} onClick={() => { setConfirmUser(cand); setCandidates([]); }} className="w-full py-4 bg-white text-stone-900 rounded-2xl text-xl font-extrabold shadow-md flex justify-between px-6 items-center hover:bg-stone-100">
@@ -267,7 +267,7 @@ export default function KioskPage() {
                   <button onClick={handleReset} className="w-full py-3 text-stone-400 font-bold text-lg mt-2">다시 입력하기</button>
                 </div>
               ) : (
-                <div className="bg-[#1f1a16] p-6 xl:p-8 rounded-[2.5rem] shadow-2xl w-full border-4 border-stone-800">
+                <div className="bg-[#1a1411]/85 p-6 xl:p-8 rounded-[2.5rem] shadow-[0_15px_35px_rgba(0,0,0,0.35)] w-full border-4 border-stone-700/80 backdrop-blur-sm">
                   <div className="bg-[#120f0d] border border-stone-700 rounded-2xl h-16 xl:h-20 flex items-center justify-center mb-6 shadow-inner">
                     <span className="text-4xl xl:text-5xl font-mono tracking-[0.4em] text-[#e8d5b5] font-black">{phoneNumber.padEnd(4, '—')}</span>
                   </div>
