@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { fetchProfileStats } from '@/lib/profileStats';
+import { fetchProfileMatchHistory, MatchHistoryEntry } from '@/lib/matchHistory';
 import { Profile, Match } from '../types';
 import LeftPanel from '../components/LeftPanel';
 import AttendanceScreen from '../components/AttendanceScreen';
@@ -48,11 +49,17 @@ export default function KioskPage() {
   const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
   const [profileStats, setProfileStats] = useState({ wins: 0, losses: 0, attendanceRate: 0, joinedAt: '', tier: '' });
   const [isLoadingStats, setIsLoadingStats] = useState(false);
+  const [matchHistory, setMatchHistory] = useState<MatchHistoryEntry[]>([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
 
   const [regName, setRegName] = useState('');
   const [regPhone, setRegPhone] = useState('');
   const [regRank, setRegRank] = useState('10급');
-  
+
+  // 대국 중계(전체화면 확대) 상태에서도 출석 관리를 놓치지 않도록, 대국 상세 화면을 벗어나지
+  // 않고 신규가입/대국신청/입장·귀가를 팝업으로 바로 처리할 수 있게 하는 상태.
+  const [quickAction, setQuickAction] = useState<'register' | 'match_wizard' | 'attendance' | null>(null);
+
   const resetTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -131,9 +138,19 @@ export default function KioskPage() {
     setPhoneNumber(''); setCandidates([]); setConfirmUser(null);
     setKioskMode('attendance'); setMessage('전화번호 뒷자리 4자리를 눌러주세요.');
     setConfirmAction(null); setSelectedMatch(null); setSelectedProfile(null);
-    setIsProcessing(false);
+    setIsProcessing(false); setQuickAction(null);
     // 신규 가입 입력값도 함께 초기화해, 직전 가입자의 입력 정보가 다음 화면에 남지 않도록 한다.
     setRegName(''); setRegPhone(''); setRegRank('10급');
+  };
+
+  // 대국 상세(중계 화면)를 벗어나지 않은 채, 그 위에 띄운 신규가입/대국신청/입장·귀가
+  // 팝업만 닫는다. handleReset과 달리 kioskMode/selectedMatch는 건드리지 않는다.
+  const closeQuickAction = () => {
+    if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
+    setPhoneNumber(''); setCandidates([]); setConfirmUser(null);
+    setMessage('전화번호 뒷자리 4자리를 눌러주세요.'); setIsProcessing(false);
+    setRegName(''); setRegPhone(''); setRegRank('10급');
+    setQuickAction(null);
   };
 
   const handleNumberClick = (num: string) => { if (phoneNumber.length < 4) setPhoneNumber(prev => prev + num); };
@@ -168,7 +185,7 @@ export default function KioskPage() {
       return;
     }
     setRefreshTrigger(p => p + 1); 
-    resetTimerRef.current = setTimeout(() => handleReset(), 3000);
+    resetTimerRef.current = setTimeout(() => { quickAction ? closeQuickAction() : handleReset(); }, 3000);
   };
 
   const handleGoHome = async () => {
@@ -186,7 +203,7 @@ export default function KioskPage() {
       await supabase.from('attendance').update({ status: '귀가', checked_out_at: new Date().toISOString() }).eq('id', latestAtt[0].id);
     }
     setRefreshTrigger(p => p + 1);
-    resetTimerRef.current = setTimeout(() => handleReset(), 3000);
+    resetTimerRef.current = setTimeout(() => { quickAction ? closeQuickAction() : handleReset(); }, 3000);
   };
 
   const handleRankChange = (delta: number) => {
@@ -211,22 +228,35 @@ export default function KioskPage() {
       setIsProcessing(false);
       return;
     }
-    alert('가입이 완료되었습니다!'); handleReset();
+    alert('가입이 완료되었습니다!');
+    quickAction ? closeQuickAction() : handleReset();
   };
 
   const openProfileDetail = async (member: Profile) => {
-    setKioskMode('profile_detail'); setSelectedProfile(member); setIsLoadingStats(true);
+    setKioskMode('profile_detail'); setSelectedProfile(member); setIsLoadingStats(true); setIsLoadingHistory(true);
     try {
-      const stats = await fetchProfileStats(member.id);
+      const [stats, history] = await Promise.all([fetchProfileStats(member.id), fetchProfileMatchHistory(member.id)]);
       setProfileStats(stats);
+      setMatchHistory(history);
     } catch (err) {
       console.error(err);
     }
-    setIsLoadingStats(false);
+    setIsLoadingStats(false); setIsLoadingHistory(false);
   };
 
-  const openMatchWizard = () => { setKioskMode('match_wizard'); setMatchStep(1); setDrawMethod('수동'); setBlackTeam([]); setWhiteTeam([]); setHandicapType('호선'); setHandicapStones(2); setKomi(0.5); };
+  const openMatchWizard = (asQuickAction = false) => {
+    setMatchStep(1); setDrawMethod('수동'); setBlackTeam([]); setWhiteTeam([]); setHandicapType('호선'); setHandicapStones(2); setKomi(0.5);
+    if (asQuickAction) setQuickAction('match_wizard'); else setKioskMode('match_wizard');
+  };
   const closeMatchWizard = () => { setKioskMode('attendance'); handleReset(); };
+
+  // 중계 화면(대국 상세)을 유지한 채로 신규가입/입장·귀가 팝업을 여는 진입점
+  const openQuickAction = (action: 'register' | 'match_wizard' | 'attendance') => {
+    if (action === 'match_wizard') { openMatchWizard(true); return; }
+    if (action === 'register') { setRegName(''); setRegPhone(''); setRegRank('10급'); }
+    if (action === 'attendance') { setPhoneNumber(''); setCandidates([]); setConfirmUser(null); setMessage('전화번호 뒷자리 4자리를 눌러주세요.'); }
+    setQuickAction(action);
+  };
 
   const openMatchDetail = (matchId: number) => {
     const match = liveMatches.find(m => m.id === matchId);
@@ -236,7 +266,9 @@ export default function KioskPage() {
   const endMatch = async (result: string) => {
     if (isProcessing || !selectedMatch) return;
     setIsProcessing(true);
-    const { error } = await supabase.from('matches').update({ phase: result === '취소' ? '취소' : '종료', winner: result }).eq('id', selectedMatch.id);
+    // 기보(kifu)는 matches 행에 그대로 남아 대국 종료 후에도 영구 보존된다.
+    // 중계 슬롯은 하나뿐이므로, 대국이 끝나면 다음 대국이 중계를 시작할 수 있도록 반드시 꺼둔다.
+    const { error } = await supabase.from('matches').update({ phase: result === '취소' ? '취소' : '종료', winner: result, is_streaming: false }).eq('id', selectedMatch.id);
     if (error) {
       console.error(error);
       alert('대국 처리 중 오류가 발생했습니다. 다시 시도해주세요.');
@@ -349,7 +381,8 @@ export default function KioskPage() {
     }
     const allIds = [...blackTeam, ...whiteTeam].map(m => m.id);
     await supabase.from('profiles').update({ current_status: '대국중' }).in('id', allIds);
-    setRefreshTrigger(p => p + 1); handleReset();
+    setRefreshTrigger(p => p + 1);
+    quickAction ? closeQuickAction() : handleReset();
   };
 
   return (
@@ -387,7 +420,7 @@ export default function KioskPage() {
             onSelectCandidate={(cand) => { setConfirmUser(cand); setCandidates([]); }}
             onShowMembershipGuide={() => setShowMembershipGuide(true)}
             onOpenRegister={() => setKioskMode('register')}
-            onOpenMatchWizard={openMatchWizard}
+            onOpenMatchWizard={() => openMatchWizard(false)}
           />
         )}
       </section>
@@ -401,6 +434,8 @@ export default function KioskPage() {
           profile={selectedProfile}
           stats={profileStats}
           isLoadingStats={isLoadingStats}
+          matchHistory={matchHistory}
+          isLoadingHistory={isLoadingHistory}
           onClose={handleReset}
         />
       )}
@@ -419,6 +454,7 @@ export default function KioskPage() {
           onToggleStreaming={toggleStreaming}
           onPlaceKifuMove={placeKifuMove}
           onUndoKifuMove={undoKifuMove}
+          onOpenQuickAction={openQuickAction}
         />
       )}
 
@@ -462,6 +498,79 @@ export default function KioskPage() {
           isProcessing={isProcessing}
           onClose={closeMatchWizard}
         />
+      )}
+
+      {/* 대국 상세(중계) 화면을 유지한 채 신규가입/대국신청/입장·귀가를 팝업으로 처리한다. */}
+      {quickAction === 'register' && (
+        <RegisterModal
+          regName={regName}
+          setRegName={setRegName}
+          regPhone={regPhone}
+          setRegPhone={setRegPhone}
+          regRank={regRank}
+          handleRankChange={handleRankChange}
+          onCancel={closeQuickAction}
+          onSubmit={submitRegister}
+          isProcessing={isProcessing}
+        />
+      )}
+
+      {quickAction === 'match_wizard' && (
+        <MatchWizard
+          matchStep={matchStep}
+          setMatchStep={setMatchStep}
+          matchType={matchType}
+          setMatchType={setMatchType}
+          availableMembers={availableMembers}
+          blackTeam={blackTeam}
+          whiteTeam={whiteTeam}
+          setBlackTeam={setBlackTeam}
+          setWhiteTeam={setWhiteTeam}
+          selectMemberToTeam={selectMemberToTeam}
+          drawMethod={drawMethod}
+          setDrawMethod={setDrawMethod}
+          applyAutoDraw={applyAutoDraw}
+          handicapType={handicapType}
+          setHandicapType={setHandicapType}
+          handicapStones={handicapStones}
+          setHandicapStones={setHandicapStones}
+          komi={komi}
+          setKomi={setKomi}
+          isHandicapValid={isHandicapValid}
+          submitMatch={submitMatch}
+          isProcessing={isProcessing}
+          onClose={closeQuickAction}
+        />
+      )}
+
+      {quickAction === 'attendance' && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(22,16,12,0.65)] p-4 backdrop-blur-[2px]">
+          <div className="relative w-full max-w-5xl board-surface rounded-[30px] border-4 border-[#b88c42] shadow-2xl p-8 max-h-[92vh] overflow-y-auto">
+            <button
+              onClick={closeQuickAction}
+              className="absolute top-4 right-4 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-black/30 text-2xl font-black text-stone-200 hover:bg-black/50 hover:text-white"
+            >
+              ✕
+            </button>
+            <AttendanceScreen
+              message={message}
+              confirmUser={confirmUser}
+              candidates={candidates}
+              phoneNumber={phoneNumber}
+              isProcessing={isProcessing}
+              onNumberClick={handleNumberClick}
+              onDelete={handleDelete}
+              onSearchUser={handleSearchUser}
+              onReset={closeQuickAction}
+              onConfirmAttendance={handleConfirmAttendance}
+              onGoHome={handleGoHome}
+              onSelectCandidate={(cand) => { setConfirmUser(cand); setCandidates([]); }}
+              onShowMembershipGuide={() => setShowMembershipGuide(true)}
+              onOpenRegister={() => openQuickAction('register')}
+              onOpenMatchWizard={() => openMatchWizard(true)}
+            />
+          </div>
+        </div>
       )}
     </main>
   );
