@@ -1,5 +1,22 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Supabase database setup
+
+The application uses the `profiles`, `attendance`, and `matches` tables. The complete schema, indexes, status constraints, realtime publication setup, and kiosk access policies are in:
+
+```text
+supabase/migrations/20260918130100_create_baduk_tables.sql
+```
+
+Run the migration with the Supabase CLI after linking the replacement project:
+
+```bash
+npx supabase link --project-ref <project-ref>
+npx supabase db push
+```
+
+Configure `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` in the deployment environment before starting the app.
+
 ## Getting Started
 
 First, run the development server:

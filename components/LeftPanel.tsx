@@ -97,7 +97,9 @@ export default function LeftPanel({
               <div className="flex flex-col">
                 <span className="font-black text-2xl xl:text-3xl text-stone-800">{member.name}</span>
                 <span className="text-xs xl:text-sm text-stone-500 font-semibold mt-1">
-                  {new Date(member.last_check_in).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })} 도착
+                  {member.last_check_in
+                    ? `${new Date(member.last_check_in).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })} 도착`
+                    : '도착 시간 없음'}
                 </span>
               </div>
               <div className="flex flex-col items-end gap-2">
