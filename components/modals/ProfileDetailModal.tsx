@@ -25,10 +25,16 @@ export default function ProfileDetailModal({ profile, stats, isLoadingStats, mat
 
   return (
     <div
-      className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-[rgba(22,16,12,0.56)] p-4 backdrop-blur-[2px]"
+      className="modal-backdrop fixed inset-0 z-[70] flex items-center justify-center bg-[rgba(22,16,12,0.56)] p-4 backdrop-blur-[2px]"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="modal-card w-full max-w-2xl max-h-[92vh] overflow-y-auto bg-[#1f1a16] text-white p-10 rounded-[30px] shadow-[0_18px_45px_rgba(34,27,20,0.28)] border-4 border-[#b88c42] text-center">
+      <div className="modal-card relative w-full max-w-2xl max-h-[92vh] overflow-y-auto bg-[#1f1a16] text-white p-10 rounded-[30px] shadow-[0_18px_45px_rgba(34,27,20,0.28)] border-4 border-[#b88c42] text-center">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-black/30 text-2xl font-black text-stone-200 hover:bg-black/50 hover:text-white"
+        >
+          ✕
+        </button>
         <h2 className="text-3xl font-black text-[#e8d5b5] mb-1">회원 기력 및 프로필</h2>
         <p className="text-stone-400 font-semibold mb-6">가입일: {stats.joinedAt}</p>
         <div className="bg-[#120f0d] p-8 rounded-3xl mb-6 border border-stone-800 shadow-inner">
@@ -44,15 +50,17 @@ export default function ProfileDetailModal({ profile, stats, isLoadingStats, mat
           {isLoadingStats ? (
             <p className="text-stone-400 font-bold py-8 animate-pulse text-xl">전적 데이터를 집계하는 중...</p>
           ) : (
-            <div className="grid grid-cols-2 gap-5">
-              <div className="bg-[#241f1b] p-5 rounded-2xl border border-stone-700">
-                <p className="text-stone-400 text-xl font-bold mb-2">대국 통산 전적</p>
-                <p className="text-3xl font-black"><span className="text-blue-400">{stats.wins}승</span> <span className="text-red-400">{stats.losses}패</span></p>
-                <p className="text-stone-400 text-xl font-bold mt-2">승률 {stats.wins + stats.losses > 0 ? Math.round((stats.wins / (stats.wins + stats.losses)) * 100) : 0}%</p>
-              </div>
+            // 모바일 화면에서는 출석률을 위, 대국 전적을 아래로 세로 배치해야 "n승 n패" 등이
+            // 좁은 폭에 눌려 줄바뀜되지 않는다. sm 이상에서는 기존처럼 2열로 나란히 배치한다.
+            <div className="flex flex-col sm:grid sm:grid-cols-2 gap-5">
               <div className="bg-[#241f1b] p-5 rounded-2xl border border-stone-700 flex flex-col justify-center items-center">
                 <p className="text-stone-400 text-xl font-bold mb-2">최근 30일 출석률</p>
                 <p className="text-4xl font-black text-[#dcb36c]">{stats.attendanceRate}%</p>
+              </div>
+              <div className="bg-[#241f1b] p-5 rounded-2xl border border-stone-700">
+                <p className="text-stone-400 text-xl font-bold mb-2">대국 통산 전적</p>
+                <p className="text-3xl font-black whitespace-nowrap"><span className="text-blue-400">{stats.wins}승</span> <span className="text-red-400">{stats.losses}패</span></p>
+                <p className="text-stone-400 text-xl font-bold mt-2 whitespace-nowrap">승률 {stats.wins + stats.losses > 0 ? Math.round((stats.wins / (stats.wins + stats.losses)) * 100) : 0}%</p>
               </div>
             </div>
           )}
