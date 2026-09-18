@@ -51,8 +51,8 @@ export default function RegisterModal({
       <div className="modal-card w-full h-full max-h-[96vh] max-w-6xl bg-[#1f1a16] text-white p-6 xl:p-8 rounded-[30px] shadow-[0_18px_45px_rgba(34,27,20,0.28)] border-4 border-[#b88c42] flex flex-col">
         <h2 className="text-3xl font-black text-[#e8d5b5] mb-4 text-center shrink-0">📝 신규 회원 등록</h2>
         <div className="flex flex-col lg:flex-row gap-6 flex-1 min-h-0">
-          {/* 좌측: 입력 필드 */}
-          <div className="space-y-4 text-left lg:w-[360px] shrink-0">
+          {/* 좌측: 입력 필드 - 우측 키보드가 세로 중앙 정렬되어 있으므로 높이/중심을 맞춘다 */}
+          <div className="space-y-4 text-left lg:w-[360px] shrink-0 lg:flex lg:flex-col lg:justify-center">
             <div>
               <label className="text-stone-300 text-xl font-bold mb-1.5 block">회원 성함</label>
               <input

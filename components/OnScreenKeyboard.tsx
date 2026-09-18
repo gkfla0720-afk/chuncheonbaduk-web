@@ -106,17 +106,18 @@ interface OnScreenKeyboardProps {
 
 export default function OnScreenKeyboard({ mode, onKey, onBackspace, shift, onToggleShift, size = 'normal' }: OnScreenKeyboardProps) {
   const isLarge = size === 'large';
+  // 배경(#120f0d)과 구분감이 잘 안 나던 문제를 해결하기 위해 키를 밝은 나무색 톤으로 바꾼다.
   const keyClass = isLarge
-    ? 'flex-1 h-16 xl:h-20 min-w-0 rounded-xl bg-stone-800 text-white text-2xl xl:text-3xl font-black shadow-[0_3px_0_#0a0908] active:translate-y-0.5 active:shadow-none flex items-center justify-center transition-all hover:bg-stone-700'
-    : 'flex-1 h-11 xl:h-12 min-w-0 rounded-xl bg-stone-800 text-white text-xl font-black shadow-[0_3px_0_#0a0908] active:translate-y-0.5 active:shadow-none flex items-center justify-center transition-all hover:bg-stone-700';
+    ? 'flex-1 h-16 xl:h-20 min-w-0 rounded-xl bg-[#8a6239] text-white text-2xl xl:text-3xl font-black shadow-[0_3px_0_#4a331c] active:translate-y-0.5 active:shadow-none flex items-center justify-center transition-all hover:bg-[#9c7148]'
+    : 'flex-1 h-11 xl:h-12 min-w-0 rounded-xl bg-[#8a6239] text-white text-xl font-black shadow-[0_3px_0_#4a331c] active:translate-y-0.5 active:shadow-none flex items-center justify-center transition-all hover:bg-[#9c7148]';
 
   if (mode === 'numeric') {
     return (
-      <div className={`grid grid-cols-3 ${isLarge ? 'gap-4 p-6' : 'gap-2 p-3'} bg-[#120f0d] rounded-2xl border-2 border-stone-700 w-full`}>
+      <div className={`grid grid-cols-3 ${isLarge ? 'gap-4 p-6' : 'gap-2 p-3'} bg-[#241b13] rounded-2xl border-2 border-[#5c4530] w-full`}>
         {['1','2','3','4','5','6','7','8','9'].map(n => (
           <button key={n} type="button" onClick={() => onKey(n)} className={keyClass}>{n}</button>
         ))}
-        <button type="button" onClick={onBackspace} className={`${keyClass} bg-[#7a4b2b]`}>지움</button>
+        <button type="button" onClick={onBackspace} className={`${keyClass} bg-[#5c3a1e] hover:bg-[#6d4525]`}>지움</button>
         <button type="button" onClick={() => onKey('0')} className={keyClass}>0</button>
         <div />
       </div>
@@ -124,7 +125,7 @@ export default function OnScreenKeyboard({ mode, onKey, onBackspace, shift, onTo
   }
 
   return (
-    <div className={`${isLarge ? 'space-y-3 p-6' : 'space-y-2 p-3'} bg-[#120f0d] rounded-2xl border-2 border-stone-700 w-full`}>
+    <div className={`${isLarge ? 'space-y-3 p-6' : 'space-y-2 p-3'} bg-[#241b13] rounded-2xl border-2 border-[#5c4530] w-full`}>
       {HANGUL_ROWS.map((row, i) => (
         <div key={i} className="flex gap-1.5">
           {row.map(([normal, shifted]) => (
@@ -142,7 +143,7 @@ export default function OnScreenKeyboard({ mode, onKey, onBackspace, shift, onTo
       <div className="flex gap-1.5">
         <button type="button" onClick={onToggleShift} className={`${keyClass} flex-[1.4] ${shift ? 'bg-[#dcb36c] text-stone-900' : ''}`}>쌍자음</button>
         <button type="button" onClick={() => onKey(' ')} className={`${keyClass} flex-[3]`}>스페이스</button>
-        <button type="button" onClick={onBackspace} className={`${keyClass} flex-[1.4] bg-[#7a4b2b]`}>지움</button>
+        <button type="button" onClick={onBackspace} className={`${keyClass} flex-[1.4] bg-[#5c3a1e] hover:bg-[#6d4525]`}>지움</button>
       </div>
     </div>
   );

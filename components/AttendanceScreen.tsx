@@ -43,60 +43,60 @@ export default function AttendanceScreen({
   compact = false,
 }: AttendanceScreenProps) {
   return (
-    <div className={`relative z-10 w-full h-full flex flex-row items-center justify-center gap-8 xl:gap-12 px-2 ${compact ? 'max-w-[420px] mx-auto' : ''}`}>
+    <div className={`relative z-10 w-full h-full flex flex-row items-center justify-center gap-8 xl:gap-12 px-2 ${compact ? 'max-w-[380px] mx-auto' : ''}`}>
       {/* 진행 중 대국 카드는 왼쪽 '현재 현황' 패널에서만 표시한다 (중복 노출 방지) */}
 
       {/* 중앙: 콤팩트하고 세련된 입력 키패드 영역 - 좌우 칸의 유무/내용과 무관하게 항상 동일한 고정 폭 유지 */}
-      <div className="flex flex-col items-center w-[420px] shrink-0">
-        <h2 className="text-4xl xl:text-5xl font-black text-white tracking-tight mb-2 drop-shadow-[0_3px_12px_rgba(0,0,0,0.7)]">입장 / 귀가</h2>
+      <div className={`flex flex-col items-center shrink-0 ${compact ? 'w-full' : 'w-[420px]'}`}>
+        <h2 className={`font-black text-white tracking-tight drop-shadow-[0_3px_12px_rgba(0,0,0,0.7)] ${compact ? 'text-3xl xl:text-4xl mb-1' : 'text-4xl xl:text-5xl mb-2'}`}>입장 / 귀가</h2>
         {(confirmUser || candidates.length > 0) && (
-          <p className="text-xl font-extrabold h-8 text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.75)] mb-2">{message}</p>
+          <p className={`font-extrabold text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.75)] ${compact ? 'text-lg h-6 mb-1' : 'text-xl h-8 mb-2'}`}>{message}</p>
         )}
 
         {confirmUser ? (
-          <div className={compact ? 'w-full text-center text-white' : 'bg-[#1a1411]/85 p-8 rounded-[2.5rem] border-4 border-[#e8d5b5]/70 shadow-[0_15px_35px_rgba(0,0,0,0.4)] text-center w-full text-white backdrop-blur-sm'}>
-            <h2 className="text-4xl font-black mb-2 text-[#e8d5b5]">{confirmUser.name}</h2>
-            <p className="text-stone-300 text-xl font-extrabold mb-8">{confirmUser.rank} / {confirmUser.tier}</p>
+          <div className={compact ? 'w-full text-center text-white py-2' : 'bg-[#1a1411]/85 p-8 rounded-[2.5rem] border-4 border-[#e8d5b5]/70 shadow-[0_15px_35px_rgba(0,0,0,0.4)] text-center w-full text-white backdrop-blur-sm'}>
+            <h2 className={`font-black text-[#e8d5b5] ${compact ? 'text-3xl mb-1' : 'text-4xl mb-2'}`}>{confirmUser.name}</h2>
+            <p className={`text-stone-300 font-extrabold ${compact ? 'text-lg mb-4' : 'text-xl mb-8'}`}>{confirmUser.rank} / {confirmUser.tier}</p>
             {confirmUser.current_status !== '오프라인' ? (
-              <button onClick={onGoHome} disabled={isProcessing} className="w-full py-5 bg-[#332a24] border-2 border-[#dcb36c] text-[#dcb36c] hover:bg-[#dcb36c] hover:text-stone-900 font-black rounded-2xl text-2xl shadow-xl transition-all disabled:opacity-50">
+              <button onClick={onGoHome} disabled={isProcessing} className={`w-full bg-[#332a24] border-2 border-[#dcb36c] text-[#dcb36c] hover:bg-[#dcb36c] hover:text-stone-900 font-black rounded-2xl shadow-xl transition-all disabled:opacity-50 ${compact ? 'py-4 text-xl' : 'py-5 text-2xl'}`}>
                 {isProcessing ? '처리중...' : '귀가하기 (퇴장)'}
               </button>
             ) : (
-              <button onClick={onConfirmAttendance} disabled={isProcessing} className="w-full py-5 bg-white text-stone-900 hover:bg-stone-100 font-black rounded-2xl text-2xl shadow-xl transition-all disabled:opacity-50">
+              <button onClick={onConfirmAttendance} disabled={isProcessing} className={`w-full bg-white text-stone-900 hover:bg-stone-100 font-black rounded-2xl shadow-xl transition-all disabled:opacity-50 ${compact ? 'py-4 text-xl' : 'py-5 text-2xl'}`}>
                 {isProcessing ? '처리중...' : '출석하기 (입장)'}
               </button>
             )}
-            <button onClick={onReset} className="w-full mt-4 py-3 text-stone-400 hover:text-white font-bold text-xl">취소</button>
+            <button onClick={onReset} className={`w-full text-stone-400 hover:text-white font-bold ${compact ? 'mt-3 py-2 text-lg' : 'mt-4 py-3 text-xl'}`}>취소</button>
           </div>
         ) : candidates.length > 0 ? (
-          <div className={compact ? 'space-y-3 w-full' : 'bg-[#1a1411]/85 p-6 rounded-[2.5rem] shadow-[0_15px_35px_rgba(0,0,0,0.35)] space-y-3 w-full border-2 border-stone-700/80 backdrop-blur-sm'}>
-            <p className="text-center text-[#e8d5b5] font-bold text-xl mb-4">본인의 이름을 선택해주세요</p>
+          <div className={compact ? 'space-y-2 w-full py-2' : 'bg-[#1a1411]/85 p-6 rounded-[2.5rem] shadow-[0_15px_35px_rgba(0,0,0,0.35)] space-y-3 w-full border-2 border-stone-700/80 backdrop-blur-sm'}>
+            <p className={`text-center text-[#e8d5b5] font-bold ${compact ? 'text-lg mb-2' : 'text-xl mb-4'}`}>본인의 이름을 선택해주세요</p>
             {candidates.map((cand) => (
-              <button key={cand.id} onClick={() => onSelectCandidate(cand)} className="w-full py-4 bg-white text-stone-900 rounded-2xl text-xl font-extrabold shadow-md flex justify-between px-6 items-center hover:bg-stone-100">
+              <button key={cand.id} onClick={() => onSelectCandidate(cand)} className={`w-full bg-white text-stone-900 rounded-2xl font-extrabold shadow-md flex justify-between items-center hover:bg-stone-100 ${compact ? 'py-3 px-5 text-lg' : 'py-4 px-6 text-xl'}`}>
                 <span>{cand.name}</span><span className="text-xl bg-[#dcb36c] px-3 py-1 rounded-lg text-stone-900 font-black">{cand.rank}</span>
               </button>
             ))}
-            <button onClick={onReset} className="w-full py-3 text-stone-400 font-bold text-xl mt-2">다시 입력하기</button>
+            <button onClick={onReset} className={`w-full text-stone-400 font-bold ${compact ? 'py-2 text-lg mt-1' : 'py-3 text-xl mt-2'}`}>다시 입력하기</button>
           </div>
         ) : (
           <div className={compact ? 'w-full' : 'bg-[#1a1411]/85 p-6 xl:p-8 rounded-[2.5rem] shadow-[0_15px_35px_rgba(0,0,0,0.35)] w-full border-4 border-stone-700/80 backdrop-blur-sm'}>
             {/* 안내 문구를 전화번호 표시 박스 안에 포함시켜 팝업 전체 높이를 줄인다 */}
-            <div className="bg-[#120f0d] border border-stone-700 rounded-2xl px-4 py-3 mb-6 shadow-inner">
-              <p className="text-lg font-extrabold text-center text-[#e8d5b5] mb-2">{message}</p>
-              <div className="h-16 xl:h-20 flex items-center justify-center">
-                <span className="text-4xl xl:text-5xl font-mono tracking-[0.4em] text-[#e8d5b5] font-black">{phoneNumber.padEnd(4, '—')}</span>
+            <div className={`bg-[#120f0d] border border-stone-700 rounded-2xl shadow-inner ${compact ? 'px-3 py-2 mb-4' : 'px-4 py-3 mb-6'}`}>
+              <p className={`font-extrabold text-center text-[#e8d5b5] ${compact ? 'text-base mb-1' : 'text-lg mb-2'}`}>{message}</p>
+              <div className={compact ? 'h-12 xl:h-14 flex items-center justify-center' : 'h-16 xl:h-20 flex items-center justify-center'}>
+                <span className={`font-mono tracking-[0.4em] text-[#e8d5b5] font-black ${compact ? 'text-3xl xl:text-4xl' : 'text-4xl xl:text-5xl'}`}>{phoneNumber.padEnd(4, '—')}</span>
               </div>
             </div>
-            {/* 숫자버튼 겹침을 방지하기 위해 80px(w-20) 고정 사이즈 적용 */}
-            <div className="grid grid-cols-3 gap-4 mb-6">
+            {/* 숫자버튼 겹침을 방지하기 위해 고정 사이즈 적용 (compact에서는 10% 이상 축소) */}
+            <div className={`grid grid-cols-3 ${compact ? 'gap-3 mb-4' : 'gap-4 mb-6'}`}>
               {NUMBER_KEYS.map(num => (
-                <button key={num} onClick={() => onNumberClick(num)} className="w-20 h-20 mx-auto rounded-full bg-white text-stone-900 text-4xl font-black shadow-[0_5px_0_#999] active:translate-y-1 active:shadow-none flex items-center justify-center transition-all">{num}</button>
+                <button key={num} onClick={() => onNumberClick(num)} className={`mx-auto rounded-full bg-white text-stone-900 font-black shadow-[0_5px_0_#999] active:translate-y-1 active:shadow-none flex items-center justify-center transition-all ${compact ? 'w-16 h-16 text-3xl' : 'w-20 h-20 text-4xl'}`}>{num}</button>
               ))}
-              <button onClick={onDelete} className="w-20 h-20 mx-auto rounded-full bg-[#332a24] text-[#e8d5b5] text-xl font-black shadow-[0_5px_0_#1a1512] active:translate-y-1 flex items-center justify-center">지움</button>
-              <button onClick={() => onNumberClick('0')} className="w-20 h-20 mx-auto rounded-full bg-white text-stone-900 text-4xl font-black shadow-[0_5px_0_#999] active:translate-y-1 active:shadow-none flex items-center justify-center transition-all">0</button>
-              <button onClick={onReset} className="w-20 h-20 mx-auto rounded-full bg-[#332a24] text-stone-400 text-xl font-black shadow-[0_5px_0_#1a1512] active:translate-y-1 flex items-center justify-center">취소</button>
+              <button onClick={onDelete} className={`mx-auto rounded-full bg-[#332a24] text-[#e8d5b5] font-black shadow-[0_5px_0_#1a1512] active:translate-y-1 flex items-center justify-center ${compact ? 'w-16 h-16 text-lg' : 'w-20 h-20 text-xl'}`}>지움</button>
+              <button onClick={() => onNumberClick('0')} className={`mx-auto rounded-full bg-white text-stone-900 font-black shadow-[0_5px_0_#999] active:translate-y-1 active:shadow-none flex items-center justify-center transition-all ${compact ? 'w-16 h-16 text-3xl' : 'w-20 h-20 text-4xl'}`}>0</button>
+              <button onClick={onReset} className={`mx-auto rounded-full bg-[#332a24] text-stone-400 font-black shadow-[0_5px_0_#1a1512] active:translate-y-1 flex items-center justify-center ${compact ? 'w-16 h-16 text-lg' : 'w-20 h-20 text-xl'}`}>취소</button>
             </div>
-            <button onClick={onSearchUser} disabled={isProcessing} className="w-full py-5 bg-[#b88c42] hover:bg-[#a37934] text-stone-950 text-2xl xl:text-3xl font-black rounded-2xl shadow-[0_5px_0_#755520] active:translate-y-1 transition-all disabled:opacity-50">
+            <button onClick={onSearchUser} disabled={isProcessing} className={`w-full bg-[#b88c42] hover:bg-[#a37934] text-stone-950 font-black rounded-2xl shadow-[0_5px_0_#755520] active:translate-y-1 transition-all disabled:opacity-50 ${compact ? 'py-4 text-xl xl:text-2xl' : 'py-5 text-2xl xl:text-3xl'}`}>
               {isProcessing ? '확인 중...' : '확인 (입력완료)'}
             </button>
           </div>
