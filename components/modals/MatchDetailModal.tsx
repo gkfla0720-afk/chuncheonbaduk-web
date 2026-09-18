@@ -184,8 +184,6 @@ export default function MatchDetailModal({
             <div className="pt-2 border-t border-stone-800">
               <EndMatchControls confirmAction={confirmAction} setConfirmAction={setConfirmAction} endMatch={endMatch} isProcessing={isProcessing} hasKifu={kifu.length > 0} onStartScoring={() => setIsScoring(true)} />
             </div>
-
-            <button onClick={onClose} className="w-full py-3 text-stone-400 hover:text-white font-bold text-xl bg-stone-900 rounded-2xl">닫기</button>
           </div>
         </div>
       </div>
@@ -197,7 +195,13 @@ export default function MatchDetailModal({
       className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-[rgba(22,16,12,0.56)] p-4 backdrop-blur-[2px]"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="modal-card w-full max-w-3xl bg-[#1f1a16] text-white p-10 rounded-[30px] shadow-[0_18px_45px_rgba(34,27,20,0.28)] border-4 border-[#b88c42] text-center">
+      <div className="modal-card relative w-full max-w-3xl bg-[#1f1a16] text-white p-10 rounded-[30px] shadow-[0_18px_45px_rgba(34,27,20,0.28)] border-4 border-[#b88c42] text-center">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-black/30 text-2xl font-black text-stone-200 hover:bg-black/50 hover:text-white"
+        >
+          ✕
+        </button>
         <h2 className="text-3xl font-black text-white mb-6">진행 중인 대국 관리</h2>
         <div className="bg-[#120f0d] p-6 rounded-3xl mb-6 flex flex-col gap-2 border border-stone-800">
           <p className="text-2xl font-extrabold text-[#dcb36c]">{match.match_type} / {match.handicap}</p>
@@ -227,7 +231,7 @@ export default function MatchDetailModal({
         </div>
 
         <div className="rounded-3xl border border-stone-700 bg-[#120f0d] p-5 mb-8">
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between">
             <p className="text-xl font-black text-white flex items-center gap-2">📡 실시간 기보 중계</p>
             <button
               onClick={() => onToggleStreaming(true)}
@@ -236,11 +240,9 @@ export default function MatchDetailModal({
               중계 시작
             </button>
           </div>
-          <p className="text-lg font-bold text-stone-500">중계를 시작하면 바둑판이 크게 확대되어 입력하기 편해집니다.</p>
         </div>
 
         <EndMatchControls confirmAction={confirmAction} setConfirmAction={setConfirmAction} endMatch={endMatch} isProcessing={isProcessing} hasKifu={kifu.length > 0} onStartScoring={() => setIsScoring(true)} />
-        <button onClick={onClose} className="w-full mt-6 py-4 text-stone-400 hover:text-white font-bold text-[27px] bg-stone-900 rounded-2xl">닫기</button>
       </div>
     </div>
   );

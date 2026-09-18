@@ -31,7 +31,6 @@ export default function StatusPage() {
 
   // 대국 카드를 클릭하면 상세 정보(중계 중이면 실시간 기보 포함)를 큰 팝업으로 표시
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
-  const [isBoardExpanded, setIsBoardExpanded] = useState(false);
 
   const fetchData = useCallback(async (showNotification = false) => {
     const { count } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).neq('current_status', '오프라인');
@@ -254,46 +253,53 @@ export default function StatusPage() {
         )}
 
         {selectedMatch && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(28,24,20,0.6)] p-4 backdrop-blur-sm" onClick={() => { setSelectedMatch(null); setIsBoardExpanded(false); }}>
-            {selectedMatch.is_streaming && isBoardExpanded ? (
-              // 전체화면 모드: 바둑판을 최대한 크게, 나머지 정보는 우측 사이드바에 간결하게 배치.
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(28,24,20,0.6)] p-4 backdrop-blur-sm" onClick={() => setSelectedMatch(null)}>
+            {selectedMatch.is_streaming ? (
+              // 태블릿의 '실시간 기보 중계 화면'과 동일한 디자인(짙은 배경/금색 테두리)을 사용하되,
+              // 외부 관전자는 바둑판이나 대국을 조작할 수 없도록 클릭 가능한 버튼을 전혀 두지 않는다.
+              // 닫기는 다른 팝업들과 동일하게 바깥(배경)을 탭하면 처리된다.
               <div
-                className="relative w-full h-[94vh] max-w-[1500px] rounded-[30px] border border-[#d4c3a2] bg-[#f8f4ee] shadow-[0_18px_45px_rgba(34,27,20,0.32)] overflow-hidden flex flex-col lg:flex-row"
+                className="relative w-full h-[94vh] max-w-[1500px] bg-[#1f1a16] text-white rounded-[30px] shadow-[0_18px_45px_rgba(34,27,20,0.4)] border-4 border-[#b88c42] overflow-hidden flex flex-col lg:flex-row"
                 onClick={(e) => e.stopPropagation()}
               >
-                <div className="flex-1 min-h-0 flex flex-col items-center justify-center bg-[#1d1b19] p-4 lg:p-8 gap-4">
+                <div className="flex-1 min-h-0 flex flex-col items-center justify-center bg-[#120f0d] p-4 lg:p-8 gap-4">
                   <p className="flex items-center gap-2 text-xl font-black text-stone-300">
                     <span className="inline-flex items-center gap-1 rounded-full bg-red-600 px-3 py-1 text-xl font-black text-white animate-pulse">🔴 LIVE</span>
                     {((selectedMatch.kifu as unknown as KifuMove[]) || []).length}수 진행 중 · 실시간으로 업데이트됩니다.
                   </p>
-                  <div className="h-full max-h-full w-full rounded-2xl overflow-hidden border-2 border-[#b88c42] shadow-lg">
+                  <div className="h-full max-h-full w-full rounded-2xl overflow-hidden">
                     <GoBoard size={selectedMatch.board_size} moves={(selectedMatch.kifu as unknown as KifuMove[]) || []} />
                   </div>
                 </div>
-                <div className="w-full lg:w-[380px] shrink-0 border-t-2 lg:border-t-0 lg:border-l-2 border-[#d9cab0] p-6 flex flex-col gap-4 overflow-y-auto">
-                  <div className="flex items-center justify-between">
-                    <p className="text-xl font-bold tracking-[0.18em] text-[#7e5d3d]">대국 정보</p>
-                    <div className="flex items-center gap-2">
-                      <button onClick={() => setIsBoardExpanded(false)} className="rounded-full bg-[#2a241d] px-3 py-1 text-lg font-bold text-[#f8f3eb]">축소</button>
-                      <button onClick={() => { setSelectedMatch(null); setIsBoardExpanded(false); }} className="rounded-full bg-stone-200 px-3 py-1 text-lg font-bold text-stone-700">닫기</button>
-                    </div>
+                <div className="w-full lg:w-[400px] shrink-0 border-t-2 lg:border-t-0 lg:border-l-2 border-stone-800 p-6 flex flex-col gap-4 overflow-y-auto">
+                  <p className="text-xl font-black text-[#dcb36c] flex items-center gap-2">
+                    <span className="inline-flex items-center rounded-full bg-red-600 px-3 py-1 text-lg font-black text-white animate-pulse">LIVE</span>
+                    실시간 기보 중계
+                  </p>
+                  <div className="rounded-2xl border border-stone-700 bg-[#120f0d] p-4">
+                    <p className="text-xl font-extrabold text-[#dcb36c]">{selectedMatch.match_type} / {selectedMatch.handicap}</p>
+                    <p className="text-lg font-bold text-stone-400 mt-1">{formatKoreanTime(new Date(selectedMatch.started_at))} 시작</p>
                   </div>
-                  <h2 className="text-2xl font-black text-[#2a241d]">{selectedMatch.match_type} · {selectedMatch.handicap}</h2>
-                  <p className="text-lg text-stone-500">{formatKoreanTime(new Date(selectedMatch.started_at))} 시작</p>
-                  <div className="rounded-[20px] border border-[#d9cab0] bg-[#1d1b19] p-4 flex flex-col gap-3">
-                    {selectedMatch.blackProfiles?.map(p => (
-                      <div key={p.id} className="flex items-baseline justify-between">
-                        <p className="text-xl font-black text-white">⚫ {p.name}</p>
-                        <p className="text-lg font-bold text-stone-400">{p.rank}</p>
+                  <div className="rounded-2xl border border-stone-700 bg-[linear-gradient(90deg,#0f0d0c_0%,#0f0d0c_49.5%,#f9f6f2_49.5%,#f9f6f2_100%)] p-3">
+                    <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
+                      <div className="min-w-0 text-left">
+                        {selectedMatch.blackProfiles?.map(p => (
+                          <div key={p.id}>
+                            <p className="text-xl font-black text-white whitespace-nowrap overflow-hidden text-ellipsis">{p.name}</p>
+                            <p className="text-lg font-bold text-stone-400">{p.rank}</p>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                    <div className="h-px bg-stone-700" />
-                    {selectedMatch.whiteProfiles?.map(p => (
-                      <div key={p.id} className="flex items-baseline justify-between">
-                        <p className="text-xl font-black text-white">⚪ {p.name}</p>
-                        <p className="text-lg font-bold text-stone-300">{p.rank}</p>
+                      <span className="text-lg font-black tracking-[0.2em] text-[#dcb36c]">VS</span>
+                      <div className="min-w-0 text-right">
+                        {selectedMatch.whiteProfiles?.map(p => (
+                          <div key={p.id}>
+                            <p className="text-xl font-black text-stone-900 whitespace-nowrap overflow-hidden text-ellipsis">{p.name}</p>
+                            <p className="text-lg font-bold text-stone-600">{p.rank}</p>
+                          </div>
+                        ))}
                       </div>
-                    ))}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -304,23 +310,11 @@ export default function StatusPage() {
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="flex items-center gap-2 text-xl font-bold tracking-[0.18em] text-[#7e5d3d]">
-                      대국 정보
-                      {selectedMatch.is_streaming && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-red-600 px-3 py-1 text-xl font-black text-white animate-pulse">🔴 LIVE 중계</span>
-                      )}
-                    </p>
+                    <p className="flex items-center gap-2 text-xl font-bold tracking-[0.18em] text-[#7e5d3d]">대국 정보</p>
                     <h2 className="mt-2 text-2xl font-black text-[#2a241d]">{selectedMatch.match_type} · {selectedMatch.handicap}</h2>
                     <p className="mt-1 text-xl text-stone-500">{formatKoreanTime(new Date(selectedMatch.started_at))} 시작</p>
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    {selectedMatch.is_streaming && (
-                      <button onClick={() => setIsBoardExpanded(true)} className="rounded-full bg-[#2a241d] px-3 py-1 text-xl font-bold text-[#f8f3eb]">
-                        전체화면 ⛶
-                      </button>
-                    )}
-                    <button onClick={() => { setSelectedMatch(null); setIsBoardExpanded(false); }} className="rounded-full bg-stone-200 px-3 py-1 text-xl font-bold text-stone-700">닫기</button>
-                  </div>
+                  <button onClick={() => setSelectedMatch(null)} className="shrink-0 rounded-full bg-stone-200 px-3 py-1 text-xl font-bold text-stone-700">닫기</button>
                 </div>
 
                 <div className="mt-5 rounded-[24px] border border-[#d9cab0] bg-[#1d1b19] p-4">
@@ -345,16 +339,7 @@ export default function StatusPage() {
                   </div>
                 </div>
 
-                {selectedMatch.is_streaming ? (
-                  <div className="mt-5 flex flex-col items-center gap-3">
-                    <div className="aspect-square w-full max-w-[420px] rounded-2xl overflow-hidden border-2 border-[#b88c42] shadow-lg">
-                      <GoBoard size={selectedMatch.board_size} moves={(selectedMatch.kifu as unknown as KifuMove[]) || []} />
-                    </div>
-                    <p className="text-xl font-bold text-stone-500">{((selectedMatch.kifu as unknown as KifuMove[]) || []).length}수 진행 중 · 실시간으로 업데이트됩니다.</p>
-                  </div>
-                ) : (
-                  <p className="mt-5 text-center text-xl text-stone-500">이 대국은 현재 실시간 기보 중계 대상이 아닙니다.</p>
-                )}
+                <p className="mt-5 text-center text-xl text-stone-500">이 대국은 현재 실시간 기보 중계 대상이 아닙니다.</p>
               </div>
             )}
           </div>

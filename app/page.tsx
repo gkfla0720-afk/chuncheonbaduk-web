@@ -434,9 +434,9 @@ export default function KioskPage() {
 
       <section className="w-[62%] h-full board-surface text-stone-900 flex flex-col items-center justify-center relative overflow-hidden p-6">
         {kioskMode === 'attendance' && (
-          // 입장/귀가 팝업과 동일한 카드 디자인(둥근 모서리/짙은 배경/두꺼운 테두리)을 메인 화면에도 적용.
-          // 다만 팝업과 구분되도록 테두리는 금색 대신 회색을 쓰고, 가장 뒤 바둑판 사진(board-surface)은 그대로 유지한다.
-          <div className="relative z-10 w-full max-w-5xl bg-[#1f1a16]/95 rounded-[36px] border-4 border-stone-400/70 shadow-2xl p-8 xl:p-10">
+          // 숫자패드/정회원 안내/신규가입/대국신청을 모두 감싸는 큰 박스는 두지 않고,
+          // 각 요소가 바둑판 배경 위에 자연스럽게 놓이도록 한다 (숫자패드 자체 박스에 '입장/귀가' 제목 포함).
+          <div className="relative z-10 w-full max-w-5xl">
             <AttendanceScreen
               message={message}
               confirmUser={confirmUser}

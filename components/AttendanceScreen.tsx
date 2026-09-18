@@ -48,13 +48,13 @@ export default function AttendanceScreen({
 
       {/* 중앙: 콤팩트하고 세련된 입력 키패드 영역 - 좌우 칸의 유무/내용과 무관하게 항상 동일한 고정 폭 유지 */}
       <div className={`flex flex-col items-center shrink-0 ${compact ? 'w-full' : 'w-[420px]'}`}>
-        <h2 className={`font-black text-white tracking-tight drop-shadow-[0_3px_12px_rgba(0,0,0,0.7)] ${compact ? 'text-3xl xl:text-4xl mb-1' : 'text-4xl xl:text-5xl mb-2'}`}>입장 / 귀가</h2>
         {(confirmUser || candidates.length > 0) && (
           <p className={`font-extrabold text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.75)] ${compact ? 'text-lg h-6 mb-1' : 'text-xl h-8 mb-2'}`}>{message}</p>
         )}
 
         {confirmUser ? (
           <div className={compact ? 'w-full text-center text-white py-2' : 'bg-[#1a1411]/85 p-8 rounded-[2.5rem] border-4 border-[#e8d5b5]/70 shadow-[0_15px_35px_rgba(0,0,0,0.4)] text-center w-full text-white backdrop-blur-sm'}>
+            <h2 className={`font-black text-white/70 tracking-tight ${compact ? 'text-lg mb-2' : 'text-xl mb-3'}`}>입장 / 귀가</h2>
             <h2 className={`font-black text-[#e8d5b5] ${compact ? 'text-3xl mb-1' : 'text-4xl mb-2'}`}>{confirmUser.name}</h2>
             <p className={`text-stone-300 font-extrabold ${compact ? 'text-lg mb-4' : 'text-xl mb-8'}`}>{confirmUser.rank} / {confirmUser.tier}</p>
             {confirmUser.current_status !== '오프라인' ? (
@@ -70,6 +70,7 @@ export default function AttendanceScreen({
           </div>
         ) : candidates.length > 0 ? (
           <div className={compact ? 'space-y-2 w-full py-2' : 'bg-[#1a1411]/85 p-6 rounded-[2.5rem] shadow-[0_15px_35px_rgba(0,0,0,0.35)] space-y-3 w-full border-2 border-stone-700/80 backdrop-blur-sm'}>
+            <h2 className={`font-black text-white/70 tracking-tight text-center ${compact ? 'text-lg mb-2' : 'text-xl mb-3'}`}>입장 / 귀가</h2>
             <p className={`text-center text-[#e8d5b5] font-bold ${compact ? 'text-lg mb-2' : 'text-xl mb-4'}`}>본인의 이름을 선택해주세요</p>
             {candidates.map((cand) => (
               <button key={cand.id} onClick={() => onSelectCandidate(cand)} className={`w-full bg-white text-stone-900 rounded-2xl font-extrabold shadow-md flex justify-between items-center hover:bg-stone-100 ${compact ? 'py-[13px] px-[22px] text-lg' : 'py-4 px-6 text-xl'}`}>
@@ -80,6 +81,9 @@ export default function AttendanceScreen({
           </div>
         ) : (
           <div className={compact ? 'w-full' : 'bg-[#1a1411]/85 p-6 xl:p-8 rounded-[2.5rem] shadow-[0_15px_35px_rgba(0,0,0,0.35)] w-full border-4 border-stone-700/80 backdrop-blur-sm'}>
+            {/* 숫자패드/지움/확인 버튼을 담은 박스 안에 '입장 / 귀가' 타이틀을 포함시켜
+                박스 하나로도 이 화면의 용도를 바로 알 수 있게 한다. */}
+            <h2 className={`font-black text-white tracking-tight text-center drop-shadow-[0_3px_12px_rgba(0,0,0,0.7)] ${compact ? 'text-3xl xl:text-4xl mb-2' : 'text-4xl xl:text-5xl mb-3'}`}>입장 / 귀가</h2>
             {/* 안내 문구를 전화번호 표시 박스 안에 포함시켜 팝업 전체 높이를 줄인다 */}
             <div className={`bg-[#120f0d] border border-stone-700 rounded-2xl shadow-inner ${compact ? 'px-[13px] py-[9px] mb-[18px]' : 'px-4 py-3 mb-6'}`}>
               <p className={`font-extrabold text-center text-[#e8d5b5] ${compact ? 'text-base mb-1' : 'text-lg mb-2'}`}>{message}</p>
