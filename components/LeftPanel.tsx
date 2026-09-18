@@ -11,7 +11,7 @@ interface LeftPanelProps {
   whiteTeam: Profile[];
   setBlackTeam: (team: Profile[]) => void;
   setWhiteTeam: (team: Profile[]) => void;
-  openMatchDetail: (id: string) => void;
+  openMatchDetail: (matchId: number) => void;
   openProfileDetail: (member: Profile) => void;
 }
 
@@ -72,7 +72,7 @@ export default function LeftPanel({
               return (
                 <div
                   key={match.id}
-                  onClick={() => { if (match.black_team[0]) openMatchDetail(match.black_team[0]); }}
+                  onClick={() => openMatchDetail(match.id)}
                   className="rounded-2xl border-2 border-amber-500 bg-stone-900/90 p-3 xl:p-4 cursor-pointer hover:brightness-110 transition-all shadow-sm"
                 >
                   <div className="flex items-center justify-between mb-2">
@@ -105,7 +105,10 @@ export default function LeftPanel({
             <p className="text-stone-400 font-bold text-xl">현재 기원에 계신 분이 없습니다.</p>
           </div>
         ) : (
-          activeMembers.map((member) => (
+          // 대국 중인 회원이 명단에서도 상단에 우선적으로 보이도록 정렬 (안정 정렬이라 동일 상태 내 순서는 유지됨)
+          [...activeMembers]
+            .sort((a, b) => (b.current_status === '대국중' ? 1 : 0) - (a.current_status === '대국중' ? 1 : 0))
+            .map((member) => (
             <div 
               key={member.id} 
               onClick={() => {
@@ -120,9 +123,8 @@ export default function LeftPanel({
                   const req = matchType.includes('2:2') ? 2 : matchType.includes('3:3') ? 3 : matchType.includes('4:4') ? 4 : 1;
                   if (blackTeam.length < req) setBlackTeam([...blackTeam, member]);
                   else if (whiteTeam.length < req) setWhiteTeam([...whiteTeam, member]);
-                } else if (member.current_status === '대국중') {
-                  openMatchDetail(member.id);
                 } else {
+                  // 대국 중 여부와 상관없이 명단 클릭 시에는 항상 프로필을 표시
                   openProfileDetail(member);
                 }
               }}
