@@ -1,7 +1,7 @@
 'use client';
 
 import { KifuMove } from '../types';
-import { replayKifu, TerritoryMap } from '../lib/goRules';
+import { replayKifu, TerritoryMap, isPassMove } from '../lib/goRules';
 
 interface GoBoardProps {
   size?: number; // 바둑판 줄 수 (기본 19줄)
@@ -44,7 +44,7 @@ export default function GoBoard({ size = 19, moves, interactive = false, onInter
   // 단순히 kifu 배열을 그대로 그리면 따인 돌까지 남아있게 되므로 반드시 재생 결과를 사용해야 한다.
   const { board } = replayKifu(moves, size);
   const lastMove = moves.length > 0 ? moves[moves.length - 1] : null;
-  const lastMoveAlive = lastMove && board[lastMove.y][lastMove.x] === lastMove.color;
+  const lastMoveAlive = lastMove && !isPassMove(lastMove) && board[lastMove.y][lastMove.x] === lastMove.color;
   const isDead = (x: number, y: number) => deadStones.some((d) => d.x === x && d.y === y);
 
   const lines = Array.from({ length: size }, (_, i) => MARGIN + i * CELL);
