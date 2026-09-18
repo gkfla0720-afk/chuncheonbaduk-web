@@ -48,44 +48,56 @@ export type Database = {
       }
       matches: {
         Row: {
+          black_score: number | null
           black_team: string[]
           board_size: number
+          dead_stones: Json
           ended_at: string | null
           handicap: string
           id: number
           is_streaming: boolean
           kifu: Json
+          komi: number
           match_type: string
           phase: string
           started_at: string
+          white_score: number | null
           white_team: string[]
           winner: string | null
         }
         Insert: {
+          black_score?: number | null
           black_team?: string[]
           board_size?: number
+          dead_stones?: Json
           ended_at?: string | null
           handicap?: string
           id?: number
           is_streaming?: boolean
           kifu?: Json
+          komi?: number
           match_type?: string
           phase?: string
           started_at?: string
+          white_score?: number | null
           white_team?: string[]
           winner?: string | null
         }
         Update: {
+          black_score?: number | null
           black_team?: string[]
           board_size?: number
+          dead_stones?: Json
           ended_at?: string | null
           handicap?: string
           id?: number
           is_streaming?: boolean
           kifu?: Json
+          komi?: number
           match_type?: string
           phase?: string
           started_at?: string
+          white_score?: number | null
           white_team?: string[]
           winner?: string | null
         }

@@ -1,20 +1,34 @@
+import { useState } from 'react';
 import { Profile } from '../../types';
 import { ProfileStats } from '../../lib/profileStats';
+import { MatchHistoryEntry } from '../../lib/matchHistory';
+import { formatKoreanTime } from '../../lib/formatTime';
+import KifuViewerModal from './KifuViewerModal';
 
 interface ProfileDetailModalProps {
   profile: Profile;
   stats: ProfileStats;
   isLoadingStats: boolean;
+  matchHistory: MatchHistoryEntry[];
+  isLoadingHistory: boolean;
   onClose: () => void;
 }
 
-export default function ProfileDetailModal({ profile, stats, isLoadingStats, onClose }: ProfileDetailModalProps) {
+const RESULT_STYLE: Record<MatchHistoryEntry['result'], string> = {
+  승: 'bg-blue-600 text-white',
+  패: 'bg-red-600 text-white',
+  무효: 'bg-stone-600 text-stone-200',
+};
+
+export default function ProfileDetailModal({ profile, stats, isLoadingStats, matchHistory, isLoadingHistory, onClose }: ProfileDetailModalProps) {
+  const [viewingKifu, setViewingKifu] = useState<MatchHistoryEntry | null>(null);
+
   return (
     <div className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-[rgba(22,16,12,0.56)] p-4 backdrop-blur-[2px]">
-      <div className="modal-card w-full max-w-2xl bg-[#1f1a16] text-white p-10 rounded-[30px] shadow-[0_18px_45px_rgba(34,27,20,0.28)] border-4 border-[#b88c42] text-center">
+      <div className="modal-card w-full max-w-2xl max-h-[92vh] overflow-y-auto bg-[#1f1a16] text-white p-10 rounded-[30px] shadow-[0_18px_45px_rgba(34,27,20,0.28)] border-4 border-[#b88c42] text-center">
         <h2 className="text-3xl font-black text-[#e8d5b5] mb-1">회원 기력 및 프로필</h2>
         <p className="text-stone-400 font-semibold mb-6">가입일: {stats.joinedAt}</p>
-        <div className="bg-[#120f0d] p-8 rounded-3xl mb-8 border border-stone-800 shadow-inner">
+        <div className="bg-[#120f0d] p-8 rounded-3xl mb-6 border border-stone-800 shadow-inner">
           <div className="flex items-center justify-center gap-3 mb-2">
             <h3 className="text-5xl font-black text-white">{profile.name}</h3>
             {profile.current_status === '대국중' && (
@@ -40,8 +54,51 @@ export default function ProfileDetailModal({ profile, stats, isLoadingStats, onC
             </div>
           )}
         </div>
+
+        <div className="bg-[#120f0d] p-6 rounded-3xl mb-8 border border-stone-800 shadow-inner text-left">
+          <h4 className="text-2xl font-black text-[#e8d5b5] mb-4 text-center">최근 대국 기록</h4>
+          {isLoadingHistory ? (
+            <p className="text-stone-400 font-bold py-6 animate-pulse text-xl text-center">대국 기록을 불러오는 중...</p>
+          ) : matchHistory.length === 0 ? (
+            <p className="text-stone-500 font-bold py-6 text-xl text-center">아직 종료된 대국 기록이 없습니다.</p>
+          ) : (
+            <ul className="space-y-3 max-h-72 overflow-y-auto pr-1">
+              {matchHistory.map((h) => (
+                <li key={h.id} className="rounded-2xl border border-stone-700 bg-[#241f1b] p-4 flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-lg font-bold text-stone-400">{formatKoreanTime(new Date(h.startedAt))} · {h.matchType} · {h.handicap}</p>
+                    <p className="text-xl font-black text-white whitespace-nowrap overflow-hidden text-ellipsis">
+                      vs {h.opponentNames.join(', ') || '상대 없음'}
+                    </p>
+                    {h.blackScore !== null && h.whiteScore !== null && (
+                      <p className="text-lg font-bold text-[#dcb36c] mt-1">
+                        계가 결과 · 흑 {h.blackScore}집 : 백 {h.whiteScore}집 ({Math.abs(h.blackScore - h.whiteScore)}집 차)
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className={`px-3 py-1 rounded-lg text-lg font-black ${RESULT_STYLE[h.result]}`}>{h.result}</span>
+                    {h.kifu.length > 0 && (
+                      <button onClick={() => setViewingKifu(h)} className="px-3 py-1.5 rounded-lg text-lg font-bold bg-[#b88c42] text-stone-950 hover:bg-[#a37934] transition-all">기보 보기</button>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
         <button onClick={onClose} className="w-full py-5 bg-[#b88c42] hover:bg-[#a37934] text-stone-950 text-2xl font-black rounded-2xl shadow-xl transition-all">확인 (닫기)</button>
       </div>
+
+      {viewingKifu && (
+        <KifuViewerModal
+          title={`vs ${viewingKifu.opponentNames.join(', ') || '상대 없음'} (${viewingKifu.result})`}
+          boardSize={viewingKifu.boardSize}
+          kifu={viewingKifu.kifu}
+          onClose={() => setViewingKifu(null)}
+        />
+      )}
     </div>
   );
 }
