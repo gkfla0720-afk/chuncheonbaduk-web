@@ -11,7 +11,7 @@ interface KifuViewerModalProps {
 // 과거에 종료된 대국의 저장된 기보를 다시 볼 때 쓰는 가벼운 뷰어 팝업.
 export default function KifuViewerModal({ title, boardSize, kifu, onClose }: KifuViewerModalProps) {
   return (
-    <div className="fixed inset-0 z-[65] flex items-center justify-center bg-[rgba(22,16,12,0.65)] p-4 backdrop-blur-[2px]" onClick={onClose}>
+    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-[rgba(22,16,12,0.65)] p-4 backdrop-blur-[2px]" onClick={onClose}>
       <div
         className="w-full max-w-[520px] bg-[#1f1a16] text-white p-6 rounded-[28px] shadow-2xl border-4 border-[#b88c42] text-center"
         onClick={(e) => e.stopPropagation()}

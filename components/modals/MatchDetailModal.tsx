@@ -3,6 +3,7 @@ import { Match, Profile, KifuMove } from '../../types';
 import { TerritoryResult } from '../../lib/goRules';
 import GoBoard from '../GoBoard';
 import ScoringPanel from './ScoringPanel';
+import CalculatorIcon from '../icons/CalculatorIcon';
 
 interface MatchDetailModalProps {
   match: Match;
@@ -40,7 +41,7 @@ function EndMatchControls({
           <button onClick={() => setConfirmAction('black_win')} className="py-3 bg-stone-900 border-2 border-stone-600 text-white text-lg font-black rounded-2xl hover:bg-black transition-all shadow-lg">⚫ 흑승</button>
           <button onClick={() => setConfirmAction('white_win')} className="py-3 bg-white border-2 border-stone-300 text-stone-900 text-lg font-black rounded-2xl hover:bg-stone-100 transition-all shadow-lg">⚪ 백승</button>
           {hasKifu ? (
-            <button onClick={onStartScoring} className="py-3 bg-[#b88c42] hover:bg-[#a67a35] text-[#1f1a16] text-lg font-black rounded-2xl transition-all shadow-lg">🧮 계가</button>
+            <button onClick={onStartScoring} className="py-3 bg-[#b88c42] hover:bg-[#a67a35] text-[#1f1a16] text-lg font-black rounded-2xl transition-all shadow-lg flex items-center justify-center gap-1.5"><CalculatorIcon /> 계가</button>
           ) : (
             <span />
           )}
@@ -52,7 +53,7 @@ function EndMatchControls({
         <button onClick={() => setConfirmAction('black_win')} className="py-4 bg-stone-900 border-2 border-stone-600 text-white text-2xl font-black rounded-2xl hover:bg-black transition-all shadow-lg">⚫ 흑승</button>
         <button onClick={() => setConfirmAction('white_win')} className="py-4 bg-white border-2 border-stone-300 text-stone-900 text-2xl font-black rounded-2xl hover:bg-stone-100 transition-all shadow-lg">⚪ 백승</button>
         {hasKifu ? (
-          <button onClick={onStartScoring} className="py-4 bg-[#b88c42] hover:bg-[#a67a35] text-[#1f1a16] text-2xl font-black rounded-2xl transition-all shadow-lg">🧮 계가</button>
+          <button onClick={onStartScoring} className="py-4 bg-[#b88c42] hover:bg-[#a67a35] text-[#1f1a16] text-2xl font-black rounded-2xl transition-all shadow-lg flex items-center justify-center gap-2"><CalculatorIcon /> 계가</button>
         ) : (
           <span />
         )}
@@ -140,7 +141,7 @@ export default function MatchDetailModal({
           </div>
 
           {/* 우측: 남는 공간에 대국/대국자 정보와 조작 버튼을 심플하게 배치 */}
-          <div className="w-full lg:w-[400px] shrink-0 border-t-2 lg:border-t-0 lg:border-l-2 border-stone-800 p-6 flex flex-col gap-4 overflow-y-auto">
+          <div className="w-full lg:w-[460px] shrink-0 border-t-2 lg:border-t-0 lg:border-l-2 border-stone-800 p-6 flex flex-col gap-4 overflow-y-auto">
             <div className="flex items-center justify-between">
               <p className="text-xl font-black text-[#dcb36c] flex items-center gap-2">
                 <span className="inline-flex items-center rounded-full bg-red-600 px-3 py-1 text-lg font-black text-white animate-pulse">LIVE</span>

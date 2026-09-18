@@ -2,6 +2,7 @@ import { useState } from 'react';
 import GoBoard from '../GoBoard';
 import { KifuMove } from '../../types';
 import { calculateJapaneseScore, findConnectedGroup, TerritoryResult, Stone } from '../../lib/goRules';
+import CalculatorIcon from '../icons/CalculatorIcon';
 
 interface ScoringPanelProps {
   kifu: KifuMove[];
@@ -53,8 +54,8 @@ export default function ScoringPanel({ kifu, boardSize, komi, isProcessing, onCa
   return (
     <div className="flex-1 min-h-0 flex flex-col lg:flex-row gap-4">
       <div className="flex-1 min-h-0 flex flex-col items-center justify-center gap-3">
-        <p className="text-lg font-bold text-stone-300 text-center px-2">
-          🧮 죽은 돌(사석)은 돌을 탭, 집으로 정할 땅은 빈 자리를 탭하세요.
+        <p className="text-lg font-bold text-stone-300 text-center px-2 flex items-center justify-center gap-1.5">
+          <CalculatorIcon /> 죽은 돌(사석)은 돌을 탭, 집으로 정할 땅은 빈 자리를 탭하세요.
         </p>
         <div className="w-full h-full max-w-full max-h-full rounded-2xl overflow-hidden border-2 border-[#b88c42] shadow-lg">
           <GoBoard
