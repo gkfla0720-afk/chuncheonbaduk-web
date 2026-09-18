@@ -138,13 +138,10 @@ export default function StatusPage() {
         </header>
 
         <section className="mt-6 rounded-[32px] border border-[#d8c7a8] bg-[#f5efe6]/95 p-5 shadow-[0_14px_30px_rgba(10,8,7,0.22)] sm:p-6 backdrop-blur-[1px]">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="text-[20px] font-bold tracking-[0.18em] text-[#7e5d3d]">춘천기원 LIVE</p>
-              <h2 className="mt-2 text-[2rem] font-black text-[#2a241d] sm:text-[2.4rem]">오늘의 참여 인원</h2>
-            </div>
-            <div className="flex items-center gap-2 rounded-full border border-[#cdb48b] bg-[#f7f3ec] px-3 py-1 text-xl font-semibold text-[#6d553f]">
-              <span className="relative flex h-2.5 w-2.5">
+          <div className="flex flex-col gap-2">
+            <h2 className="text-[1.7rem] font-black text-[#2a241d] sm:text-[2.4rem]">오늘의 참여 인원</h2>
+            <div className="inline-flex w-fit items-center gap-2 rounded-full border border-[#cdb48b] bg-[#f7f3ec] px-3 py-1 text-[20px] font-semibold text-[#6d553f]">
+              <span className="relative flex h-2.5 w-2.5 shrink-0">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
                 <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
               </span>
@@ -189,21 +186,25 @@ export default function StatusPage() {
                   onClick={() => setSelectedMatch(match)}
                   className={`cursor-pointer rounded-[28px] border bg-[#faf5ee] p-4 shadow-[0_12px_24px_rgba(90,69,45,0.06)] transition hover:brightness-105 sm:p-5 ${match.is_streaming ? 'border-2 border-red-400' : 'border-[#d7c7a8]'}`}
                 >
-                  <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                    <div className="flex items-center gap-3">
-                      <span className="rounded-full border border-[#cab38b] bg-[#fffaf2] px-3 py-1.5 text-[20px] font-black tracking-[0.15em] text-[#7f6348] sm:text-[20px]">{match.match_type}</span>
-                      {match.is_streaming && (
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center justify-between gap-2">
+                      {match.is_streaming ? (
                         <span className="inline-flex items-center gap-1 rounded-full bg-red-600 px-3 py-1 text-[20px] font-black text-white animate-pulse">🔴 LIVE 중계</span>
+                      ) : (
+                        <span />
                       )}
-                      <p className="text-[20px] font-bold text-stone-500 sm:text-[20px]">
+                      <p className="text-[20px] font-bold text-stone-500">
                         {formatKoreanTime(new Date(match.started_at))} 시작
                       </p>
                     </div>
-                    <span className="inline-flex items-center rounded-full bg-[#efe2c7] px-3 py-1.5 text-[20px] font-black text-[#725739] sm:text-[20px]">{match.handicap}</span>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="inline-flex items-center rounded-full bg-[#efe2c7] px-3 py-1.5 text-[20px] font-black text-[#725739]">{match.handicap}</span>
+                      <span className="rounded-full border border-[#cab38b] bg-[#fffaf2] px-3 py-1.5 text-[20px] font-black tracking-[0.15em] text-[#7f6348]">{match.match_type}</span>
+                    </div>
                   </div>
 
-                  <div className="mt-4 rounded-[24px] border border-[#d5c3a4] bg-[linear-gradient(90deg,#1d1b19_0%,#1d1b19_49.5%,#f9f6f2_49.5%,#f9f6f2_100%)] p-3 shadow-inner sm:p-4">
-                    <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 sm:gap-3">
+                  <div className="mt-4 rounded-[24px] border border-[#d5c3a4] bg-[#1d1b19] p-2 shadow-inner sm:bg-[linear-gradient(90deg,#1d1b19_0%,#1d1b19_49.5%,#f9f6f2_49.5%,#f9f6f2_100%)] sm:p-4">
+                    <div className="flex flex-col gap-2 sm:grid sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-center sm:gap-3">
                       <div className="min-w-0 flex flex-col gap-2">
                         {match.blackProfiles?.map(p => (
                           <button
@@ -211,13 +212,13 @@ export default function StatusPage() {
                             onClick={(e) => { e.stopPropagation(); openProfileDetail(p); }}
                             className="w-full rounded-2xl border border-[#322c28] bg-[#1d1b19] px-3 py-2.5 text-left text-white shadow-sm transition hover:brightness-110"
                           >
-                            <span className="block text-[1.8rem] font-black leading-tight whitespace-nowrap overflow-hidden text-ellipsis sm:text-[2rem]">{p.name}</span>
-                            <span className="block text-[2.2rem] font-black text-stone-300 whitespace-nowrap sm:text-[2.5rem]">{p.rank}</span>
+                            <span className="block text-[1.8rem] font-black leading-tight sm:text-[2rem]">{p.name}</span>
+                            <span className="block text-[1.8rem] font-black text-stone-300 sm:text-[2.25rem]">{p.rank}</span>
                           </button>
                         ))}
                       </div>
 
-                      <div className="flex items-center justify-center px-1 sm:px-2">
+                      <div className="hidden items-center justify-center px-1 sm:flex sm:px-2">
                         <span className="text-[2.1rem] font-black tracking-[0.2em] text-[#7a6348] sm:text-[2.4rem]">VS</span>
                       </div>
 
@@ -228,8 +229,8 @@ export default function StatusPage() {
                             onClick={(e) => { e.stopPropagation(); openProfileDetail(p); }}
                             className="w-full rounded-2xl border border-[#d7d0c7] bg-[#f9f5f1] px-3 py-2.5 text-left text-stone-800 shadow-sm transition hover:bg-[#f1ece6]"
                           >
-                            <span className="block text-[1.8rem] font-black leading-tight whitespace-nowrap overflow-hidden text-ellipsis sm:text-[2rem]">{p.name}</span>
-                            <span className="block text-[2.2rem] font-black text-stone-500 whitespace-nowrap sm:text-[2.5rem]">{p.rank}</span>
+                            <span className="block text-[1.8rem] font-black leading-tight sm:text-[2rem]">{p.name}</span>
+                            <span className="block text-[1.8rem] font-black text-stone-500 sm:text-[2.25rem]">{p.rank}</span>
                           </button>
                         ))}
                       </div>
@@ -262,11 +263,14 @@ export default function StatusPage() {
                 className="relative w-full h-[94vh] max-w-[1500px] bg-[#1f1a16] text-white rounded-[30px] shadow-[0_18px_45px_rgba(34,27,20,0.4)] border-4 border-[#b88c42] overflow-hidden flex flex-col lg:flex-row"
                 onClick={(e) => e.stopPropagation()}
               >
-                <div className="flex-1 min-h-0 flex flex-col items-center justify-center bg-[#120f0d] p-4 lg:p-8 gap-4">
-                  <p className="flex items-center gap-2 text-xl font-black text-stone-300">
-                    <span className="inline-flex items-center gap-1 rounded-full bg-red-600 px-3 py-1 text-xl font-black text-white animate-pulse">🔴 LIVE</span>
-                    {((selectedMatch.kifu as unknown as KifuMove[]) || []).length}수 진행 중 · 실시간으로 업데이트됩니다.
-                  </p>
+                <button
+                  onClick={() => setSelectedMatch(null)}
+                  className="absolute top-3 right-3 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-black/30 text-2xl font-black text-stone-200 hover:bg-black/50 hover:text-white"
+                >
+                  ✕
+                </button>
+                {/* 바둑판 위 안내 문구를 없애고 그만큼 바둑판 자체를 최대한 키운다 */}
+                <div className="flex-1 min-h-0 flex flex-col items-center justify-center bg-[#120f0d] p-4 lg:p-8">
                   <div className="h-full max-h-full w-full rounded-2xl overflow-hidden">
                     <GoBoard size={selectedMatch.board_size} moves={(selectedMatch.kifu as unknown as KifuMove[]) || []} />
                   </div>
@@ -301,6 +305,12 @@ export default function StatusPage() {
                       </div>
                     </div>
                   </div>
+                  <button
+                    onClick={() => setSelectedMatch(null)}
+                    className="mt-auto w-full rounded-2xl bg-stone-800 hover:bg-stone-700 px-4 py-3 text-lg font-black text-white transition-all"
+                  >
+                    닫기
+                  </button>
                 </div>
               </div>
             ) : (

@@ -67,9 +67,9 @@ export default function ScoringPanel({ kifu, boardSize, komi, isProcessing, onCa
           />
         </div>
         <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1 text-sm font-bold text-stone-400">
-          <span className="flex items-center gap-1.5"><span className="inline-block h-3 w-3 rounded-full bg-white/70" />확정가/강세 (자동 집 인정)</span>
-          <span className="flex items-center gap-1.5"><span className="inline-block h-3 w-3 rounded-full bg-white/25" />보통 (탭해서 지정 필요)</span>
-          <span className="flex items-center gap-1.5"><span className="inline-block h-3 w-3 rounded-full border border-dashed border-white/50" />약세/접전지 (탭해서 지정 필요)</span>
+          <span className="flex items-center gap-1.5"><span className="inline-block h-4 w-4 bg-white/65" />강세/확정가 (자동 집 인정)</span>
+          <span className="flex items-center gap-1.5"><span className="inline-block h-2.5 w-2.5 bg-white/45" />보통 (탭해서 지정 필요)</span>
+          <span className="flex items-center gap-1.5"><span className="inline-block h-1.5 w-1.5 bg-white/30" />약세/접전지 (탭해서 지정 필요)</span>
         </div>
       </div>
 
