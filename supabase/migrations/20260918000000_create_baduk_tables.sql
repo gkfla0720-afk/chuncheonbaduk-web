@@ -122,6 +122,21 @@ drop policy if exists "Public kiosk can update matches" on public.matches;
 create policy "Public kiosk can update matches"
 on public.matches for update to anon, authenticated using (true) with check (true);
 
-alter publication supabase_realtime add table public.profiles;
-alter publication supabase_realtime add table public.attendance;
-alter publication supabase_realtime add table public.matches;
+-- 이미 퍼블리케이션에 포함된 경우를 대비해 중복 추가 오류를 무시한다.
+do $$
+begin
+  alter publication supabase_realtime add table public.profiles;
+exception when duplicate_object then null;
+end $$;
+
+do $$
+begin
+  alter publication supabase_realtime add table public.attendance;
+exception when duplicate_object then null;
+end $$;
+
+do $$
+begin
+  alter publication supabase_realtime add table public.matches;
+exception when duplicate_object then null;
+end $$;
