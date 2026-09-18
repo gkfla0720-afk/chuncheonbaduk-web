@@ -434,23 +434,27 @@ export default function KioskPage() {
 
       <section className="w-[62%] h-full board-surface text-stone-900 flex flex-col items-center justify-center relative overflow-hidden p-6">
         {kioskMode === 'attendance' && (
-          <AttendanceScreen
-            message={message}
-            confirmUser={confirmUser}
-            candidates={candidates}
-            phoneNumber={phoneNumber}
-            isProcessing={isProcessing}
-            onNumberClick={handleNumberClick}
-            onDelete={handleDelete}
-            onSearchUser={handleSearchUser}
-            onReset={handleReset}
-            onConfirmAttendance={handleConfirmAttendance}
-            onGoHome={handleGoHome}
-            onSelectCandidate={(cand) => { setConfirmUser(cand); setCandidates([]); }}
-            onShowMembershipGuide={() => setShowMembershipGuide(true)}
-            onOpenRegister={() => setKioskMode('register')}
-            onOpenMatchWizard={() => openMatchWizard(false)}
-          />
+          // 입장/귀가 팝업과 동일한 카드 디자인(둥근 모서리/짙은 배경/두꺼운 테두리)을 메인 화면에도 적용.
+          // 다만 팝업과 구분되도록 테두리는 금색 대신 회색을 쓰고, 가장 뒤 바둑판 사진(board-surface)은 그대로 유지한다.
+          <div className="relative z-10 w-full max-w-5xl bg-[#1f1a16]/95 rounded-[36px] border-4 border-stone-400/70 shadow-2xl p-8 xl:p-10">
+            <AttendanceScreen
+              message={message}
+              confirmUser={confirmUser}
+              candidates={candidates}
+              phoneNumber={phoneNumber}
+              isProcessing={isProcessing}
+              onNumberClick={handleNumberClick}
+              onDelete={handleDelete}
+              onSearchUser={handleSearchUser}
+              onReset={handleReset}
+              onConfirmAttendance={handleConfirmAttendance}
+              onGoHome={handleGoHome}
+              onSelectCandidate={(cand) => { setConfirmUser(cand); setCandidates([]); }}
+              onShowMembershipGuide={() => setShowMembershipGuide(true)}
+              onOpenRegister={() => setKioskMode('register')}
+              onOpenMatchWizard={() => openMatchWizard(false)}
+            />
+          </div>
         )}
       </section>
 
@@ -573,14 +577,18 @@ export default function KioskPage() {
       )}
 
       {quickAction === 'attendance' && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(22,16,12,0.65)] p-4 backdrop-blur-[2px]">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(22,16,12,0.65)] p-4 backdrop-blur-[2px]"
+          onClick={(e) => { if (e.target === e.currentTarget) closeQuickAction(); }}
+        >
           {/* 중계 화면 등에서 열리는 팝업이므로 입장/귀가 키패드만 표시하는 콤팩트한 크기로 고정한다.
               (신규가입/대국신청 버튼은 이미 별도로 있어 중복 노출 및 세로 넘침을 유발했었다)
-              뒤 배경에 바둑판 사진이 깔리지 않도록 board-surface 대신 일반 모달과 같은 단색 배경을 사용한다. */}
-          <div className="relative w-full max-w-md bg-[#1f1a16] rounded-[28px] border-4 border-[#b88c42] shadow-2xl p-6">
+              뒤 배경에 바둑판 사진이 깔리지 않도록 board-surface 대신 일반 모달과 같은 단색 배경을 사용한다.
+              (지난 라운드에서 넘침 방지를 위해 10% 축소했던 것을 다시 10% 확대한 크기) */}
+          <div className="relative w-full max-w-[493px] bg-[#1f1a16] rounded-[28px] border-4 border-[#b88c42] shadow-2xl p-7">
             <button
               onClick={closeQuickAction}
-              className="absolute top-3 right-3 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-black/30 text-2xl font-black text-stone-200 hover:bg-black/50 hover:text-white"
+              className="absolute top-3 right-3 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-black/30 text-2xl font-black text-stone-200 hover:bg-black/50 hover:text-white"
             >
               ✕
             </button>

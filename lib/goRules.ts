@@ -133,6 +133,16 @@ export function checkMoveLegality(kifu: KifuMove[], size: number, x: number, y: 
   return { legal: true, captured };
 }
 
+export type TerritoryTier = 'confirmed' | 'strong' | 'normal' | 'weak' | 'neutral';
+
+export interface TerritoryPoint {
+  owner: Stone | null; // null이면 완전 중립(양쪽 어디에도 속하지 않는 덤/무주지)
+  tier: TerritoryTier;
+}
+
+// 좌표키(`x,y`) -> 판정 결과. 돌이 놓인 자리는 포함하지 않는다(빈 자리만 대상).
+export type TerritoryMap = Record<string, TerritoryPoint>;
+
 export interface TerritoryResult {
   blackTerritory: number;
   whiteTerritory: number;
@@ -140,14 +150,121 @@ export interface TerritoryResult {
   whiteScore: number;
   margin: number; // 양수면 흑이 이 집수만큼, 음수면 백이 그만큼 앞섬
   winner: '흑' | '백' | '무승부';
+  // 계가 화면에서 바닥에 세력/집 표기를 그리기 위한 지점별 판정 결과.
+  territoryMap: TerritoryMap;
 }
 
-// 일본식 계가: 사석(대국 중 따낸 돌 + 종국 시 관리자가 표시한 죽은 돌) + 집(빈 영역 중 한쪽 색으로만 둘러싸인 곳)
+// 실제 계가 감각에 가깝게 빈 자리들을 판정한다.
+// 1) 한쪽 색으로만 완전히 둘러싸인 영역(사방이 막힌 집) -> '확정가'로 100% 인정.
+// 2) 그렇지 않은(=상대 돌과도 연결된 '접전지') 빈 자리는 흑/백 돌 중 어느 쪽이 더 가까운지로 세력을 추정한다.
+//    - 상대 돌과 바로 인접해 있으면 접전지이므로 보수적으로 판단(강세로 인정하지 않는다).
+//    - 그 외에는 거리 차이가 클수록(세력이 강할수록) '강세'로 인정해 확정가처럼 계산하고,
+//      거리 차이가 애매하면 '보통', 차이가 거의 없으면 '약세'/'중립'으로 표기해 계가 확정 전에는 집으로 세지 않는다.
+export function estimateTerritory(board: Board, size: number): TerritoryMap {
+  const map: TerritoryMap = {};
+  const visited = new Set<string>();
+
+  // 1단계: 순수하게 한쪽 색으로만 둘러싸인 집(확정가)을 찾는다.
+  const unresolved: [number, number][] = [];
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const key = `${x},${y}`;
+      if (board[y][x] !== null || visited.has(key)) continue;
+      const region: [number, number][] = [];
+      const borderColors = new Set<Stone>();
+      const stack: [number, number][] = [[x, y]];
+      visited.add(key);
+      while (stack.length > 0) {
+        const [cx, cy] = stack.pop()!;
+        region.push([cx, cy]);
+        for (const [nx, ny] of neighbors(size, cx, cy)) {
+          const cell = board[ny][nx];
+          const nkey = `${nx},${ny}`;
+          if (cell === null) {
+            if (!visited.has(nkey)) { visited.add(nkey); stack.push([nx, ny]); }
+          } else {
+            borderColors.add(cell);
+          }
+        }
+      }
+      if (borderColors.size === 1) {
+        const owner = [...borderColors][0];
+        for (const [rx, ry] of region) map[`${rx},${ry}`] = { owner, tier: 'confirmed' };
+      } else {
+        unresolved.push(...region);
+      }
+    }
+  }
+
+  if (unresolved.length === 0) return map;
+
+  // 2단계: 접전지/세력 추정 - 흑돌/백돌 각각으로부터 다중 시작점 BFS로 최단 거리를 구한다.
+  // 거리가 가까울수록(=주변에 자신의 세력이 강할수록) 그 색의 집일 확률이 높다고 본다.
+  const INF = Infinity;
+  const distBlack: number[][] = Array.from({ length: size }, () => Array(size).fill(INF));
+  const distWhite: number[][] = Array.from({ length: size }, () => Array(size).fill(INF));
+  const bfs = (dist: number[][], color: Stone) => {
+    const queue: [number, number][] = [];
+    for (let y = 0; y < size; y++) {
+      for (let x = 0; x < size; x++) {
+        if (board[y][x] === color) { dist[y][x] = 0; queue.push([x, y]); }
+      }
+    }
+    let head = 0;
+    while (head < queue.length) {
+      const [cx, cy] = queue[head++];
+      for (const [nx, ny] of neighbors(size, cx, cy)) {
+        if (dist[ny][nx] === INF) { dist[ny][nx] = dist[cy][cx] + 1; queue.push([nx, ny]); }
+      }
+    }
+  };
+  bfs(distBlack, 'black');
+  bfs(distWhite, 'white');
+
+  const STRONG_GAP = 4; // 이 이상 가까우면 세력이 강해 확정가로 인정
+  const NORMAL_GAP = 2; // 이 이상이면 '보통', 그보다 작으면 '약세'
+
+  for (const [x, y] of unresolved) {
+    const db = distBlack[y][x];
+    const dw = distWhite[y][x];
+    if (db === INF && dw === INF) {
+      map[`${x},${y}`] = { owner: null, tier: 'neutral' };
+      continue;
+    }
+    const diff = dw - db; // 양수면 흑이 더 가까움
+    if (diff === 0) {
+      map[`${x},${y}`] = { owner: null, tier: 'neutral' };
+      continue;
+    }
+    const owner: Stone = diff > 0 ? 'black' : 'white';
+    const gap = Math.abs(diff);
+    const touchesBlack = neighbors(size, x, y).some(([nx, ny]) => board[ny][nx] === 'black');
+    const touchesWhite = neighbors(size, x, y).some(([nx, ny]) => board[ny][nx] === 'white');
+    const isFrontline = touchesBlack && touchesWhite; // 양쪽 돌 모두와 바로 맞닿은 접전지
+    let tier: TerritoryTier;
+    if (isFrontline) {
+      // 상대 돌과 바로 인접한 접전지는 보수적으로 판정(강세로 자동 인정하지 않는다).
+      tier = 'weak';
+    } else if (gap >= STRONG_GAP) {
+      tier = 'strong';
+    } else if (gap >= NORMAL_GAP) {
+      tier = 'normal';
+    } else {
+      tier = 'weak';
+    }
+    map[`${x},${y}`] = { owner, tier };
+  }
+
+  return map;
+}
+
+// 일본식 계가: 사석(대국 중 따낸 돌 + 종국 시 관리자가 표시한 죽은 돌) + 집(확정가 + 강한 세력 + 관리자가 직접 지정한 자리)
 export function calculateJapaneseScore(
   kifu: KifuMove[],
   size: number,
   komi: number,
-  deadStones: { x: number; y: number }[]
+  deadStones: { x: number; y: number }[],
+  manualTerritory: Record<string, Stone> = {}
 ): TerritoryResult {
   const { board, blackCaptures, whiteCaptures } = replayKifu(kifu, size);
 
@@ -162,36 +279,21 @@ export function calculateJapaneseScore(
     else if (stone === 'white') { whiteDeadRemoved += 1; finalBoard[y][x] = null; }
   }
 
-  // 빈 영역을 flood fill해서 인접한 색이 한쪽뿐이면 그 색의 집으로 센다.
-  const visited = new Set<string>();
+  const territoryMap = estimateTerritory(finalBoard, size);
   let blackTerritory = 0;
   let whiteTerritory = 0;
-  for (let y = 0; y < size; y++) {
-    for (let x = 0; x < size; x++) {
-      const key = `${x},${y}`;
-      if (finalBoard[y][x] !== null || visited.has(key)) continue;
-      const region: [number, number][] = [];
-      const borderColors = new Set<Stone>();
-      const stack: [number, number][] = [[x, y]];
-      visited.add(key);
-      while (stack.length > 0) {
-        const [cx, cy] = stack.pop()!;
-        region.push([cx, cy]);
-        for (const [nx, ny] of neighbors(size, cx, cy)) {
-          const cell = finalBoard[ny][nx];
-          const nkey = `${nx},${ny}`;
-          if (cell === null) {
-            if (!visited.has(nkey)) { visited.add(nkey); stack.push([nx, ny]); }
-          } else {
-            borderColors.add(cell);
-          }
-        }
-      }
-      if (borderColors.size === 1) {
-        const owner = [...borderColors][0];
-        if (owner === 'black') blackTerritory += region.length;
-        else whiteTerritory += region.length;
-      }
+  for (const key of Object.keys(territoryMap)) {
+    const manualOwner = manualTerritory[key];
+    if (manualOwner) {
+      // 관리자가 직접 땅을 눌러 지정한 자리는 판정과 무관하게 그 색의 집으로 확정한다.
+      if (manualOwner === 'black') blackTerritory += 1; else whiteTerritory += 1;
+      continue;
+    }
+    const { owner, tier } = territoryMap[key];
+    // 확정가(사방이 막힌 집) + 세력이 강한 자리만 자동으로 집에 포함한다.
+    // '보통'/'약세'/'중립'인 접전지는 관리자가 직접 눌러 지정하기 전까지는 집으로 세지 않는다.
+    if ((tier === 'confirmed' || tier === 'strong') && owner) {
+      if (owner === 'black') blackTerritory += 1; else whiteTerritory += 1;
     }
   }
 
@@ -208,6 +310,7 @@ export function calculateJapaneseScore(
     whiteScore,
     margin,
     winner: margin > 0 ? '흑' : margin < 0 ? '백' : '무승부',
+    territoryMap,
   };
 }
 

@@ -46,7 +46,10 @@ export default function RegisterModal({
   };
 
   return (
-    <div className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-[rgba(22,16,12,0.56)] p-3 backdrop-blur-[2px]">
+    <div
+      className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-[rgba(22,16,12,0.56)] p-3 backdrop-blur-[2px]"
+      onClick={(e) => { if (e.target === e.currentTarget) onCancel(); }}
+    >
       {/* 화면 전반을 넓게 활용해 좌측(입력 필드)과 우측(큰 키보드)을 나란히 배치, 세로 넘침을 막는다 */}
       <div className="modal-card w-full h-full max-h-[96vh] max-w-6xl bg-[#1f1a16] text-white p-6 xl:p-8 rounded-[30px] shadow-[0_18px_45px_rgba(34,27,20,0.28)] border-4 border-[#b88c42] flex flex-col">
         <h2 className="text-3xl font-black text-[#e8d5b5] mb-4 text-center shrink-0">📝 신규 회원 등록</h2>

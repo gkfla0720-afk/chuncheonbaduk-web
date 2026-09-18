@@ -87,7 +87,10 @@ export default function MatchDetailModal({
 
   if (isScoring) {
     return (
-      <div className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-[rgba(22,16,12,0.75)] p-3 backdrop-blur-[2px]">
+      <div
+        className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-[rgba(22,16,12,0.75)] p-3 backdrop-blur-[2px]"
+        onClick={(e) => { if (e.target === e.currentTarget) setIsScoring(false); }}
+      >
         <div className="modal-card relative w-full h-[96vh] max-w-[1500px] bg-[#1f1a16] text-white rounded-[30px] shadow-[0_18px_45px_rgba(34,27,20,0.4)] border-4 border-[#b88c42] overflow-hidden flex flex-col p-4 lg:p-6">
           <ScoringPanel
             kifu={kifu}
@@ -104,7 +107,10 @@ export default function MatchDetailModal({
 
   if (match.is_streaming && boardExpanded) {
     return (
-      <div className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-[rgba(22,16,12,0.75)] p-3 backdrop-blur-[2px]">
+      <div
+        className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-[rgba(22,16,12,0.75)] p-3 backdrop-blur-[2px]"
+        onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      >
         <div className="modal-card relative w-full h-[96vh] max-w-[1500px] bg-[#1f1a16] text-white rounded-[30px] shadow-[0_18px_45px_rgba(34,27,20,0.4)] border-4 border-[#b88c42] overflow-hidden flex flex-col lg:flex-row">
           {/* 좌측: 대형 바둑판 - 관리자가 터치로 돌을 놓기 편하도록 화면 대부분을 차지 */}
           <div className="flex-1 min-h-0 flex flex-col items-center justify-center bg-[#120f0d] p-4 lg:p-8 gap-4">
@@ -187,7 +193,10 @@ export default function MatchDetailModal({
   }
 
   return (
-    <div className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-[rgba(22,16,12,0.56)] p-4 backdrop-blur-[2px]">
+    <div
+      className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-[rgba(22,16,12,0.56)] p-4 backdrop-blur-[2px]"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
       <div className="modal-card w-full max-w-3xl bg-[#1f1a16] text-white p-10 rounded-[30px] shadow-[0_18px_45px_rgba(34,27,20,0.28)] border-4 border-[#b88c42] text-center">
         <h2 className="text-3xl font-black text-white mb-6">진행 중인 대국 관리</h2>
         <div className="bg-[#120f0d] p-6 rounded-3xl mb-6 flex flex-col gap-2 border border-stone-800">

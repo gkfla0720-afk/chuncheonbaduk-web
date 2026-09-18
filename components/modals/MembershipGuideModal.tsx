@@ -4,7 +4,10 @@ interface MembershipGuideModalProps {
 
 export default function MembershipGuideModal({ onClose }: MembershipGuideModalProps) {
   return (
-    <div className="modal-backdrop fixed inset-0 z-[60] flex items-center justify-center bg-[rgba(22,16,12,0.56)] p-4 backdrop-blur-[2px]">
+    <div
+      className="modal-backdrop fixed inset-0 z-[60] flex items-center justify-center bg-[rgba(22,16,12,0.56)] p-4 backdrop-blur-[2px]"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
       <div className="modal-card w-full max-w-lg rounded-[30px] border border-[#d4c3a2] bg-[#f8f4ee] p-6 shadow-[0_18px_45px_rgba(34,27,20,0.28)]">
         <div className="flex items-start justify-between gap-4">
           <div>
