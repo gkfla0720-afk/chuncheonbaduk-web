@@ -32,7 +32,7 @@ export default function KioskPage() {
   const [message, setMessage] = useState('전화번호 뒷자리 4자리를 눌러주세요.');
   const [showMembershipGuide, setShowMembershipGuide] = useState(false);
   
-  const [kioskMode, setKioskMode] = useState<'attendance' | 'match_wizard' | 'register' | 'match_detail' | 'profile_detail'>('attendance');
+  const [kioskMode, setKioskMode] = useState<'attendance' | 'match_wizard' | 'register' | 'match_detail'>('attendance');
 
   const [matchStep, setMatchStep] = useState(1);
   const [matchType, setMatchType] = useState('친선전');
@@ -56,10 +56,6 @@ export default function KioskPage() {
   const [regName, setRegName] = useState('');
   const [regPhone, setRegPhone] = useState('');
   const [regRank, setRegRank] = useState('10급');
-
-  // 대국 중계(전체화면 확대) 상태에서도 출석 관리를 놓치지 않도록, 대국 상세 화면을 벗어나지
-  // 않고 신규가입/대국신청/입장·귀가를 팝업으로 바로 처리할 수 있게 하는 상태.
-  const [quickAction, setQuickAction] = useState<'register' | 'match_wizard' | 'attendance' | null>(null);
 
   const resetTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -139,20 +135,14 @@ export default function KioskPage() {
     setPhoneNumber(''); setCandidates([]); setConfirmUser(null);
     setKioskMode('attendance'); setMessage('전화번호 뒷자리 4자리를 눌러주세요.');
     setConfirmAction(null); setSelectedMatch(null); setSelectedProfile(null);
-    setIsProcessing(false); setQuickAction(null);
+    setIsProcessing(false);
     // 신규 가입 입력값도 함께 초기화해, 직전 가입자의 입력 정보가 다음 화면에 남지 않도록 한다.
     setRegName(''); setRegPhone(''); setRegRank('10급');
   };
 
-  // 대국 상세(중계 화면)를 벗어나지 않은 채, 그 위에 띄운 신규가입/대국신청/입장·귀가
-  // 팝업만 닫는다. handleReset과 달리 kioskMode/selectedMatch는 건드리지 않는다.
-  const closeQuickAction = () => {
-    if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
-    setPhoneNumber(''); setCandidates([]); setConfirmUser(null);
-    setMessage('전화번호 뒷자리 4자리를 눌러주세요.'); setIsProcessing(false);
-    setRegName(''); setRegPhone(''); setRegRank('10급');
-    setQuickAction(null);
-  };
+  // 대국 상세(중계) 화면 위에 띄운 프로필 팝업만 닫는다. handleReset과 달리
+  // kioskMode/selectedMatch는 건드리지 않아, 대국 화면을 그대로 유지한다.
+  const closeProfileDetail = () => setSelectedProfile(null);
 
   const handleNumberClick = (num: string) => { if (phoneNumber.length < 4) setPhoneNumber(prev => prev + num); };
   const handleDelete = () => setPhoneNumber(prev => prev.slice(0, -1));
@@ -186,7 +176,7 @@ export default function KioskPage() {
       return;
     }
     setRefreshTrigger(p => p + 1); 
-    resetTimerRef.current = setTimeout(() => { quickAction ? closeQuickAction() : handleReset(); }, 3000);
+    resetTimerRef.current = setTimeout(() => { handleReset(); }, 3000);
   };
 
   const handleGoHome = async () => {
@@ -204,7 +194,7 @@ export default function KioskPage() {
       await supabase.from('attendance').update({ status: '귀가', checked_out_at: new Date().toISOString() }).eq('id', latestAtt[0].id);
     }
     setRefreshTrigger(p => p + 1);
-    resetTimerRef.current = setTimeout(() => { quickAction ? closeQuickAction() : handleReset(); }, 3000);
+    resetTimerRef.current = setTimeout(() => { handleReset(); }, 3000);
   };
 
   const handleRankChange = (delta: number) => {
@@ -230,11 +220,11 @@ export default function KioskPage() {
       return;
     }
     alert('가입이 완료되었습니다!');
-    quickAction ? closeQuickAction() : handleReset();
+    handleReset();
   };
 
   const openProfileDetail = async (member: Profile) => {
-    setKioskMode('profile_detail'); setSelectedProfile(member); setIsLoadingStats(true); setIsLoadingHistory(true);
+    setSelectedProfile(member); setIsLoadingStats(true); setIsLoadingHistory(true);
     try {
       const [stats, history] = await Promise.all([fetchProfileStats(member.id), fetchProfileMatchHistory(member.id)]);
       setProfileStats(stats);
@@ -245,19 +235,11 @@ export default function KioskPage() {
     setIsLoadingStats(false); setIsLoadingHistory(false);
   };
 
-  const openMatchWizard = (asQuickAction = false) => {
+  const openMatchWizard = () => {
     setMatchStep(1); setDrawMethod('수동'); setBlackTeam([]); setWhiteTeam([]); setHandicapType('호선'); setHandicapStones(2); setKomi(0.5);
-    if (asQuickAction) setQuickAction('match_wizard'); else setKioskMode('match_wizard');
+    setKioskMode('match_wizard');
   };
   const closeMatchWizard = () => { setKioskMode('attendance'); handleReset(); };
-
-  // 중계 화면(대국 상세)을 유지한 채로 신규가입/입장·귀가 팝업을 여는 진입점
-  const openQuickAction = (action: 'register' | 'match_wizard' | 'attendance') => {
-    if (action === 'match_wizard') { openMatchWizard(true); return; }
-    if (action === 'register') { setRegName(''); setRegPhone(''); setRegRank('10급'); }
-    if (action === 'attendance') { setPhoneNumber(''); setCandidates([]); setConfirmUser(null); setMessage('전화번호 뒷자리 4자리를 눌러주세요.'); }
-    setQuickAction(action);
-  };
 
   const openMatchDetail = (matchId: number) => {
     const match = liveMatches.find(m => m.id === matchId);
@@ -424,7 +406,7 @@ export default function KioskPage() {
     const allIds = [...blackTeam, ...whiteTeam].map(m => m.id);
     await supabase.from('profiles').update({ current_status: '대국중' }).in('id', allIds);
     setRefreshTrigger(p => p + 1);
-    quickAction ? closeQuickAction() : handleReset();
+    handleReset();
   };
 
   return (
@@ -465,7 +447,7 @@ export default function KioskPage() {
               onSelectCandidate={(cand) => { setConfirmUser(cand); setCandidates([]); }}
               onShowMembershipGuide={() => setShowMembershipGuide(true)}
               onOpenRegister={() => setKioskMode('register')}
-              onOpenMatchWizard={() => openMatchWizard(false)}
+              onOpenMatchWizard={() => openMatchWizard()}
             />
           </div>
         )}
@@ -475,14 +457,14 @@ export default function KioskPage() {
         <MembershipGuideModal onClose={() => setShowMembershipGuide(false)} />
       )}
 
-      {kioskMode === 'profile_detail' && selectedProfile && (
+      {selectedProfile && (
         <ProfileDetailModal
           profile={selectedProfile}
           stats={profileStats}
           isLoadingStats={isLoadingStats}
           matchHistory={matchHistory}
           isLoadingHistory={isLoadingHistory}
-          onClose={handleReset}
+          onClose={closeProfileDetail}
         />
       )}
 
@@ -501,7 +483,7 @@ export default function KioskPage() {
           onPlaceKifuMove={placeKifuMove}
           onUndoKifuMove={undoKifuMove}
           onPassKifuMove={passKifuMove}
-          onOpenQuickAction={openQuickAction}
+          onOpenProfile={openProfileDetail}
         />
       )}
 
@@ -545,84 +527,6 @@ export default function KioskPage() {
           isProcessing={isProcessing}
           onClose={closeMatchWizard}
         />
-      )}
-
-      {/* 대국 상세(중계) 화면을 유지한 채 신규가입/대국신청/입장·귀가를 팝업으로 처리한다. */}
-      {quickAction === 'register' && (
-        <RegisterModal
-          regName={regName}
-          setRegName={setRegName}
-          regPhone={regPhone}
-          setRegPhone={setRegPhone}
-          regRank={regRank}
-          handleRankChange={handleRankChange}
-          onCancel={closeQuickAction}
-          onSubmit={submitRegister}
-          isProcessing={isProcessing}
-        />
-      )}
-
-      {quickAction === 'match_wizard' && (
-        <MatchWizard
-          matchStep={matchStep}
-          setMatchStep={setMatchStep}
-          matchType={matchType}
-          setMatchType={setMatchType}
-          availableMembers={availableMembers}
-          blackTeam={blackTeam}
-          whiteTeam={whiteTeam}
-          setBlackTeam={setBlackTeam}
-          setWhiteTeam={setWhiteTeam}
-          selectMemberToTeam={selectMemberToTeam}
-          drawMethod={drawMethod}
-          setDrawMethod={setDrawMethod}
-          applyAutoDraw={applyAutoDraw}
-          handicapType={handicapType}
-          setHandicapType={setHandicapType}
-          handicapStones={handicapStones}
-          setHandicapStones={setHandicapStones}
-          komi={komi}
-          setKomi={setKomi}
-          isHandicapValid={isHandicapValid}
-          submitMatch={submitMatch}
-          isProcessing={isProcessing}
-          onClose={closeQuickAction}
-        />
-      )}
-
-      {quickAction === 'attendance' && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(22,16,12,0.65)] p-4 backdrop-blur-[2px]"
-          onClick={(e) => { if (e.target === e.currentTarget) closeQuickAction(); }}
-        >
-          {/* 중계 화면 등에서 열리는 팝업이므로 입장/귀가 키패드만 표시하는 콤팩트한 크기로 고정한다.
-              (신규가입/대국신청 버튼은 이미 별도로 있어 중복 노출 및 세로 넘침을 유발했었다)
-              뒤 배경에 바둑판 사진이 깔리지 않도록 board-surface 대신 일반 모달과 같은 단색 배경을 사용한다.
-              (지난 라운드에서 넘침 방지를 위해 10% 축소했던 것을 다시 10% 확대한 크기) */}
-          <div className="relative w-full max-w-[493px] bg-[#1f1a16] rounded-[28px] border-4 border-[#b88c42] shadow-2xl p-7">
-            <button
-              onClick={closeQuickAction}
-              className="absolute top-3 right-3 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-black/30 text-2xl font-black text-stone-200 hover:bg-black/50 hover:text-white"
-            >
-              ✕
-            </button>
-            <AttendanceScreen
-              message={message}
-              confirmUser={confirmUser}
-              candidates={candidates}
-              phoneNumber={phoneNumber}
-              isProcessing={isProcessing}
-              onNumberClick={handleNumberClick}
-              onDelete={handleDelete}
-              onSearchUser={handleSearchUser}
-              onReset={closeQuickAction}
-              onConfirmAttendance={handleConfirmAttendance}
-              onGoHome={handleGoHome}
-              onSelectCandidate={(cand) => { setConfirmUser(cand); setCandidates([]); }}
-              compact
-            />
-          </div>
-        </div>
       )}
     </main>
   );

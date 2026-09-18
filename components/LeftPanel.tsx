@@ -90,13 +90,25 @@ export default function LeftPanel({
                   <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
                     <div className="space-y-0.5 text-left">
                       {blackPlayers.map(p => (
-                        <div key={p.id} className="text-[28px] xl:text-[32px] leading-tight font-black text-white whitespace-nowrap overflow-hidden text-ellipsis">{p.name}</div>
+                        <button
+                          key={p.id}
+                          onClick={(e) => { e.stopPropagation(); openProfileDetail(p); }}
+                          className="block w-full text-left text-[28px] xl:text-[32px] leading-tight font-black text-white whitespace-nowrap overflow-hidden text-ellipsis hover:text-[#dcb36c] hover:underline"
+                        >
+                          {p.name}
+                        </button>
                       ))}
                     </div>
                     <div className="text-[24px] xl:text-[28px] font-black tracking-[0.2em] text-[#dcb36c]">VS</div>
                     <div className="space-y-0.5 text-right">
                       {whitePlayers.map(p => (
-                        <div key={p.id} className="text-[28px] xl:text-[32px] leading-tight font-black text-white whitespace-nowrap overflow-hidden text-ellipsis">{p.name}</div>
+                        <button
+                          key={p.id}
+                          onClick={(e) => { e.stopPropagation(); openProfileDetail(p); }}
+                          className="block w-full text-right text-[28px] xl:text-[32px] leading-tight font-black text-white whitespace-nowrap overflow-hidden text-ellipsis hover:text-[#dcb36c] hover:underline"
+                        >
+                          {p.name}
+                        </button>
                       ))}
                     </div>
                   </div>

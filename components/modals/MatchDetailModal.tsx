@@ -4,8 +4,6 @@ import { TerritoryResult } from '../../lib/goRules';
 import GoBoard from '../GoBoard';
 import ScoringPanel from './ScoringPanel';
 
-export type QuickAction = 'register' | 'match_wizard' | 'attendance';
-
 interface MatchDetailModalProps {
   match: Match;
   blackProfiles: Profile[];
@@ -20,11 +18,11 @@ interface MatchDetailModalProps {
   onPlaceKifuMove: (x: number, y: number) => void;
   onUndoKifuMove: () => void;
   onPassKifuMove: () => void;
-  onOpenQuickAction: (action: QuickAction) => void;
+  onOpenProfile: (profile: Profile) => void;
 }
 
 // 승부 확정/무효 처리 버튼 묶음. 일반 모드와 중계 확대 모드 양쪽에서 재사용한다.
-// variant='compact'(중계 확대 화면)에서는 대국 취소 버튼을 별도 위치(중계 종료 옆)로 빼서
+// 대국 취소 버튼은 두 모드 모두 이 컴포넌트 밖(중계 종료 버튼 옆)에 배치되므로,
 // 여기서는 흑승/백승/계가 3개만 한 줄로 표기한다.
 function EndMatchControls({
   confirmAction,
@@ -50,13 +48,14 @@ function EndMatchControls({
       );
     }
     return (
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-3 gap-3">
         <button onClick={() => setConfirmAction('black_win')} className="py-4 bg-stone-900 border-2 border-stone-600 text-white text-2xl font-black rounded-2xl hover:bg-black transition-all shadow-lg">⚫ 흑승</button>
         <button onClick={() => setConfirmAction('white_win')} className="py-4 bg-white border-2 border-stone-300 text-stone-900 text-2xl font-black rounded-2xl hover:bg-stone-100 transition-all shadow-lg">⚪ 백승</button>
-        {hasKifu && (
-          <button onClick={onStartScoring} className="col-span-2 py-3 bg-[#b88c42] hover:bg-[#a67a35] text-[#1f1a16] text-xl font-black rounded-2xl transition-all shadow-lg">🧮 계가로 승부 확정 (집 세기)</button>
+        {hasKifu ? (
+          <button onClick={onStartScoring} className="py-4 bg-[#b88c42] hover:bg-[#a67a35] text-[#1f1a16] text-2xl font-black rounded-2xl transition-all shadow-lg">🧮 계가</button>
+        ) : (
+          <span />
         )}
-        <button onClick={() => setConfirmAction('cancel')} className="col-span-2 py-3 bg-red-950/60 text-red-400 text-[26px] font-bold rounded-2xl hover:bg-red-900 hover:text-white border border-red-800 transition-all">대국 취소 (무효)</button>
       </div>
     );
   }
@@ -87,6 +86,7 @@ export default function MatchDetailModal({
   onPlaceKifuMove,
   onUndoKifuMove,
   onPassKifuMove,
+  onOpenProfile,
 }: MatchDetailModalProps) {
   const kifu = (match.kifu as unknown as KifuMove[]) || [];
   // 중계를 시작하면 관리자가 돌을 놓기 편하도록 바둑판을 확대(전체화면풍) 모드로 자동 전환한다.
@@ -159,19 +159,19 @@ export default function MatchDetailModal({
               <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
                 <div className="min-w-0 text-left">
                   {blackProfiles.length > 0 ? blackProfiles.map(p => (
-                    <div key={p.id}>
+                    <button key={p.id} onClick={() => onOpenProfile(p)} className="block w-full text-left rounded-lg px-1 -mx-1 hover:bg-white/10 transition-colors">
                       <p className="text-xl font-black text-white whitespace-nowrap overflow-hidden text-ellipsis">{p.name}</p>
                       <p className="text-lg font-bold text-stone-400">{p.rank}</p>
-                    </div>
+                    </button>
                   )) : <p className="text-stone-500">-</p>}
                 </div>
                 <span className="text-lg font-black tracking-[0.2em] text-[#dcb36c]">VS</span>
                 <div className="min-w-0 text-right">
                   {whiteProfiles.length > 0 ? whiteProfiles.map(p => (
-                    <div key={p.id}>
+                    <button key={p.id} onClick={() => onOpenProfile(p)} className="block w-full text-right rounded-lg px-1 -mx-1 hover:bg-black/10 transition-colors">
                       <p className="text-xl font-black text-stone-900 whitespace-nowrap overflow-hidden text-ellipsis">{p.name}</p>
                       <p className="text-lg font-bold text-stone-600">{p.rank}</p>
-                    </div>
+                    </button>
                   )) : <p className="text-stone-500">-</p>}
                 </div>
               </div>
@@ -183,13 +183,13 @@ export default function MatchDetailModal({
                 disabled={kifu.length === 0}
                 className="w-full rounded-xl bg-stone-700 hover:bg-stone-600 disabled:opacity-40 px-4 py-2.5 text-lg font-black text-white transition-all"
               >
-                한 수 되돌리기
+                ↩️ 한 수 되돌리기
               </button>
               <button
                 onClick={onPassKifuMove}
-                className="w-full rounded-xl bg-stone-700 hover:bg-stone-600 px-4 py-2.5 text-lg font-black text-white transition-all"
+                className="w-full rounded-xl bg-[#4a3620] hover:bg-[#5c4429] border border-[#b88c42] px-4 py-2.5 text-lg font-black text-[#e8c98a] transition-all"
               >
-                착수 넘김
+                ⏭️ 착수 넘김
               </button>
             </div>
             <div className="grid grid-cols-[1fr_auto] gap-2">
@@ -239,34 +239,60 @@ export default function MatchDetailModal({
           <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3">
             <div className="space-y-2 text-left">
               {blackProfiles.length > 0 ? blackProfiles.map(p => (
-                <div key={p.id}>
+                <button key={p.id} onClick={() => onOpenProfile(p)} className="block w-full text-left rounded-xl px-2 -mx-2 hover:bg-white/10 transition-colors">
                   <p className="text-[36px] leading-tight font-black text-white whitespace-nowrap overflow-hidden text-ellipsis">{p.name}</p>
                   <p className="text-[35px] leading-tight font-bold text-stone-400">{p.rank}</p>
-                </div>
+                </button>
               )) : <p className="text-stone-500">-</p>}
             </div>
             <span className="text-2xl font-black tracking-[0.2em] text-[#dcb36c]">VS</span>
             <div className="space-y-2 text-right">
               {whiteProfiles.length > 0 ? whiteProfiles.map(p => (
-                <div key={p.id}>
+                <button key={p.id} onClick={() => onOpenProfile(p)} className="block w-full text-right rounded-xl px-2 -mx-2 hover:bg-black/10 transition-colors">
                   <p className="text-[36px] leading-tight font-black text-stone-900 whitespace-nowrap overflow-hidden text-ellipsis">{p.name}</p>
                   <p className="text-[35px] leading-tight font-bold text-stone-600">{p.rank}</p>
-                </div>
+                </button>
               )) : <p className="text-stone-500">-</p>}
             </div>
           </div>
         </div>
 
-        <div className="rounded-3xl border border-stone-700 bg-[#120f0d] p-5 mb-8">
+        <div className="rounded-3xl border border-stone-700 bg-[#120f0d] p-5 mb-6">
           <div className="flex items-center justify-between">
             <p className="text-xl font-black text-white flex items-center gap-2">📡 실시간 기보 중계</p>
-            <button
-              onClick={() => onToggleStreaming(true)}
-              className="rounded-xl px-4 py-2 text-xl font-black transition-all bg-[#b88c42] hover:bg-[#a67a35] text-[#1f1a16]"
-            >
-              중계 시작
-            </button>
+            {match.is_streaming ? (
+              <button
+                onClick={() => setBoardExpanded(true)}
+                className="rounded-xl px-4 py-2 text-xl font-black transition-all bg-stone-800 border border-red-500 text-red-400 hover:bg-stone-700 flex items-center gap-2"
+              >
+                <span className="h-2.5 w-2.5 rounded-full bg-red-500 animate-pulse" />
+                중계중
+              </button>
+            ) : (
+              <button
+                onClick={() => onToggleStreaming(true)}
+                className="rounded-xl px-4 py-2 text-xl font-black transition-all bg-[#b88c42] hover:bg-[#a67a35] text-[#1f1a16]"
+              >
+                중계 시작
+              </button>
+            )}
           </div>
+        </div>
+
+        <div className="grid grid-cols-[1fr_auto] gap-3 mb-6">
+          <button
+            onClick={() => onToggleStreaming(false)}
+            disabled={!match.is_streaming}
+            className="w-full rounded-xl bg-red-700 hover:bg-red-600 disabled:opacity-40 disabled:cursor-not-allowed px-4 py-3 text-xl font-black text-white transition-all"
+          >
+            중계 종료
+          </button>
+          <button
+            onClick={() => setConfirmAction('cancel')}
+            className="rounded-xl bg-red-950/60 text-red-400 px-4 py-3 text-lg font-bold hover:bg-red-900 hover:text-white border border-red-800 transition-all"
+          >
+            대국 취소
+          </button>
         </div>
 
         <EndMatchControls confirmAction={confirmAction} setConfirmAction={setConfirmAction} endMatch={endMatch} isProcessing={isProcessing} hasKifu={kifu.length > 0} onStartScoring={() => setIsScoring(true)} />
