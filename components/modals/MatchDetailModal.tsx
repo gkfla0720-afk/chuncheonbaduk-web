@@ -37,8 +37,8 @@ export default function MatchDetailModal({
             <div className="space-y-2 text-left">
               {blackProfiles.length > 0 ? blackProfiles.map(p => (
                 <div key={p.id}>
-                  <p className="text-2xl font-black text-white whitespace-nowrap overflow-hidden text-ellipsis">{p.name}</p>
-                  <p className="text-sm font-bold text-stone-400">{p.rank}</p>
+                  <p className="text-[36px] leading-tight font-black text-white whitespace-nowrap overflow-hidden text-ellipsis">{p.name}</p>
+                  <p className="text-[35px] leading-tight font-bold text-stone-400">{p.rank}</p>
                 </div>
               )) : <p className="text-stone-500">-</p>}
             </div>
@@ -46,8 +46,8 @@ export default function MatchDetailModal({
             <div className="space-y-2 text-right">
               {whiteProfiles.length > 0 ? whiteProfiles.map(p => (
                 <div key={p.id}>
-                  <p className="text-2xl font-black text-stone-900 whitespace-nowrap overflow-hidden text-ellipsis">{p.name}</p>
-                  <p className="text-sm font-bold text-stone-600">{p.rank}</p>
+                  <p className="text-[36px] leading-tight font-black text-stone-900 whitespace-nowrap overflow-hidden text-ellipsis">{p.name}</p>
+                  <p className="text-[35px] leading-tight font-bold text-stone-600">{p.rank}</p>
                 </div>
               )) : <p className="text-stone-500">-</p>}
             </div>
@@ -58,7 +58,7 @@ export default function MatchDetailModal({
           <div className="grid grid-cols-2 gap-5 mb-6">
             <button onClick={() => setConfirmAction('black_win')} className="py-6 bg-stone-900 border-2 border-stone-600 text-white text-3xl font-black rounded-3xl hover:bg-black transition-all shadow-lg">⚫ 흑승</button>
             <button onClick={() => setConfirmAction('white_win')} className="py-6 bg-white border-2 border-stone-300 text-stone-900 text-3xl font-black rounded-3xl hover:bg-stone-100 transition-all shadow-lg">⚪ 백승</button>
-            <button onClick={() => setConfirmAction('cancel')} className="col-span-2 py-4 bg-red-950/60 text-red-400 text-xl font-bold rounded-2xl hover:bg-red-900 hover:text-white border border-red-800 transition-all">대국 취소 (무효)</button>
+            <button onClick={() => setConfirmAction('cancel')} className="col-span-2 py-4 bg-red-950/60 text-red-400 text-[30px] font-bold rounded-2xl hover:bg-red-900 hover:text-white border border-red-800 transition-all">대국 취소 (무효)</button>
           </div>
         ) : (
           <div className="bg-red-950/40 p-6 rounded-3xl mb-6 border border-red-500/50">
@@ -71,7 +71,7 @@ export default function MatchDetailModal({
             </div>
           </div>
         )}
-        <button onClick={onClose} className="w-full py-4 text-stone-400 hover:text-white font-bold text-lg bg-stone-900 rounded-2xl">닫기</button>
+        <button onClick={onClose} className="w-full py-4 text-stone-400 hover:text-white font-bold text-[27px] bg-stone-900 rounded-2xl">닫기</button>
       </div>
     </div>
   );

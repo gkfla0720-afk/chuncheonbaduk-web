@@ -76,19 +76,19 @@ export default function LeftPanel({
                   className="rounded-2xl border-2 border-amber-500 bg-stone-900/90 p-3 xl:p-4 cursor-pointer hover:brightness-110 transition-all shadow-sm"
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-[11px] font-black tracking-[0.14em] text-[#dcb36c]">{match.match_type}</span>
-                    <span className="text-[11px] font-bold text-[#f7e7c4]">{match.handicap}</span>
+                    <span className="text-[22px] font-black tracking-[0.14em] text-[#dcb36c]">{match.match_type}</span>
+                    <span className="text-[22px] font-bold text-[#f7e7c4]">{match.handicap}</span>
                   </div>
                   <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
                     <div className="space-y-0.5 text-left">
                       {blackPlayers.map(p => (
-                        <div key={p.id} className="text-sm xl:text-base font-black text-white whitespace-nowrap overflow-hidden text-ellipsis">{p.name}</div>
+                        <div key={p.id} className="text-[28px] xl:text-[32px] leading-tight font-black text-white whitespace-nowrap overflow-hidden text-ellipsis">{p.name}</div>
                       ))}
                     </div>
-                    <div className="text-xs xl:text-sm font-black tracking-[0.2em] text-[#dcb36c]">VS</div>
+                    <div className="text-[24px] xl:text-[28px] font-black tracking-[0.2em] text-[#dcb36c]">VS</div>
                     <div className="space-y-0.5 text-right">
                       {whitePlayers.map(p => (
-                        <div key={p.id} className="text-sm xl:text-base font-black text-white whitespace-nowrap overflow-hidden text-ellipsis">{p.name}</div>
+                        <div key={p.id} className="text-[28px] xl:text-[32px] leading-tight font-black text-white whitespace-nowrap overflow-hidden text-ellipsis">{p.name}</div>
                       ))}
                     </div>
                   </div>
