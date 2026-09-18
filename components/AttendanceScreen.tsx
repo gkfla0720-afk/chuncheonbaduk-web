@@ -43,8 +43,9 @@ export default function AttendanceScreen({
 }: AttendanceScreenProps) {
   return (
     <div className="relative z-10 w-full h-full flex flex-row items-center justify-center gap-8 xl:gap-12 px-2">
-      <div className="flex flex-col items-center gap-5 w-[53%] max-w-[620px] shrink-0">
-        {liveMatches.length > 0 && (
+      {/* 진행 중인 대국이 있을 때만 렌더링: 없을 때 빈 칸이 폭을 차지해 숫자판이 찌그러지는 문제 방지 */}
+      {liveMatches.length > 0 && (
+        <div className="flex flex-col items-center gap-5 w-[53%] max-w-[620px] shrink-0">
           <div className="w-full rounded-[28px] border-2 border-[#d8c4a2] bg-[#1d1714]/85 p-5 shadow-[0_14px_30px_rgba(10,8,7,0.28)] backdrop-blur-sm">
             <div className="flex items-center justify-between gap-3 mb-3">
               <p className="text-[12px] font-extrabold tracking-[0.22em] text-[#e0c48f] uppercase">LIVE</p>
@@ -78,11 +79,11 @@ export default function AttendanceScreen({
               })}
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
-      {/* 중앙: 콤팩트하고 세련된 입력 키패드 영역 */}
-      <div className="flex flex-col items-center w-full max-w-[420px]">
+      {/* 중앙: 콤팩트하고 세련된 입력 키패드 영역 - 좌우 칸의 유무/내용과 무관하게 항상 동일한 고정 폭 유지 */}
+      <div className="flex flex-col items-center w-[420px] shrink-0">
         <h2 className="text-4xl xl:text-5xl font-black text-white tracking-tight mb-2 drop-shadow-[0_3px_12px_rgba(0,0,0,0.7)]">입장 / 귀가</h2>
         <p className="text-lg xl:text-xl font-extrabold h-8 text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.75)] mb-2">{message}</p>
 
