@@ -347,6 +347,19 @@ export default function KioskPage() {
     setSelectedMatch(prev => (prev ? { ...prev, kifu: data as unknown as Match['kifu'] } : prev));
   };
 
+  // 착수 넘김(pass): 규칙 검사 없이 턴만 넘긴다. x/y를 -1로 저장해 실제 착수와 구분한다.
+  const passKifuMove = async () => {
+    if (!selectedMatch) return;
+    const { data: fresh, error: fetchError } = await supabase.from('matches').select('kifu').eq('id', selectedMatch.id).single();
+    if (fetchError || !fresh) { console.error(fetchError); return; }
+    const kifu = (fresh.kifu as unknown as KifuMove[]) || [];
+    const nextColor: 'black' | 'white' = kifu.length % 2 === 0 ? 'black' : 'white';
+    const newKifu = [...kifu, { x: -1, y: -1, color: nextColor }];
+    const { data, error } = await supabase.from('matches').update({ kifu: newKifu as unknown as Match['kifu'] }).eq('id', selectedMatch.id).select('kifu').single();
+    if (error) { console.error(error); alert('착수 넘김 저장 중 오류가 발생했습니다.'); return; }
+    setSelectedMatch(prev => (prev ? { ...prev, kifu: data.kifu } : prev));
+  };
+
 
   const requiredPlayerCount = matchType.includes('2:2') ? 2 : matchType.includes('3:3') ? 3 : matchType.includes('4:4') ? 4 : 1;
   const isHandicapValid = handicapType !== '접바둑' || handicapStones >= 2 || (handicapStones === 0 && komi >= 15);
@@ -487,6 +500,7 @@ export default function KioskPage() {
           onToggleStreaming={toggleStreaming}
           onPlaceKifuMove={placeKifuMove}
           onUndoKifuMove={undoKifuMove}
+          onPassKifuMove={passKifuMove}
           onOpenQuickAction={openQuickAction}
         />
       )}

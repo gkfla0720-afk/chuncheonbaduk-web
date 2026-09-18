@@ -18,6 +18,9 @@ const cloneBoard = (board: Board): Board => board.map((row) => [...row]);
 
 const inBounds = (size: number, x: number, y: number) => x >= 0 && x < size && y >= 0 && y < size;
 
+// "착수 넘김(pass)"은 x/y가 모두 -1인 특수 좌표로 표현한다. 실제 바둑판에는 아무 영향이 없다.
+export const isPassMove = (move: Pick<KifuMove, 'x' | 'y'>): boolean => move.x < 0 || move.y < 0;
+
 const neighbors = (size: number, x: number, y: number) =>
   [
     [x + 1, y],
@@ -63,6 +66,11 @@ export function replayKifu(kifu: KifuMove[], size: number): ReplayResult {
 
   for (const move of kifu) {
     const { x, y, color } = move;
+    if (isPassMove(move)) {
+      // 착수 넘김: 보드 상태 변화 없이 히스토리에만 한 칸을 채워 인덱스를 맞춘다.
+      boardHistory.push(cloneBoard(board));
+      continue;
+    }
     if (!inBounds(size, x, y) || board[y][x] !== null) {
       // 손상된 데이터는 무시하고 계속 진행(방어적 처리)
       boardHistory.push(cloneBoard(board));
