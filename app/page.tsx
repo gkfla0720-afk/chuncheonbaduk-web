@@ -180,7 +180,7 @@ export default function KioskPage() {
       return;
     }
     setRefreshTrigger(p => p + 1); 
-    resetTimerRef.current = setTimeout(() => { handleReset(); }, 3000);
+    resetTimerRef.current = setTimeout(() => { handleReset(); }, 1000);
   };
 
   const handleGoHome = async () => {
@@ -198,7 +198,7 @@ export default function KioskPage() {
       await supabase.from('attendance').update({ status: '귀가', checked_out_at: new Date().toISOString() }).eq('id', latestAtt[0].id);
     }
     setRefreshTrigger(p => p + 1);
-    resetTimerRef.current = setTimeout(() => { handleReset(); }, 3000);
+    resetTimerRef.current = setTimeout(() => { handleReset(); }, 1000);
   };
 
   const handleRankChange = (delta: number) => {
