@@ -128,7 +128,11 @@ export default function KioskPage() {
       }, 1000);
     }
     return () => clearInterval(timer);
-  }, [kioskMode, selectedMatch]);
+    // selectedMatch 객체 자체는 착수/되돌리기/넘김마다 새로 생성되어 참조가 바뀌므로,
+    // 이를 그대로 deps에 넣으면 매 착수마다 타이머가 불필요하게 재생성된다.
+    // 경과 시간 계산에 실제로 영향을 주는 값(대국 id, 시작 시각)만 deps로 사용한다.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [kioskMode, selectedMatch?.id, selectedMatch?.started_at]);
 
   const handleReset = () => {
     if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
