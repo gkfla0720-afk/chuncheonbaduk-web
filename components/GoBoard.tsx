@@ -25,15 +25,15 @@ const MARGIN = 32;
 const STAR_POINTS_19 = [3, 9, 15];
 
 // 계가 화면에서 세력의 강약을 사각형 크기로 직관적으로 표현한다.
-// 중립(owner 없음)은 아무 표시도 하지 않고, 강세는 돌(원)에 내접하는 정사각형 크기,
-// 보통/약세는 그보다 작은 정사각형으로 세력 차이를 시각적으로 구분한다.
+// 중립(owner 없음)은 아무 표시도 하지 않고, 강세는 돌(원)에 내접하는 정사각형보다 다소 작게,
+// 보통/약세는 그보다 더 작은 정사각형으로 세력 차이를 시각적으로 구분한다.
 const STONE_RADIUS = CELL / 2 - 2;
 const INSCRIBED_HALF = (STONE_RADIUS * Math.SQRT2) / 2; // 원에 내접하는 정사각형의 반변 길이
 const TIER_STYLE: Record<string, { half: number; opacity: number }> = {
-  confirmed: { half: INSCRIBED_HALF, opacity: 0.62 },
-  strong: { half: INSCRIBED_HALF, opacity: 0.55 },
-  normal: { half: INSCRIBED_HALF * 0.62, opacity: 0.42 },
-  weak: { half: INSCRIBED_HALF * 0.34, opacity: 0.32 },
+  confirmed: { half: INSCRIBED_HALF * 0.78, opacity: 0.62 },
+  strong: { half: INSCRIBED_HALF * 0.78, opacity: 0.55 },
+  normal: { half: INSCRIBED_HALF * 0.48, opacity: 0.42 },
+  weak: { half: INSCRIBED_HALF * 0.26, opacity: 0.32 },
 };
 
 export default function GoBoard({ size = 19, moves, interactive = false, onIntersectionClick, onStoneClick, deadStones = [], onEmptyPointClick, territoryMap, className = '' }: GoBoardProps) {
