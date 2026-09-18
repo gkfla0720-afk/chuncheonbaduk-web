@@ -105,7 +105,12 @@ export default function KioskPage() {
   }, [refreshTrigger]);
 
   useEffect(() => {
-    const channel = supabase.channel('profiles_status').on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => setRefreshTrigger(p => p + 1)).subscribe();
+    // profiles 뿐 아니라 matches 변경(다른 키오스크에서 대국 시작/종료 등)도 즉시 반영되도록 구독
+    const channel = supabase
+      .channel('profiles_status')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => setRefreshTrigger(p => p + 1))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'matches' }, () => setRefreshTrigger(p => p + 1))
+      .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, []);
 
@@ -308,6 +313,7 @@ export default function KioskPage() {
 
       <LeftPanel
         activeMembers={activeMembers}
+        liveMatches={liveMatches}
         isLoadingList={isLoadingList}
         kioskMode={kioskMode}
         matchStep={matchStep}

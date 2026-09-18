@@ -1,7 +1,8 @@
-import { Profile } from '../types';
+import { Profile, Match } from '../types';
 
 interface LeftPanelProps {
   activeMembers: Profile[];
+  liveMatches: Match[];
   isLoadingList: boolean;
   kioskMode: string;
   matchStep: number;
@@ -16,6 +17,7 @@ interface LeftPanelProps {
 
 export default function LeftPanel({
   activeMembers,
+  liveMatches,
   isLoadingList,
   kioskMode,
   matchStep,
@@ -60,6 +62,42 @@ export default function LeftPanel({
       </header>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
+        {/* 대국 중인 대국이 있으면 사람 명단보다 먼저 대국 정보를 배치 */}
+        {liveMatches.length > 0 && (
+          <div className="mb-2 space-y-2">
+            <p className="text-xs font-black tracking-[0.16em] text-[#8a5a20]">진행 중 대국</p>
+            {liveMatches.map((match) => {
+              const blackPlayers = (match.black_team || []).map(id => activeMembers.find(m => m.id === id)).filter(Boolean) as Profile[];
+              const whitePlayers = (match.white_team || []).map(id => activeMembers.find(m => m.id === id)).filter(Boolean) as Profile[];
+              return (
+                <div
+                  key={match.id}
+                  onClick={() => { if (match.black_team[0]) openMatchDetail(match.black_team[0]); }}
+                  className="rounded-2xl border-2 border-amber-500 bg-stone-900/90 p-3 xl:p-4 cursor-pointer hover:brightness-110 transition-all shadow-sm"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[11px] font-black tracking-[0.14em] text-[#dcb36c]">{match.match_type}</span>
+                    <span className="text-[11px] font-bold text-[#f7e7c4]">{match.handicap}</span>
+                  </div>
+                  <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+                    <div className="space-y-0.5 text-left">
+                      {blackPlayers.map(p => (
+                        <div key={p.id} className="text-sm xl:text-base font-black text-white whitespace-nowrap overflow-hidden text-ellipsis">{p.name}</div>
+                      ))}
+                    </div>
+                    <div className="text-xs xl:text-sm font-black tracking-[0.2em] text-[#dcb36c]">VS</div>
+                    <div className="space-y-0.5 text-right">
+                      {whitePlayers.map(p => (
+                        <div key={p.id} className="text-sm xl:text-base font-black text-white whitespace-nowrap overflow-hidden text-ellipsis">{p.name}</div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
         {isLoadingList ? (
           <p className="text-center mt-10 text-stone-400 font-bold text-xl">목록을 불러오는 중...</p>
         ) : activeMembers.length === 0 ? (
