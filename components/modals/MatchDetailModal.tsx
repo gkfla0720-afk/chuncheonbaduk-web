@@ -29,7 +29,7 @@ export default function MatchDetailModal({
         <h2 className="text-3xl font-black text-white mb-6">진행 중인 대국 관리</h2>
         <div className="bg-[#120f0d] p-6 rounded-3xl mb-6 flex flex-col gap-2 border border-stone-800">
           <p className="text-2xl font-extrabold text-[#dcb36c]">{match.match_type} / {match.handicap}</p>
-          <p className="text-lg font-bold text-stone-400">대국 경과 시간: <span className="text-white text-3xl ml-2 font-mono">{matchElapsed}</span></p>
+          <p className="text-xl font-bold text-stone-400">대국 경과 시간: <span className="text-white text-3xl ml-2 font-mono">{matchElapsed}</span></p>
         </div>
 
         <div className="rounded-3xl border border-stone-700 bg-[linear-gradient(90deg,#0f0d0c_0%,#0f0d0c_49.5%,#f9f6f2_49.5%,#f9f6f2_100%)] p-4 mb-8 shadow-inner">

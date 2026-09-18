@@ -103,7 +103,7 @@ interface OnScreenKeyboardProps {
 }
 
 export default function OnScreenKeyboard({ mode, onKey, onBackspace, shift, onToggleShift }: OnScreenKeyboardProps) {
-  const keyClass = 'flex-1 h-11 xl:h-12 min-w-0 rounded-xl bg-stone-800 text-white text-lg xl:text-xl font-black shadow-[0_3px_0_#0a0908] active:translate-y-0.5 active:shadow-none flex items-center justify-center transition-all hover:bg-stone-700';
+  const keyClass = 'flex-1 h-11 xl:h-12 min-w-0 rounded-xl bg-stone-800 text-white text-xl font-black shadow-[0_3px_0_#0a0908] active:translate-y-0.5 active:shadow-none flex items-center justify-center transition-all hover:bg-stone-700';
 
   if (mode === 'numeric') {
     return (

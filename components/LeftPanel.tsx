@@ -53,7 +53,7 @@ export default function LeftPanel({
           >
             현재 현황 <span className="text-xl opacity-60">⛶</span>
           </h1>
-          <p className="text-stone-500 font-bold mt-1 text-sm xl:text-base">춘천에서 바둑을 사랑하는 바둑인들이 모인 공간입니다.</p>
+          <p className="text-stone-500 font-bold mt-1 text-xl">춘천에서 바둑을 사랑하는 바둑인들이 모인 공간입니다.</p>
         </div>
         <div className="text-right">
           <span className="text-5xl xl:text-6xl font-black text-[#8a5a20]">{activeMembers.length}</span>
@@ -65,7 +65,7 @@ export default function LeftPanel({
         {/* 대국 중인 대국이 있으면 사람 명단보다 먼저 대국 정보를 배치 */}
         {liveMatches.length > 0 && (
           <div className="mb-2 space-y-2">
-            <p className="text-xs font-black tracking-[0.16em] text-[#8a5a20]">진행 중 대국</p>
+            <p className="text-xl font-black tracking-[0.16em] text-[#8a5a20]">진행 중 대국</p>
             {liveMatches.map((match) => {
               const blackPlayers = (match.black_team || []).map(id => activeMembers.find(m => m.id === id)).filter(Boolean) as Profile[];
               const whitePlayers = (match.white_team || []).map(id => activeMembers.find(m => m.id === id)).filter(Boolean) as Profile[];
@@ -136,18 +136,18 @@ export default function LeftPanel({
             >
               <div className="flex flex-col">
                 <span className="font-black text-2xl xl:text-3xl text-stone-800">{member.name}</span>
-                <span className="text-xs xl:text-sm text-stone-500 font-semibold mt-1">
+                <span className="text-xl text-stone-500 font-semibold mt-1">
                   {member.last_check_in
                     ? `${new Date(member.last_check_in).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })} 도착`
                     : '도착 시간 정보 없음'}
                 </span>
               </div>
               <div className="flex flex-col items-end gap-2">
-                <span className="px-3 py-1 bg-stone-100 text-stone-800 border border-stone-300 text-base xl:text-lg font-extrabold rounded-lg shadow-inner">
+                <span className="px-3 py-1 bg-stone-100 text-stone-800 border border-stone-300 text-xl font-extrabold rounded-lg shadow-inner">
                   {member.rank}
                 </span>
                 {member.current_status === '대국중' && (
-                  <span className="px-2.5 py-0.5 bg-stone-900 text-amber-300 text-xs font-black rounded-md shadow-md animate-pulse border border-amber-400">
+                  <span className="px-2.5 py-0.5 bg-stone-900 text-amber-300 text-xl font-black rounded-md shadow-md animate-pulse border border-amber-400">
                     대국중
                   </span>
                 )}
