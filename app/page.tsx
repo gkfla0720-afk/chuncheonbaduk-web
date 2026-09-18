@@ -429,6 +429,17 @@ export default function KioskPage() {
 
       <section className="w-[62%] h-full board-surface text-stone-900 flex flex-col items-center justify-center relative overflow-hidden p-6">
         {kioskMode === 'attendance' && (
+          // 기원 이름 간판: 우측 버튼 컬럼과 무관하게 화면 상단에 항상 고정 노출한다.
+          // (버튼 컬럼과 함께 세로 중앙 정렬되면 PC처럼 화면이 낮은 환경에서 컬럼 전체 높이가
+          // 커져 위쪽이 잘려 간판이 보이지 않는 문제가 있어, 별도로 상단에 배치한다.)
+          <div className="!absolute !top-6 !right-8 !z-20 w-64 xl:w-72 rounded-[20px] border-2 border-[#8a5a2b] bg-[linear-gradient(155deg,#7a4f28_0%,#5c3a1e_55%,#4a2f18_100%)] px-5 py-6 shadow-[0_14px_26px_rgba(25,18,12,0.35),inset_0_1px_0_rgba(255,255,255,0.12)]">
+            <div className="pointer-events-none absolute inset-1.5 rounded-[16px] border border-[#d9b06a]/40" />
+            <p className="text-center text-sm font-bold tracking-[0.5em] text-[#e8c98a]/80">CHUNCHEON</p>
+            <h2 className="mt-1 text-center text-4xl xl:text-[2.6rem] font-black tracking-[0.15em] text-[#f6e4bd] drop-shadow-[0_2px_2px_rgba(0,0,0,0.5)]">춘천기원</h2>
+            <p className="mt-1 text-center text-sm font-bold tracking-[0.3em] text-[#e8c98a]/70">바둑을 사랑하는 사람들</p>
+          </div>
+        )}
+        {kioskMode === 'attendance' && (
           // 숫자패드/정회원 안내/신규가입/대국신청을 모두 감싸는 큰 박스는 두지 않고,
           // 각 요소가 바둑판 배경 위에 자연스럽게 놓이도록 한다 (숫자패드 자체 박스에 '입장/귀가' 제목 포함).
           <div className="relative z-10 w-full max-w-5xl">

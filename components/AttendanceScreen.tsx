@@ -83,7 +83,7 @@ export default function AttendanceScreen({
           <div className={compact ? 'w-full' : 'bg-[#1a1411]/85 p-6 xl:p-8 rounded-[2.5rem] shadow-[0_15px_35px_rgba(0,0,0,0.35)] w-full border-4 border-stone-700/80 backdrop-blur-sm'}>
             {/* 숫자패드/지움/확인 버튼을 담은 박스 안에 '입장 / 귀가' 타이틀을 포함시켜
                 박스 하나로도 이 화면의 용도를 바로 알 수 있게 한다. */}
-            <h2 className={`font-black text-white tracking-tight text-center drop-shadow-[0_3px_12px_rgba(0,0,0,0.7)] ${compact ? 'text-3xl xl:text-4xl mb-2' : 'text-4xl xl:text-5xl mb-3'}`}>입장 / 귀가</h2>
+            <h2 className={`font-black text-white tracking-tight text-center drop-shadow-[0_3px_12px_rgba(0,0,0,0.7)] ${compact ? 'text-2xl xl:text-3xl mb-2' : 'text-3xl xl:text-4xl mb-3'}`}>입장 / 귀가</h2>
             {/* 안내 문구를 전화번호 표시 박스 안에 포함시켜 팝업 전체 높이를 줄인다 */}
             <div className={`bg-[#120f0d] border border-stone-700 rounded-2xl shadow-inner ${compact ? 'px-[13px] py-[9px] mb-[18px]' : 'px-4 py-3 mb-6'}`}>
               <p className={`font-extrabold text-center text-[#e8d5b5] ${compact ? 'text-base mb-1' : 'text-lg mb-2'}`}>{message}</p>
@@ -111,14 +111,6 @@ export default function AttendanceScreen({
           입장/귀가 키패드만 남기고, 신규가입/대국신청은 중계 화면 자체 버튼을 이용하게 한다. */}
       {!compact && (
         <div className="flex flex-col gap-6 w-64 xl:w-72 shrink-0">
-          {/* 기원 이름 간판: 메인 화면 우측 상단에서 기원의 정체성을 보여주는 장식용 현판.
-              나무 재질 느낌의 그라데이션과 각인된 글자 효과로 실제 현판처럼 표현한다. */}
-          <div className="relative w-full rounded-[20px] border-2 border-[#8a5a2b] bg-[linear-gradient(155deg,#7a4f28_0%,#5c3a1e_55%,#4a2f18_100%)] px-5 py-6 shadow-[0_14px_26px_rgba(25,18,12,0.35),inset_0_1px_0_rgba(255,255,255,0.12)]">
-            <div className="pointer-events-none absolute inset-1.5 rounded-[16px] border border-[#d9b06a]/40" />
-            <p className="text-center text-sm font-bold tracking-[0.5em] text-[#e8c98a]/80">CHUNCHEON</p>
-            <h2 className="mt-1 text-center text-4xl xl:text-[2.6rem] font-black tracking-[0.15em] text-[#f6e4bd] drop-shadow-[0_2px_2px_rgba(0,0,0,0.5)]">춘천기원</h2>
-            <p className="mt-1 text-center text-sm font-bold tracking-[0.3em] text-[#e8c98a]/70">바둑을 사랑하는 사람들</p>
-          </div>
           <button onClick={onShowMembershipGuide} className="w-full bg-[#f7f0e5] hover:bg-[#efe1cb] text-stone-900 font-extrabold py-4 rounded-[18px] shadow-[0_10px_18px_rgba(25,18,12,0.12)] text-xl transition-all border border-[#c69b5c] tracking-[0.02em]">
             정회원 달성 조건
           </button>
