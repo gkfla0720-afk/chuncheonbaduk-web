@@ -575,11 +575,12 @@ export default function KioskPage() {
       {quickAction === 'attendance' && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(22,16,12,0.65)] p-4 backdrop-blur-[2px]">
           {/* 중계 화면 등에서 열리는 팝업이므로 입장/귀가 키패드만 표시하는 콤팩트한 크기로 고정한다.
-              (신규가입/대국신청 버튼은 이미 별도로 있어 중복 노출 및 세로 넘침을 유발했었다) */}
-          <div className="relative w-full max-w-lg board-surface rounded-[30px] border-4 border-[#b88c42] shadow-2xl p-8">
+              (신규가입/대국신청 버튼은 이미 별도로 있어 중복 노출 및 세로 넘침을 유발했었다)
+              뒤 배경에 바둑판 사진이 깔리지 않도록 board-surface 대신 일반 모달과 같은 단색 배경을 사용한다. */}
+          <div className="relative w-full max-w-md bg-[#1f1a16] rounded-[28px] border-4 border-[#b88c42] shadow-2xl p-6">
             <button
               onClick={closeQuickAction}
-              className="absolute top-4 right-4 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-black/30 text-2xl font-black text-stone-200 hover:bg-black/50 hover:text-white"
+              className="absolute top-3 right-3 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-black/30 text-2xl font-black text-stone-200 hover:bg-black/50 hover:text-white"
             >
               ✕
             </button>
