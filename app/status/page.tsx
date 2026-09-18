@@ -88,7 +88,7 @@ export default function StatusPage() {
       <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
         {newMatchAlert && (
           <div className="fixed top-4 left-0 right-0 z-50 flex justify-center animate-bounce pointer-events-none">
-            <div className="bg-[#8a5a2b] text-white px-5 py-3 rounded-full font-bold text-sm shadow-xl border border-[#704522]">
+            <div className="bg-[#8a5a2b] text-white px-5 py-3 rounded-full font-bold text-xl shadow-xl border border-[#704522]">
               새로운 대국이 시작되었습니다.
             </div>
           </div>
@@ -97,23 +97,23 @@ export default function StatusPage() {
         <header className="mb-6 rounded-[28px] border border-[#d6c4a4] bg-[#f9f4ea]/90 px-5 py-5 shadow-[0_12px_30px_rgba(10,8,7,0.25)] sm:px-7 backdrop-blur-[1px]">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-[#8b6d4a]">춘천기원 LIVE</p>
+              <p className="text-[20px] font-semibold uppercase tracking-[0.25em] text-[#8b6d4a]">춘천기원 LIVE</p>
               <h1 className="mt-2 text-4xl font-black tracking-tight text-[#2a241d] sm:text-5xl drop-shadow-[0_1px_0_rgba(255,255,255,0.55)]">기원 현황</h1>
             </div>
-            <div className="flex items-center gap-3 text-[15px] text-stone-500 sm:text-base">
+            <div className="flex items-center gap-3 text-[20px] text-stone-500 sm:text-xl">
               <span className="inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500 shadow-[0_0_0_4px_rgba(16,185,129,0.12)]" />
-              <span className="text-[15px] sm:text-base">마지막 업데이트: {lastUpdated.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+              <span className="text-[20px] sm:text-xl">마지막 업데이트: {lastUpdated.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
             </div>
           </div>
 
           <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <p className="max-w-2xl text-[15px] leading-7 text-stone-600 sm:text-base">
+            <p className="max-w-2xl text-[20px] leading-7 text-stone-600 sm:text-xl">
               춘천에서 바둑을 사랑하는 바둑인들이 모인 공간입니다. 춘천기원의 바둑 열기를 느껴보세요.
             </p>
             <button
               onClick={handleRefresh}
               disabled={isCooldown}
-              className={`inline-flex items-center justify-center rounded-full px-4 py-2.5 text-[15px] font-semibold shadow-sm transition-all ${isCooldown ? 'cursor-not-allowed bg-stone-200 text-stone-400' : 'bg-[#2a241d] text-[#f8f3eb] hover:bg-[#1f1b18]'}`}
+              className={`inline-flex items-center justify-center rounded-full px-4 py-2.5 text-[20px] font-semibold shadow-sm transition-all ${isCooldown ? 'cursor-not-allowed bg-stone-200 text-stone-400' : 'bg-[#2a241d] text-[#f8f3eb] hover:bg-[#1f1b18]'}`}
             >
               {isCooldown ? '잠시만 기다려 주세요...' : '새로고침'}
             </button>
@@ -123,10 +123,14 @@ export default function StatusPage() {
         <section className="mt-6 rounded-[32px] border border-[#d8c7a8] bg-[#f5efe6]/95 p-5 shadow-[0_14px_30px_rgba(10,8,7,0.22)] sm:p-6 backdrop-blur-[1px]">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-[10px] font-bold tracking-[0.18em] text-[#7e5d3d]">춘천기원 LIVE</p>
+              <p className="text-[20px] font-bold tracking-[0.18em] text-[#7e5d3d]">춘천기원 LIVE</p>
               <h2 className="mt-2 text-[2rem] font-black text-[#2a241d] sm:text-[2.4rem]">오늘의 참여 인원</h2>
             </div>
-            <div className="rounded-full border border-[#cdb48b] bg-[#f7f3ec] px-3 py-1 text-xs font-semibold text-[#6d553f]">
+            <div className="flex items-center gap-2 rounded-full border border-[#cdb48b] bg-[#f7f3ec] px-3 py-1 text-xl font-semibold text-[#6d553f]">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
+              </span>
               실시간 현황
             </div>
           </div>
@@ -144,18 +148,21 @@ export default function StatusPage() {
         <section className="mt-8 rounded-[28px] border border-[#d7c7a8] bg-[#f7f1e7]/95 p-4 shadow-[0_12px_26px_rgba(10,8,7,0.16)] sm:p-5">
           <div className="mb-4 flex items-center justify-between">
             <h3 className="text-[1.8rem] font-black text-[#2a241d] sm:text-[2.5rem]">진행 중인 대국 현황</h3>
-            <span className="inline-flex items-center gap-2 rounded-full border border-[#d0b38c] bg-[#f6efe6] px-3 py-1 text-[13px] font-semibold text-[#6d553f] sm:text-sm">
-              <span className="h-2 w-2 rounded-full bg-[#9f6838]" />
+            <span className="inline-flex items-center gap-2 rounded-full border border-[#d0b38c] bg-[#f6efe6] px-3 py-1 text-[20px] font-semibold text-[#6d553f] sm:text-xl">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#9f6838] opacity-75" />
+                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#9f6838]" />
+              </span>
               Live
             </span>
           </div>
 
           {isLoading ? (
-            <p className="mt-8 text-center text-base font-medium text-stone-500">대국 정보를 불러오는 중입니다.</p>
+            <p className="mt-8 text-center text-xl font-medium text-stone-500">대국 정보를 불러오는 중입니다.</p>
           ) : activeMatches.length === 0 ? (
             <div className="rounded-[28px] border border-dashed border-[#cfb895] bg-[#faf7f2] px-5 py-10 text-center shadow-inner">
-              <p className="text-lg font-semibold text-stone-600">현재 진행 중인 대국이 없습니다.</p>
-              <p className="mt-2 text-sm text-stone-500">마지막 대국이 끝난 뒤 다음 대국을 기다리고 있습니다.</p>
+              <p className="text-xl font-semibold text-stone-600">현재 진행 중인 대국이 없습니다.</p>
+              <p className="mt-2 text-xl text-stone-500">마지막 대국이 끝난 뒤 다음 대국을 기다리고 있습니다.</p>
             </div>
           ) : (
             <ul className="space-y-4">
@@ -163,12 +170,12 @@ export default function StatusPage() {
                 <li key={match.id} className="rounded-[28px] border border-[#d7c7a8] bg-[#faf5ee] p-4 shadow-[0_12px_24px_rgba(90,69,45,0.06)] sm:p-5">
                   <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                     <div className="flex items-center gap-3">
-                      <span className="rounded-full border border-[#cab38b] bg-[#fffaf2] px-3 py-1.5 text-[18px] font-black tracking-[0.15em] text-[#7f6348] sm:text-[20px]">{match.match_type}</span>
-                      <p className="text-[18px] font-bold text-stone-500 sm:text-[20px]">
+                      <span className="rounded-full border border-[#cab38b] bg-[#fffaf2] px-3 py-1.5 text-[20px] font-black tracking-[0.15em] text-[#7f6348] sm:text-[20px]">{match.match_type}</span>
+                      <p className="text-[20px] font-bold text-stone-500 sm:text-[20px]">
                         {new Date(match.started_at).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })} 시작
                       </p>
                     </div>
-                    <span className="inline-flex items-center rounded-full bg-[#efe2c7] px-3 py-1.5 text-[18px] font-black text-[#725739] sm:text-[20px]">{match.handicap}</span>
+                    <span className="inline-flex items-center rounded-full bg-[#efe2c7] px-3 py-1.5 text-[20px] font-black text-[#725739] sm:text-[20px]">{match.handicap}</span>
                   </div>
 
                   <div className="mt-4 rounded-[24px] border border-[#d5c3a4] bg-[linear-gradient(90deg,#1d1b19_0%,#1d1b19_49.5%,#f9f6f2_49.5%,#f9f6f2_100%)] p-3 shadow-inner sm:p-4">
@@ -215,22 +222,22 @@ export default function StatusPage() {
             <div className="w-full max-w-xl rounded-[30px] border border-[#d4c3a2] bg-[#f8f4ee] p-5 shadow-[0_18px_45px_rgba(34,27,20,0.28)] sm:p-6">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-xs font-bold tracking-[0.18em] text-[#7e5d3d]">프로필</p>
+                  <p className="text-xl font-bold tracking-[0.18em] text-[#7e5d3d]">프로필</p>
                   <h2 className="mt-2 text-2xl font-black text-[#2a241d]">{selectedProfile.name}</h2>
                 </div>
-                <button onClick={() => setSelectedProfile(null)} className="rounded-full bg-stone-200 px-3 py-1 text-xs font-bold text-stone-700">닫기</button>
+                <button onClick={() => setSelectedProfile(null)} className="rounded-full bg-stone-200 px-3 py-1 text-xl font-bold text-stone-700">닫기</button>
               </div>
 
               <div className="mt-5 rounded-[24px] border border-[#d9cab0] bg-[#f3ebdf] p-4">
-                <p className="text-sm text-stone-500">가입일: {profileStats.joinedAt}</p>
+                <p className="text-xl text-stone-500">가입일: {profileStats.joinedAt}</p>
                 <p className="mt-3 text-2xl font-black text-[#8a5a2b]">{selectedProfile.rank} / {profileStats.tier}</p>
 
                 {isLoadingStats ? (
-                  <p className="mt-5 text-sm font-medium text-stone-500">전적을 정리하고 있습니다.</p>
+                  <p className="mt-5 text-xl font-medium text-stone-500">전적을 정리하고 있습니다.</p>
                 ) : (
                   <div className="mt-5 grid gap-3 sm:grid-cols-2">
                     <div className="rounded-2xl bg-white p-3 shadow-sm border border-[#e6dcc8]">
-                      <p className="text-xs font-bold tracking-[0.14em] text-stone-500">전적</p>
+                      <p className="text-xl font-bold tracking-[0.14em] text-stone-500">전적</p>
                       <p className="mt-2 text-xl font-black text-[#2a241d]">
                         <span className="text-[#2a5fba]">{profileStats.wins}승</span>
                         <span className="mx-1 text-stone-400">·</span>
@@ -238,7 +245,7 @@ export default function StatusPage() {
                       </p>
                     </div>
                     <div className="rounded-2xl bg-white p-3 shadow-sm border border-[#e6dcc8]">
-                      <p className="text-xs font-bold tracking-[0.14em] text-stone-500">출석률</p>
+                      <p className="text-xl font-bold tracking-[0.14em] text-stone-500">출석률</p>
                       <p className="mt-2 text-2xl font-black text-[#8a5a2b]">{profileStats.attendanceRate}%</p>
                     </div>
                   </div>

@@ -132,6 +132,8 @@ export default function KioskPage() {
     setKioskMode('attendance'); setMessage('전화번호 뒷자리 4자리를 눌러주세요.');
     setConfirmAction(null); setSelectedMatch(null); setSelectedProfile(null);
     setIsProcessing(false);
+    // 신규 가입 입력값도 함께 초기화해, 직전 가입자의 입력 정보가 다음 화면에 남지 않도록 한다.
+    setRegName(''); setRegPhone(''); setRegRank('10급');
   };
 
   const handleNumberClick = (num: string) => { if (phoneNumber.length < 4) setPhoneNumber(prev => prev + num); };
@@ -144,7 +146,11 @@ export default function KioskPage() {
     setIsProcessing(true); setMessage('확인 중...');
     const { data } = await supabase.from('profiles').select('*').eq('phone_last4', phoneNumber);
     
-    if (!data || data.length === 0) { setMessage('등록되지 않은 번호입니다.'); setIsProcessing(false); return; }
+    if (!data || data.length === 0) {
+      alert('등록되지 않은 번호입니다.');
+      setPhoneNumber(''); setMessage('전화번호 뒷자리 4자리를 눌러주세요.'); setIsProcessing(false);
+      return;
+    }
     if (data.length > 1) { setCandidates(data); setMessage('이름을 선택하세요.'); setIsProcessing(false); } 
     else { setConfirmUser(data[0]); setCandidates([]); setMessage(''); setIsProcessing(false); }
   };
@@ -326,8 +332,6 @@ export default function KioskPage() {
       <section className="w-[62%] h-full board-surface text-stone-900 flex flex-col items-center justify-center relative overflow-hidden p-6">
         {kioskMode === 'attendance' && (
           <AttendanceScreen
-            liveMatches={liveMatches}
-            activeMembers={activeMembers}
             message={message}
             confirmUser={confirmUser}
             candidates={candidates}

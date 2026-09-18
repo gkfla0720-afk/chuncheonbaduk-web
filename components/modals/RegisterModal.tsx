@@ -51,7 +51,7 @@ export default function RegisterModal({
         <h2 className="text-3xl font-black text-[#e8d5b5] mb-6">📝 신규 회원 등록</h2>
         <div className="space-y-5 text-left">
           <div>
-            <label className="text-stone-300 text-sm font-bold mb-1.5 block">회원 성함</label>
+            <label className="text-stone-300 text-xl font-bold mb-1.5 block">회원 성함</label>
             <input
               type="text"
               value={regName}
@@ -62,7 +62,7 @@ export default function RegisterModal({
             />
           </div>
           <div>
-            <label className="text-stone-300 text-sm font-bold mb-1.5 block">전화번호 뒷자리 4개 (출석용)</label>
+            <label className="text-stone-300 text-xl font-bold mb-1.5 block">전화번호 뒷자리 4개 (출석용)</label>
             <input
               type="text"
               inputMode="none"
@@ -74,7 +74,7 @@ export default function RegisterModal({
             />
           </div>
           <div>
-            <label className="text-stone-300 text-sm font-bold mb-1.5 block">기력 (급/단)</label>
+            <label className="text-stone-300 text-xl font-bold mb-1.5 block">기력 (급/단)</label>
             <div className="flex justify-between items-center bg-[#120f0d] p-3 rounded-2xl border-2 border-stone-700">
               <button onClick={() => handleRankChange(-1)} className="w-14 h-14 bg-stone-800 rounded-full text-3xl font-black text-white hover:bg-stone-700 transition-colors">-</button>
               <span className="text-3xl font-black w-28 text-center text-[#dcb36c]">{regRank}</span>
