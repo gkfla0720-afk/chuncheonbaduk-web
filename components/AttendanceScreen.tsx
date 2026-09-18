@@ -49,10 +49,12 @@ export default function AttendanceScreen({
       {/* 중앙: 콤팩트하고 세련된 입력 키패드 영역 - 좌우 칸의 유무/내용과 무관하게 항상 동일한 고정 폭 유지 */}
       <div className="flex flex-col items-center w-[420px] shrink-0">
         <h2 className="text-4xl xl:text-5xl font-black text-white tracking-tight mb-2 drop-shadow-[0_3px_12px_rgba(0,0,0,0.7)]">입장 / 귀가</h2>
-        <p className="text-xl font-extrabold h-8 text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.75)] mb-2">{message}</p>
+        {(confirmUser || candidates.length > 0) && (
+          <p className="text-xl font-extrabold h-8 text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.75)] mb-2">{message}</p>
+        )}
 
         {confirmUser ? (
-          <div className="bg-[#1a1411]/85 p-8 rounded-[2.5rem] border-4 border-[#e8d5b5]/70 shadow-[0_15px_35px_rgba(0,0,0,0.4)] text-center w-full text-white backdrop-blur-sm">
+          <div className={compact ? 'w-full text-center text-white' : 'bg-[#1a1411]/85 p-8 rounded-[2.5rem] border-4 border-[#e8d5b5]/70 shadow-[0_15px_35px_rgba(0,0,0,0.4)] text-center w-full text-white backdrop-blur-sm'}>
             <h2 className="text-4xl font-black mb-2 text-[#e8d5b5]">{confirmUser.name}</h2>
             <p className="text-stone-300 text-xl font-extrabold mb-8">{confirmUser.rank} / {confirmUser.tier}</p>
             {confirmUser.current_status !== '오프라인' ? (
@@ -67,7 +69,7 @@ export default function AttendanceScreen({
             <button onClick={onReset} className="w-full mt-4 py-3 text-stone-400 hover:text-white font-bold text-xl">취소</button>
           </div>
         ) : candidates.length > 0 ? (
-          <div className="bg-[#1a1411]/85 p-6 rounded-[2.5rem] shadow-[0_15px_35px_rgba(0,0,0,0.35)] space-y-3 w-full border-2 border-stone-700/80 backdrop-blur-sm">
+          <div className={compact ? 'space-y-3 w-full' : 'bg-[#1a1411]/85 p-6 rounded-[2.5rem] shadow-[0_15px_35px_rgba(0,0,0,0.35)] space-y-3 w-full border-2 border-stone-700/80 backdrop-blur-sm'}>
             <p className="text-center text-[#e8d5b5] font-bold text-xl mb-4">본인의 이름을 선택해주세요</p>
             {candidates.map((cand) => (
               <button key={cand.id} onClick={() => onSelectCandidate(cand)} className="w-full py-4 bg-white text-stone-900 rounded-2xl text-xl font-extrabold shadow-md flex justify-between px-6 items-center hover:bg-stone-100">
@@ -77,9 +79,13 @@ export default function AttendanceScreen({
             <button onClick={onReset} className="w-full py-3 text-stone-400 font-bold text-xl mt-2">다시 입력하기</button>
           </div>
         ) : (
-          <div className="bg-[#1a1411]/85 p-6 xl:p-8 rounded-[2.5rem] shadow-[0_15px_35px_rgba(0,0,0,0.35)] w-full border-4 border-stone-700/80 backdrop-blur-sm">
-            <div className="bg-[#120f0d] border border-stone-700 rounded-2xl h-16 xl:h-20 flex items-center justify-center mb-6 shadow-inner">
-              <span className="text-4xl xl:text-5xl font-mono tracking-[0.4em] text-[#e8d5b5] font-black">{phoneNumber.padEnd(4, '—')}</span>
+          <div className={compact ? 'w-full' : 'bg-[#1a1411]/85 p-6 xl:p-8 rounded-[2.5rem] shadow-[0_15px_35px_rgba(0,0,0,0.35)] w-full border-4 border-stone-700/80 backdrop-blur-sm'}>
+            {/* 안내 문구를 전화번호 표시 박스 안에 포함시켜 팝업 전체 높이를 줄인다 */}
+            <div className="bg-[#120f0d] border border-stone-700 rounded-2xl px-4 py-3 mb-6 shadow-inner">
+              <p className="text-lg font-extrabold text-center text-[#e8d5b5] mb-2">{message}</p>
+              <div className="h-16 xl:h-20 flex items-center justify-center">
+                <span className="text-4xl xl:text-5xl font-mono tracking-[0.4em] text-[#e8d5b5] font-black">{phoneNumber.padEnd(4, '—')}</span>
+              </div>
             </div>
             {/* 숫자버튼 겹침을 방지하기 위해 80px(w-20) 고정 사이즈 적용 */}
             <div className="grid grid-cols-3 gap-4 mb-6">
