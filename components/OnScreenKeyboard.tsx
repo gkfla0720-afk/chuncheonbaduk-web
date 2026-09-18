@@ -100,14 +100,19 @@ interface OnScreenKeyboardProps {
   onBackspace: () => void;
   shift: boolean;
   onToggleShift: () => void;
+  // 신규가입 팝업처럼 화면을 넓게 쓸 수 있는 곳에서는 큰 버튼으로 여유롭게 표시한다.
+  size?: 'normal' | 'large';
 }
 
-export default function OnScreenKeyboard({ mode, onKey, onBackspace, shift, onToggleShift }: OnScreenKeyboardProps) {
-  const keyClass = 'flex-1 h-11 xl:h-12 min-w-0 rounded-xl bg-stone-800 text-white text-xl font-black shadow-[0_3px_0_#0a0908] active:translate-y-0.5 active:shadow-none flex items-center justify-center transition-all hover:bg-stone-700';
+export default function OnScreenKeyboard({ mode, onKey, onBackspace, shift, onToggleShift, size = 'normal' }: OnScreenKeyboardProps) {
+  const isLarge = size === 'large';
+  const keyClass = isLarge
+    ? 'flex-1 h-16 xl:h-20 min-w-0 rounded-xl bg-stone-800 text-white text-2xl xl:text-3xl font-black shadow-[0_3px_0_#0a0908] active:translate-y-0.5 active:shadow-none flex items-center justify-center transition-all hover:bg-stone-700'
+    : 'flex-1 h-11 xl:h-12 min-w-0 rounded-xl bg-stone-800 text-white text-xl font-black shadow-[0_3px_0_#0a0908] active:translate-y-0.5 active:shadow-none flex items-center justify-center transition-all hover:bg-stone-700';
 
   if (mode === 'numeric') {
     return (
-      <div className="grid grid-cols-3 gap-2 bg-[#120f0d] p-3 rounded-2xl border-2 border-stone-700">
+      <div className={`grid grid-cols-3 ${isLarge ? 'gap-4 p-6' : 'gap-2 p-3'} bg-[#120f0d] rounded-2xl border-2 border-stone-700 w-full`}>
         {['1','2','3','4','5','6','7','8','9'].map(n => (
           <button key={n} type="button" onClick={() => onKey(n)} className={keyClass}>{n}</button>
         ))}
@@ -119,7 +124,7 @@ export default function OnScreenKeyboard({ mode, onKey, onBackspace, shift, onTo
   }
 
   return (
-    <div className="space-y-2 bg-[#120f0d] p-3 rounded-2xl border-2 border-stone-700">
+    <div className={`${isLarge ? 'space-y-3 p-6' : 'space-y-2 p-3'} bg-[#120f0d] rounded-2xl border-2 border-stone-700 w-full`}>
       {HANGUL_ROWS.map((row, i) => (
         <div key={i} className="flex gap-1.5">
           {row.map(([normal, shifted]) => (
