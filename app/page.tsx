@@ -222,12 +222,9 @@ export default function KioskPage() {
   const openMatchWizard = () => { setKioskMode('match_wizard'); setMatchStep(1); setDrawMethod('수동'); setBlackTeam([]); setWhiteTeam([]); setHandicapType('호선'); setHandicapStones(2); setKomi(0.5); };
   const closeMatchWizard = () => { setKioskMode('attendance'); handleReset(); };
 
-  const openMatchDetail = async (userId: string) => {
-    const { data } = await supabase.from('matches').select('*').eq('phase', '진행중');
-    if (data) {
-      const match = data.find(m => m.black_team.includes(userId) || m.white_team.includes(userId));
-      if (match) { setSelectedMatch(match); setKioskMode('match_detail'); setConfirmAction(null); }
-    }
+  const openMatchDetail = (matchId: number) => {
+    const match = liveMatches.find(m => m.id === matchId);
+    if (match) { setSelectedMatch(match); setKioskMode('match_detail'); setConfirmAction(null); }
   };
 
   const endMatch = async (result: string) => {
@@ -366,6 +363,8 @@ export default function KioskPage() {
       {kioskMode === 'match_detail' && selectedMatch && (
         <MatchDetailModal
           match={selectedMatch}
+          blackProfiles={selectedMatch.black_team.map(id => activeMembers.find(m => m.id === id)).filter(Boolean) as Profile[]}
+          whiteProfiles={selectedMatch.white_team.map(id => activeMembers.find(m => m.id === id)).filter(Boolean) as Profile[]}
           matchElapsed={matchElapsed}
           confirmAction={confirmAction}
           setConfirmAction={setConfirmAction}
