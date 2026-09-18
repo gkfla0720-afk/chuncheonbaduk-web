@@ -99,6 +99,25 @@ export default function MatchDetailModal({
   // 계가(집 세기) 모드: 종국된 바둑판을 크게 보여주고 죽은 돌을 표시해 자동으로 승부를 계산한다.
   const [isScoring, setIsScoring] = useState(false);
 
+  // 태블릿 터치 특성상 한 번의 탭으로 바로 착수되면 실수가 잦으므로, 탭하면 우선 반투명
+  // "가착수"만 표시하고 별도의 착수 버튼을 눌러야 실제 기보에 반영되도록 한다.
+  // 다른 자리를 다시 탭하면 위치를 옮길 수 있고, 같은 자리를 다시 탭하면 취소된다.
+  const [pendingMove, setPendingMove] = useState<{ x: number; y: number } | null>(null);
+  const nextMoveColor: 'black' | 'white' = kifu.length % 2 === 0 ? 'black' : 'white';
+  // 기보가 갱신되면(직접 확정했든, 다른 화면에서 두었든) 더는 유효하지 않으므로 가착수를 비운다.
+  useEffect(() => {
+    setPendingMove(null);
+  }, [kifu.length]);
+
+  const handleBoardTap = (x: number, y: number) => {
+    setPendingMove((prev) => (prev && prev.x === x && prev.y === y ? null : { x, y }));
+  };
+  const confirmPendingMove = () => {
+    if (!pendingMove) return;
+    onPlaceKifuMove(pendingMove.x, pendingMove.y);
+    setPendingMove(null);
+  };
+
   const handleScoringConfirm = (result: TerritoryResult, deadStones: { x: number; y: number }[]) => {
     endMatch(result.winner === '흑' ? '흑승' : '백승', { result, deadStones });
   };
@@ -136,7 +155,13 @@ export default function MatchDetailModal({
                 aspect-square로 미리 정사각형을 강제하면 flex 레이아웃 계산 단계에서 실제
                 가용 공간보다 작게 잡히는 문제가 있어, 넉넉한 박스만 주고 비율 유지는 SVG에 맡긴다. */}
             <div className="w-full h-full max-w-full max-h-full rounded-2xl overflow-hidden">
-              <GoBoard size={match.board_size} moves={kifu} interactive onIntersectionClick={onPlaceKifuMove} />
+              <GoBoard
+                size={match.board_size}
+                moves={kifu}
+                interactive
+                onIntersectionClick={handleBoardTap}
+                previewStone={pendingMove ? { ...pendingMove, color: nextMoveColor } : null}
+              />
             </div>
           </div>
 
@@ -193,6 +218,17 @@ export default function MatchDetailModal({
                 ⏭️ 착수 넘김
               </button>
             </div>
+            <button
+              onClick={confirmPendingMove}
+              disabled={!pendingMove}
+              className={`w-full rounded-xl px-4 py-3 text-lg font-black transition-all ${
+                pendingMove
+                  ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg animate-pulse'
+                  : 'bg-stone-800 text-stone-500 cursor-not-allowed'
+              }`}
+            >
+              {pendingMove ? `✅ ${pendingMove.x + 1}열 ${pendingMove.y + 1}행 착수 확정` : '바둑판을 탭해 착수 위치를 선택하세요'}
+            </button>
             <div className="grid grid-cols-[1fr_auto] gap-2">
               <button
                 onClick={() => onToggleStreaming(false)}

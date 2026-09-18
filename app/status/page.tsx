@@ -18,8 +18,6 @@ export default function StatusPage() {
   const [activeCount, setActiveCount] = useState(0);
   const [activeMatches, setActiveMatches] = useState<Match[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isCooldown, setIsCooldown] = useState(false);
-  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [newMatchAlert, setNewMatchAlert] = useState(false);
 
   // 💡 프로필 팝업 추가됨
@@ -60,7 +58,7 @@ export default function StatusPage() {
     });
     // 팝업이 열려 있는 대국의 기보도 실시간으로 갱신되도록 함께 최신화한다.
     setSelectedMatch(prev => (prev ? enrichedMatches.find(m => m.id === prev.id) || prev : prev));
-    setLastUpdated(new Date()); setIsLoading(false);
+    setIsLoading(false);
   }, []);
 
   useEffect(() => {
@@ -78,11 +76,6 @@ export default function StatusPage() {
 
     return () => { clearInterval(timer); supabase.removeChannel(channel); };
   }, [fetchData]);
-
-  const handleRefresh = () => {
-    if (isCooldown) return;
-    setIsCooldown(true); fetchData(true); setTimeout(() => setIsCooldown(false), 10000);
-  };
 
   // 💡 스마트폰에서 프로필을 터치하면 상세 전적이 열리는 로직
   const openProfileDetail = async (profile: Profile) => {
@@ -118,22 +111,18 @@ export default function StatusPage() {
               <h1 className="mt-2 text-4xl font-black tracking-tight text-[#2a241d] sm:text-5xl drop-shadow-[0_1px_0_rgba(255,255,255,0.55)]">기원 현황</h1>
             </div>
             <div className="flex items-center gap-3 text-[20px] text-stone-500 sm:text-xl">
-              <span className="inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500 shadow-[0_0_0_4px_rgba(16,185,129,0.12)]" />
-              <span className="text-[20px] sm:text-xl">마지막 업데이트: {formatKoreanTime(lastUpdated, { showSeconds: true })}</span>
+              <span className="relative flex h-2.5 w-2.5 shrink-0">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
+              </span>
+              <span className="text-[20px] font-bold sm:text-xl">실시간 연동 중</span>
             </div>
           </div>
 
-          <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="mt-5">
             <p className="max-w-2xl text-[20px] leading-7 text-stone-600 sm:text-xl">
               춘천에서 바둑을 사랑하는 바둑인들이 모인 공간입니다. 춘천기원의 바둑 열기를 느껴보세요.
             </p>
-            <button
-              onClick={handleRefresh}
-              disabled={isCooldown}
-              className={`inline-flex items-center justify-center rounded-full px-4 py-2.5 text-[20px] font-semibold shadow-sm transition-all ${isCooldown ? 'cursor-not-allowed bg-stone-200 text-stone-400' : 'bg-[#2a241d] text-[#f8f3eb] hover:bg-[#1f1b18]'}`}
-            >
-              {isCooldown ? '잠시만 기다려 주세요...' : '새로고침'}
-            </button>
           </div>
         </header>
 

@@ -8,6 +8,9 @@ interface GoBoardProps {
   moves: KifuMove[];
   interactive?: boolean;
   onIntersectionClick?: (x: number, y: number) => void;
+  // 태블릿에서 실수로 잘못 놓는 것을 방지하기 위한 "가(假)착수" 미리보기.
+  // 실제 기보에는 반영되지 않고, 확정(착수) 버튼을 눌러야 진짜 착수로 반영된다.
+  previewStone?: { x: number; y: number; color: 'black' | 'white' } | null;
   // 계가(집 세기) 모드: 이미 놓인 돌을 탭해 사석(죽은 돌) 그룹을 표시할 때 사용.
   onStoneClick?: (x: number, y: number) => void;
   deadStones?: { x: number; y: number }[];
@@ -36,7 +39,7 @@ const TIER_STYLE: Record<string, { half: number; opacity: number }> = {
   weak: { half: INSCRIBED_HALF * 0.26, opacity: 0.32 },
 };
 
-export default function GoBoard({ size = 19, moves, interactive = false, onIntersectionClick, onStoneClick, deadStones = [], onEmptyPointClick, territoryMap, className = '' }: GoBoardProps) {
+export default function GoBoard({ size = 19, moves, interactive = false, onIntersectionClick, previewStone = null, onStoneClick, deadStones = [], onEmptyPointClick, territoryMap, className = '' }: GoBoardProps) {
   const span = (size - 1) * CELL;
   const viewBoxSize = span + MARGIN * 2;
 
@@ -116,6 +119,21 @@ export default function GoBoard({ size = 19, moves, interactive = false, onInter
                   fill="transparent"
                   className="cursor-pointer"
                   onClick={() => onEmptyPointClick(x, y)}
+                />
+              )}
+              {/* 실수 방지를 위한 가착수 미리보기: 반투명 돌 + 점선 테두리로 아직 확정되지 않았음을 표시.
+                  pointerEvents를 꺼서 재탭 시 아래 빈 칸 클릭 영역이 그대로 반응해 위치를 바꿀 수 있게 한다. */}
+              {!stoneColor && previewStone && previewStone.x === x && previewStone.y === y && (
+                <circle
+                  cx={cx}
+                  cy={cy}
+                  r={CELL / 2 - 2}
+                  fill={previewStone.color === 'black' ? '#1a1a1a' : '#f7f3ec'}
+                  stroke={previewStone.color === 'black' ? '#000' : '#8c7a5c'}
+                  strokeWidth={2}
+                  strokeDasharray="4 3"
+                  opacity={0.5}
+                  pointerEvents="none"
                 />
               )}
               {stoneColor && (
