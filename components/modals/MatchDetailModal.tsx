@@ -108,14 +108,10 @@ export default function MatchDetailModal({
         <div className="modal-card relative w-full h-[96vh] max-w-[1500px] bg-[#1f1a16] text-white rounded-[30px] shadow-[0_18px_45px_rgba(34,27,20,0.4)] border-4 border-[#b88c42] overflow-hidden flex flex-col lg:flex-row">
           {/* 좌측: 대형 바둑판 - 관리자가 터치로 돌을 놓기 편하도록 화면 대부분을 차지 */}
           <div className="flex-1 min-h-0 flex flex-col items-center justify-center bg-[#120f0d] p-4 lg:p-8 gap-4">
-            <p className="text-2xl font-black text-stone-300 flex items-center gap-2">
-              <span className="inline-flex items-center gap-1 rounded-full bg-red-600 px-3 py-1 text-xl font-black text-white animate-pulse">LIVE</span>
-              {kifu.length === 0 ? '첫 수(흑)부터 탭하여 입력하세요.' : `${kifu.length}수 · 다음 착수: ${kifu.length % 2 === 0 ? '⚫ 흑' : '⚪ 백'}`}
-            </p>
             {/* SVG 바둑판은 자체 viewBox 비율을 유지한 채(letterbox) 이 박스를 최대한 채운다.
                 aspect-square로 미리 정사각형을 강제하면 flex 레이아웃 계산 단계에서 실제
                 가용 공간보다 작게 잡히는 문제가 있어, 넉넉한 박스만 주고 비율 유지는 SVG에 맡긴다. */}
-            <div className="w-full h-full max-w-full max-h-full rounded-2xl overflow-hidden border-2 border-[#b88c42] shadow-lg">
+            <div className="w-full h-full max-w-full max-h-full rounded-2xl overflow-hidden">
               <GoBoard size={match.board_size} moves={kifu} interactive onIntersectionClick={onPlaceKifuMove} />
             </div>
           </div>
@@ -123,7 +119,10 @@ export default function MatchDetailModal({
           {/* 우측: 남는 공간에 대국/대국자 정보와 조작 버튼을 심플하게 배치 */}
           <div className="w-full lg:w-[400px] shrink-0 border-t-2 lg:border-t-0 lg:border-l-2 border-stone-800 p-6 flex flex-col gap-4 overflow-y-auto">
             <div className="flex items-center justify-between">
-              <p className="text-xl font-black text-[#dcb36c]">📡 실시간 기보 중계</p>
+              <p className="text-xl font-black text-[#dcb36c] flex items-center gap-2">
+                <span className="inline-flex items-center rounded-full bg-red-600 px-3 py-1 text-lg font-black text-white animate-pulse">LIVE</span>
+                실시간 기보 중계
+              </p>
               <button onClick={() => setBoardExpanded(false)} className="rounded-xl bg-stone-700 hover:bg-stone-600 px-3 py-2 text-lg font-black text-white transition-all">축소</button>
             </div>
 
