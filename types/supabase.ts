@@ -141,10 +141,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      place_kifu_move: {
-        Args: { p_match_id: number; p_x: number; p_y: number }
-        Returns: Json
-      }
       undo_kifu_move: { Args: { p_match_id: number }; Returns: Json }
     }
     Enums: {

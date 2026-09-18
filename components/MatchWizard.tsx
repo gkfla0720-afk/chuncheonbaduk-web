@@ -1,4 +1,12 @@
 import { Profile } from '../types';
+import {
+  HandicapType,
+  MIN_REVERSE_KOMI,
+  decrementHandicapStones,
+  incrementHandicapStones,
+  decrementKomi,
+  incrementKomi,
+} from '../lib/goRules';
 
 interface MatchWizardProps {
   matchStep: number;
@@ -14,8 +22,8 @@ interface MatchWizardProps {
   drawMethod: '수동' | '랜덤';
   setDrawMethod: (method: '수동' | '랜덤') => void;
   applyAutoDraw: () => void;
-  handicapType: '호선' | '정선' | '접바둑';
-  setHandicapType: (type: '호선' | '정선' | '접바둑') => void;
+  handicapType: HandicapType;
+  setHandicapType: (type: HandicapType) => void;
   handicapStones: number;
   setHandicapStones: (updater: (prev: number) => number) => void;
   komi: number;
@@ -171,21 +179,21 @@ export default function MatchWizard({
                 <div className="flex justify-between items-center px-2">
                   <span className="text-xl font-black text-stone-300">깔아둘 돌</span>
                   <div className="flex items-center gap-3 bg-stone-900 rounded-full p-1.5 border border-stone-700">
-                    <button onClick={() => setHandicapStones(p => p > 2 ? p - 1 : p === 2 ? 0 : 0)} className="w-12 h-12 bg-stone-800 rounded-full text-2xl font-black hover:bg-stone-700 transition-colors">-</button>
+                    <button onClick={() => setHandicapStones(decrementHandicapStones)} className="w-12 h-12 bg-stone-800 rounded-full text-2xl font-black hover:bg-stone-700 transition-colors">-</button>
                     <span className="text-2xl font-black w-16 text-center text-[#dcb36c]">{handicapStones}점</span>
-                    <button onClick={() => setHandicapStones(p => p === 0 ? 2 : p < 9 ? p + 1 : 9)} className="w-12 h-12 bg-stone-800 rounded-full text-2xl font-black hover:bg-stone-700 transition-colors">+</button>
+                    <button onClick={() => setHandicapStones(incrementHandicapStones)} className="w-12 h-12 bg-stone-800 rounded-full text-2xl font-black hover:bg-stone-700 transition-colors">+</button>
                   </div>
                 </div>
                 <div className="flex justify-between items-center px-2">
                   <span className="text-xl font-black text-stone-300">{handicapStones === 0 ? '역덤' : '덤'}</span>
                   <div className="flex items-center gap-3 bg-stone-900 rounded-full p-1.5 border border-stone-700">
-                    <button onClick={() => setKomi(p => p > 0.5 ? p - 1 : 0.5)} className="w-12 h-12 bg-stone-800 rounded-full text-2xl font-black hover:bg-stone-700 transition-colors">-</button>
+                    <button onClick={() => setKomi(decrementKomi)} className="w-12 h-12 bg-stone-800 rounded-full text-2xl font-black hover:bg-stone-700 transition-colors">-</button>
                     <span className="text-2xl font-black w-24 text-center text-[#dcb36c]">{komi}집</span>
-                    <button onClick={() => setKomi(p => p < 99.5 ? p + 1 : 99.5)} className="w-12 h-12 bg-stone-800 rounded-full text-2xl font-black hover:bg-stone-700 transition-colors">+</button>
+                    <button onClick={() => setKomi(incrementKomi)} className="w-12 h-12 bg-stone-800 rounded-full text-2xl font-black hover:bg-stone-700 transition-colors">+</button>
                   </div>
                 </div>
-                {handicapStones === 0 && komi < 15 && (
-                  <p className="text-red-400 font-bold text-xl bg-red-950/40 py-2.5 rounded-xl border border-red-500/50">⚠️ 0점 접바둑은 최소 15.5집 이상의 역덤이 필요합니다.</p>
+                {handicapStones === 0 && komi < MIN_REVERSE_KOMI && (
+                  <p className="text-red-400 font-bold text-xl bg-red-950/40 py-2.5 rounded-xl border border-red-500/50">⚠️ 0점 접바둑은 최소 {MIN_REVERSE_KOMI}집 이상의 역덤이 필요합니다.</p>
                 )}
               </div>
             )}

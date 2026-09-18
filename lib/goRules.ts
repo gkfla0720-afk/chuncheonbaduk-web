@@ -328,3 +328,55 @@ export function findConnectedGroup(kifu: KifuMove[], size: number, x: number, y:
   if (!inBounds(size, x, y) || board[y][x] === null) return [];
   return findGroup(board, size, x, y).stones;
 }
+
+// ── 치수(핸디캡)/덤 관련 규칙 ───────────────────────────────────────────────
+// 대국 신청 화면(MatchWizard)과 실제 대국 기록 저장 로직(app/page.tsx)이 모두 이 값과
+// 함수만 참조하도록 해서, 치수/덤 규칙을 바꿀 때 한 곳만 고치면 전체에 일관되게 반영된다.
+
+export type HandicapType = '호선' | '정선' | '접바둑';
+
+export const KOMI_HOSEON = 6.5; // 호선(맞바둑)의 표준 덤
+export const KOMI_JEONGSEON = 0.5; // 정선의 표준 덤
+export const MIN_HANDICAP_STONES = 2; // 접바둑에서 허용하는 최소 치석 수(1점 접바둑은 의미가 없어 제외)
+export const MAX_HANDICAP_STONES = 9; // 접바둑에서 허용하는 최대 치석 수
+export const HANDICAP_KOMI_STEP = 1;
+export const HANDICAP_KOMI_MIN = 0.5;
+export const HANDICAP_KOMI_MAX = 99.5;
+export const MIN_REVERSE_KOMI = 15.5; // 0점 접바둑(치석 없이 역덤으로만 실력차 보정)에 필요한 최소 역덤
+
+export function decrementHandicapStones(current: number): number {
+  return current > MIN_HANDICAP_STONES ? current - 1 : 0;
+}
+
+export function incrementHandicapStones(current: number): number {
+  return current === 0 ? MIN_HANDICAP_STONES : Math.min(current + 1, MAX_HANDICAP_STONES);
+}
+
+export function decrementKomi(current: number): number {
+  return current > HANDICAP_KOMI_MIN ? current - HANDICAP_KOMI_STEP : HANDICAP_KOMI_MIN;
+}
+
+export function incrementKomi(current: number): number {
+  return current < HANDICAP_KOMI_MAX ? current + HANDICAP_KOMI_STEP : HANDICAP_KOMI_MAX;
+}
+
+// 접바둑 0점(치석 없이 역덤만으로 보정)일 때는 최소 역덤 이상이어야 유효하다.
+export function isHandicapSettingValid(handicapType: HandicapType, handicapStones: number, komi: number): boolean {
+  return handicapType !== '접바둑' || handicapStones >= MIN_HANDICAP_STONES || (handicapStones === 0 && komi >= MIN_REVERSE_KOMI);
+}
+
+// 계가에 실제로 쓰이는 최종 덤 값. 접바둑 0점의 "역덤"은 흑에게 유리하도록 부호를 반전해서 저장해야
+// calculateJapaneseScore의 whiteScore 계산(집+사석+덤)이 올바르게 나온다.
+export function getFinalKomi(handicapType: HandicapType, handicapStones: number, komi: number): number {
+  if (handicapType === '호선') return KOMI_HOSEON;
+  if (handicapType === '정선') return KOMI_JEONGSEON;
+  return handicapStones === 0 ? -komi : komi;
+}
+
+// 대국 기록(matches.handicap)에 저장할 치수 표기 문자열.
+export function getHandicapLabel(handicapType: HandicapType, handicapStones: number, komi: number): string {
+  if (handicapType === '접바둑') {
+    return `접바둑 ${handicapStones}점 (${handicapStones === 0 ? '역덤' : '덤'} ${komi}집)`;
+  }
+  return `${handicapType}(덤 ${handicapType === '호선' ? KOMI_HOSEON : KOMI_JEONGSEON}집)`;
+}

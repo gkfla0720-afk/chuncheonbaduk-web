@@ -5,7 +5,15 @@ import { supabase } from '@/lib/supabase';
 import { fetchProfileStats } from '@/lib/profileStats';
 import { fetchProfileMatchHistory, MatchHistoryEntry } from '@/lib/matchHistory';
 import { Profile, Match, KifuMove } from '../types';
-import { checkMoveLegality, TerritoryResult } from '../lib/goRules';
+import {
+  checkMoveLegality,
+  TerritoryResult,
+  HandicapType,
+  MIN_HANDICAP_STONES,
+  isHandicapSettingValid,
+  getFinalKomi,
+  getHandicapLabel,
+} from '../lib/goRules';
 import LeftPanel from '../components/LeftPanel';
 import AttendanceScreen from '../components/AttendanceScreen';
 import MatchWizard from '../components/MatchWizard';
@@ -39,8 +47,8 @@ export default function KioskPage() {
   const [drawMethod, setDrawMethod] = useState<'수동' | '랜덤'>('수동');
   const [blackTeam, setBlackTeam] = useState<Profile[]>([]);
   const [whiteTeam, setWhiteTeam] = useState<Profile[]>([]);
-  const [handicapType, setHandicapType] = useState<'호선' | '정선' | '접바둑'>('호선');
-  const [handicapStones, setHandicapStones] = useState(2);
+  const [handicapType, setHandicapType] = useState<HandicapType>('호선');
+  const [handicapStones, setHandicapStones] = useState(MIN_HANDICAP_STONES);
   const [komi, setKomi] = useState(0.5);
 
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
@@ -348,7 +356,7 @@ export default function KioskPage() {
 
 
   const requiredPlayerCount = matchType.includes('2:2') ? 2 : matchType.includes('3:3') ? 3 : matchType.includes('4:4') ? 4 : 1;
-  const isHandicapValid = handicapType !== '접바둑' || handicapStones >= 2 || (handicapStones === 0 && komi >= 15);
+  const isHandicapValid = isHandicapSettingValid(handicapType, handicapStones, komi);
 
   const applyAutoDraw = () => {
     if (blackTeam.length === 0 && whiteTeam.length === 0) return;
@@ -396,10 +404,10 @@ export default function KioskPage() {
   const submitMatch = async () => {
     if (isProcessing) return;
     setIsProcessing(true);
-    const finalHandicap = handicapType === '접바둑' ? `접바둑 ${handicapStones}점 (${handicapStones===0?'역덤':'덤'} ${komi}집)` : `${handicapType}(덤 ${handicapType==='호선'?'6.5':'0.5'}집)`;
+    const finalHandicap = getHandicapLabel(handicapType, handicapStones, komi);
     // 계가 시 whiteScore에 그대로 더해지는 숫자이므로, 접바둑 없이 덤만으로 실력 차를 보정하는
     // "역덤"은 오히려 흑에게 유리하도록 부호를 반전해서 저장해야 계가 결과가 올바르게 나온다.
-    const finalKomi = handicapType === '호선' ? 6.5 : handicapType === '정선' ? 0.5 : (handicapStones === 0 ? -komi : komi);
+    const finalKomi = getFinalKomi(handicapType, handicapStones, komi);
     const { error } = await supabase.from('matches').insert([{ match_type: matchType, black_team: blackTeam.map(m => m.id), white_team: whiteTeam.map(m => m.id), handicap: finalHandicap, komi: finalKomi }]);
     if (error) {
       console.error(error);
