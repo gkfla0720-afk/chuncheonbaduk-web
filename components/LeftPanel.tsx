@@ -1,4 +1,5 @@
 import { Profile, Match } from '../types';
+import { formatKoreanTime } from '@/lib/formatTime';
 
 interface LeftPanelProps {
   activeMembers: Profile[];
@@ -66,17 +67,24 @@ export default function LeftPanel({
         {liveMatches.length > 0 && (
           <div className="mb-2 space-y-2">
             <p className="text-xl font-black tracking-[0.16em] text-[#8a5a20]">진행 중 대국</p>
-            {liveMatches.map((match) => {
+            {[...liveMatches]
+              .sort((a, b) => (b.is_streaming ? 1 : 0) - (a.is_streaming ? 1 : 0))
+              .map((match) => {
               const blackPlayers = (match.black_team || []).map(id => activeMembers.find(m => m.id === id)).filter(Boolean) as Profile[];
               const whitePlayers = (match.white_team || []).map(id => activeMembers.find(m => m.id === id)).filter(Boolean) as Profile[];
               return (
                 <div
                   key={match.id}
                   onClick={() => openMatchDetail(match.id)}
-                  className="rounded-2xl border-2 border-amber-500 bg-stone-900/90 p-3 xl:p-4 cursor-pointer hover:brightness-110 transition-all shadow-sm"
+                  className={`rounded-2xl border-2 bg-stone-900/90 p-3 xl:p-4 cursor-pointer hover:brightness-110 transition-all shadow-sm ${match.is_streaming ? 'border-red-500' : 'border-amber-500'}`}
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-[22px] font-black tracking-[0.14em] text-[#dcb36c]">{match.match_type}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[22px] font-black tracking-[0.14em] text-[#dcb36c]">{match.match_type}</span>
+                      {match.is_streaming && (
+                        <span className="inline-flex items-center rounded-full bg-red-600 px-2 py-0.5 text-xl font-black text-white animate-pulse">LIVE</span>
+                      )}
+                    </div>
                     <span className="text-[22px] font-bold text-[#f7e7c4]">{match.handicap}</span>
                   </div>
                   <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
@@ -138,7 +146,7 @@ export default function LeftPanel({
                 <span className="font-black text-2xl xl:text-3xl text-stone-800">{member.name}</span>
                 <span className="text-xl text-stone-500 font-semibold mt-1">
                   {member.last_check_in
-                    ? `${new Date(member.last_check_in).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })} 도착`
+                    ? `${formatKoreanTime(new Date(member.last_check_in))} 도착`
                     : '도착 시간 정보 없음'}
                 </span>
               </div>

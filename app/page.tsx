@@ -249,6 +249,47 @@ export default function KioskPage() {
     setRefreshTrigger(p => p + 1); handleReset();
   };
 
+  // 실시간 기보 중계는 동시에 1개 대국만 가능하다. 다른 대국이 이미 중계 중이면
+  // 확인을 받은 뒤 그 대국의 중계를 끄고 이 대국의 중계를 시작한다.
+  const toggleStreaming = async (turnOn: boolean) => {
+    if (isProcessing || !selectedMatch) return;
+    if (turnOn) {
+      const otherStreaming = liveMatches.find(m => m.is_streaming && m.id !== selectedMatch.id);
+      if (otherStreaming && !window.confirm(`다른 대국(${otherStreaming.match_type})이 중계 중입니다. 이 대국으로 전환할까요?`)) return;
+    }
+    setIsProcessing(true);
+    if (turnOn) {
+      await supabase.from('matches').update({ is_streaming: false }).eq('is_streaming', true);
+    }
+    const { error } = await supabase.from('matches').update({ is_streaming: turnOn }).eq('id', selectedMatch.id);
+    if (error) {
+      console.error(error);
+      alert('중계 상태 변경 중 오류가 발생했습니다.');
+      setIsProcessing(false);
+      return;
+    }
+    setSelectedMatch(prev => (prev ? { ...prev, is_streaming: turnOn } : prev));
+    setRefreshTrigger(p => p + 1);
+    setIsProcessing(false);
+  };
+
+  // DB의 place_kifu_move / undo_kifu_move RPC는 행 잠금(FOR UPDATE) 기반으로 동작해,
+  // 관리자가 빠르게 연속으로 탭하거나 여러 기기에서 조작해도 착수 순서가 꼬이지 않는다.
+  const placeKifuMove = async (x: number, y: number) => {
+    if (!selectedMatch) return;
+    const { data, error } = await supabase.rpc('place_kifu_move', { p_match_id: selectedMatch.id, p_x: x, p_y: y });
+    if (error) { console.error(error); return; }
+    setSelectedMatch(prev => (prev ? { ...prev, kifu: data as unknown as Match['kifu'] } : prev));
+  };
+
+  const undoKifuMove = async () => {
+    if (!selectedMatch) return;
+    const { data, error } = await supabase.rpc('undo_kifu_move', { p_match_id: selectedMatch.id });
+    if (error) { console.error(error); return; }
+    setSelectedMatch(prev => (prev ? { ...prev, kifu: data as unknown as Match['kifu'] } : prev));
+  };
+
+
   const requiredPlayerCount = matchType.includes('2:2') ? 2 : matchType.includes('3:3') ? 3 : matchType.includes('4:4') ? 4 : 1;
   const isHandicapValid = handicapType !== '접바둑' || handicapStones >= 2 || (handicapStones === 0 && komi >= 15);
 
@@ -375,6 +416,9 @@ export default function KioskPage() {
           endMatch={endMatch}
           isProcessing={isProcessing}
           onClose={handleReset}
+          onToggleStreaming={toggleStreaming}
+          onPlaceKifuMove={placeKifuMove}
+          onUndoKifuMove={undoKifuMove}
         />
       )}
 
