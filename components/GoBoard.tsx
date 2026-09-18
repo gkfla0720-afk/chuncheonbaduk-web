@@ -24,14 +24,16 @@ const MARGIN = 32;
 // 19줄 바둑판 기준 화점(성점) 위치. 다른 크기는 성점 없이 그린다.
 const STAR_POINTS_19 = [3, 9, 15];
 
-// 계가 화면에서 확정가/강세/보통/약세를 직관적으로 구분하기 위한 표기 스타일.
-// 확정가·강세는 짙게 채워 "이미 집으로 인정된다"는 느낌을, 보통·약세는 옅은 테두리만 표시해
-// "아직 확정 전이니 눌러서 정해야 한다"는 느낌을 주도록 단계적으로 표현한다.
-const TIER_STYLE: Record<string, { fillOpacity: number; radius: number; dashed?: boolean }> = {
-  confirmed: { fillOpacity: 0.5, radius: CELL / 2 - 3 },
-  strong: { fillOpacity: 0.34, radius: CELL / 2 - 5 },
-  normal: { fillOpacity: 0.16, radius: CELL / 2 - 9 },
-  weak: { fillOpacity: 0.08, radius: CELL / 2 - 13, dashed: true },
+// 계가 화면에서 세력의 강약을 사각형 크기로 직관적으로 표현한다.
+// 중립(owner 없음)은 아무 표시도 하지 않고, 강세는 돌(원)에 내접하는 정사각형 크기,
+// 보통/약세는 그보다 작은 정사각형으로 세력 차이를 시각적으로 구분한다.
+const STONE_RADIUS = CELL / 2 - 2;
+const INSCRIBED_HALF = (STONE_RADIUS * Math.SQRT2) / 2; // 원에 내접하는 정사각형의 반변 길이
+const TIER_STYLE: Record<string, { half: number; opacity: number }> = {
+  confirmed: { half: INSCRIBED_HALF, opacity: 0.62 },
+  strong: { half: INSCRIBED_HALF, opacity: 0.55 },
+  normal: { half: INSCRIBED_HALF * 0.62, opacity: 0.42 },
+  weak: { half: INSCRIBED_HALF * 0.34, opacity: 0.32 },
 };
 
 export default function GoBoard({ size = 19, moves, interactive = false, onIntersectionClick, onStoneClick, deadStones = [], onEmptyPointClick, territoryMap, className = '' }: GoBoardProps) {
@@ -90,17 +92,19 @@ export default function GoBoard({ size = 19, moves, interactive = false, onInter
                   onClick={() => onIntersectionClick?.(x, y)}
                 />
               )}
-              {/* 계가 모드 세력/집 표기: 확정가·강세는 짙게, 보통·약세는 옅게 채워 직관적으로 구분한다. */}
+              {/* 계가 모드 세력/집 표기: 강세는 원(돌)에 내접하는 크기의 사각형, 보통/약세는 그보다 작은 사각형 */}
               {tierStyle && (
-                <circle
-                  cx={cx}
-                  cy={cy}
-                  r={tierStyle.radius}
+                <rect
+                  x={cx - tierStyle.half}
+                  y={cy - tierStyle.half}
+                  width={tierStyle.half * 2}
+                  height={tierStyle.half * 2}
+                  rx={2}
                   fill={territory!.owner === 'black' ? '#1a1a1a' : '#f7f3ec'}
-                  fillOpacity={tierStyle.fillOpacity}
-                  stroke={tierStyle.dashed ? (territory!.owner === 'black' ? '#1a1a1a' : '#8c7a5c') : 'none'}
-                  strokeDasharray={tierStyle.dashed ? '3 2' : undefined}
-                  strokeWidth={tierStyle.dashed ? 1.2 : 0}
+                  fillOpacity={tierStyle.opacity}
+                  stroke={territory!.owner === 'black' ? '#000' : '#8c7a5c'}
+                  strokeOpacity={tierStyle.opacity}
+                  strokeWidth={1}
                 />
               )}
               {!stoneColor && onEmptyPointClick && (
