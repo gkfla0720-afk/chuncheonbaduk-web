@@ -1,18 +1,7 @@
-export interface Profile {
-  id: string;
-  name: string;
-  phone_last4: string;
-  rank: string;
-  tier: string;
-  current_status: string;
-  last_check_in: string;
-}
+import { Tables } from './supabase';
 
-export interface Match {
-  id: number;
-  match_type: string;
-  handicap: string;
-  started_at: string;
-  black_team: string[];
-  white_team: string[];
-}
+// Derived directly from the generated Supabase schema (types/supabase.ts) so
+// these stay in sync with the actual `profiles` / `matches` table columns
+// instead of drifting out of date as a hand-maintained duplicate.
+export type Profile = Tables<'profiles'>;
+export type Match = Tables<'matches'>;

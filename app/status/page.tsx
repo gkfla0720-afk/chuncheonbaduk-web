@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
+import { fetchProfileStats } from '@/lib/profileStats';
 import { Profile, Match as BaseMatch } from '../../types';
 
 interface Match extends BaseMatch {
@@ -24,7 +25,7 @@ export default function StatusPage() {
 
   const fetchData = useCallback(async (showNotification = false) => {
     const { count } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).neq('current_status', '오프라인');
-    const { data: matchesData } = await supabase.from('matches').select('*').neq('phase', '종료').neq('phase', '취소').order('started_at', { ascending: false });
+    const { data: matchesData } = await supabase.from('matches').select('*').eq('phase', '진행중').order('started_at', { ascending: false });
     
     let enrichedMatches: Match[] = [];
     if (matchesData && matchesData.length > 0) {
@@ -64,25 +65,11 @@ export default function StatusPage() {
     setSelectedProfile(profile);
     setIsLoadingStats(true);
     try {
-      const { data: profData } = await supabase.from('profiles').select('created_at, tier').eq('id', profile.id).single();
-      const joinedAt = profData?.created_at ? new Date(profData.created_at).toLocaleDateString('ko-KR') : '정보 없음';
-      const tier = profData?.tier || '준회원';
-
-      const { data: blackMatches } = await supabase.from('matches').select('winner').eq('phase', '종료').contains('black_team', [profile.id]);
-      const { data: whiteMatches } = await supabase.from('matches').select('winner').eq('phase', '종료').contains('white_team', [profile.id]);
-      
-      let w = 0, l = 0;
-      blackMatches?.forEach(m => { if (m.winner === '흑승') w++; else if (m.winner === '백승') l++; });
-      whiteMatches?.forEach(m => { if (m.winner === '백승') w++; else if (m.winner === '흑승') l++; });
-
-      const thirtyDaysAgo = new Date(); thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-      const { data: attData } = await supabase.from('attendance').select('checked_in_at').eq('user_id', profile.id).gte('checked_in_at', thirtyDaysAgo.toISOString());
-      
-      const uniqueDays = new Set(attData?.map(a => new Date(a.checked_in_at).toLocaleDateString())).size;
-      const attRate = Math.round((uniqueDays / 30) * 100);
-
-      setProfileStats({ wins: w, losses: l, attendanceRate: attRate, joinedAt, tier });
-    } catch (err) { console.error(err); }
+      const stats = await fetchProfileStats(profile.id);
+      setProfileStats(stats);
+    } catch (err) {
+      console.error(err);
+    }
     setIsLoadingStats(false);
   };
 
