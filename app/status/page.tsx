@@ -51,8 +51,18 @@ export default function StatusPage() {
 
   useEffect(() => {
     const loadInit = async () => { await fetchData(false); }; loadInit();
+
+    // 30초 주기 폴링은 실시간 채널이 끊기거나 이벤트를 놓친 경우를 대비한 안전망입니다.
     const timer = setInterval(() => { const loadPoll = async () => { await fetchData(true); }; loadPoll(); }, 30000);
-    return () => clearInterval(timer);
+
+    // matches/profiles 테이블 변경을 즉시 반영하는 실시간 구독
+    const channel = supabase
+      .channel('status-live')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'matches' }, () => { fetchData(true); })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => { fetchData(false); })
+      .subscribe();
+
+    return () => { clearInterval(timer); supabase.removeChannel(channel); };
   }, [fetchData]);
 
   const handleRefresh = () => {
