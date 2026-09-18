@@ -574,7 +574,9 @@ export default function KioskPage() {
 
       {quickAction === 'attendance' && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(22,16,12,0.65)] p-4 backdrop-blur-[2px]">
-          <div className="relative w-full max-w-5xl board-surface rounded-[30px] border-4 border-[#b88c42] shadow-2xl p-8 max-h-[92vh] overflow-y-auto">
+          {/* 중계 화면 등에서 열리는 팝업이므로 입장/귀가 키패드만 표시하는 콤팩트한 크기로 고정한다.
+              (신규가입/대국신청 버튼은 이미 별도로 있어 중복 노출 및 세로 넘침을 유발했었다) */}
+          <div className="relative w-full max-w-lg board-surface rounded-[30px] border-4 border-[#b88c42] shadow-2xl p-8">
             <button
               onClick={closeQuickAction}
               className="absolute top-4 right-4 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-black/30 text-2xl font-black text-stone-200 hover:bg-black/50 hover:text-white"
@@ -594,9 +596,7 @@ export default function KioskPage() {
               onConfirmAttendance={handleConfirmAttendance}
               onGoHome={handleGoHome}
               onSelectCandidate={(cand) => { setConfirmUser(cand); setCandidates([]); }}
-              onShowMembershipGuide={() => setShowMembershipGuide(true)}
-              onOpenRegister={() => openQuickAction('register')}
-              onOpenMatchWizard={() => openMatchWizard(true)}
+              compact
             />
           </div>
         </div>
