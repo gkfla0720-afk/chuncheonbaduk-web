@@ -70,6 +70,11 @@ export default function ProfileDetailModal({ profile, stats, isLoadingStats, mat
                     <p className="text-xl font-black text-white whitespace-nowrap overflow-hidden text-ellipsis">
                       vs {h.opponentNames.join(', ') || '상대 없음'}
                     </p>
+                    {h.blackScore !== null && h.whiteScore !== null && (
+                      <p className="text-lg font-bold text-[#dcb36c] mt-1">
+                        계가 결과 · 흑 {h.blackScore}집 : 백 {h.whiteScore}집 ({Math.abs(h.blackScore - h.whiteScore)}집 차)
+                      </p>
+                    )}
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     <span className={`px-3 py-1 rounded-lg text-lg font-black ${RESULT_STYLE[h.result]}`}>{h.result}</span>

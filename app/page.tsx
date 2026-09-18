@@ -4,7 +4,8 @@ import { useState, useRef, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { fetchProfileStats } from '@/lib/profileStats';
 import { fetchProfileMatchHistory, MatchHistoryEntry } from '@/lib/matchHistory';
-import { Profile, Match } from '../types';
+import { Profile, Match, KifuMove } from '../types';
+import { checkMoveLegality, TerritoryResult } from '../lib/goRules';
 import LeftPanel from '../components/LeftPanel';
 import AttendanceScreen from '../components/AttendanceScreen';
 import MatchWizard from '../components/MatchWizard';
@@ -263,12 +264,20 @@ export default function KioskPage() {
     if (match) { setSelectedMatch(match); setKioskMode('match_detail'); setConfirmAction(null); }
   };
 
-  const endMatch = async (result: string) => {
+  // 계가(집 세기)로 종료할 때는 산출된 흑/백 집수와 관리자가 표시한 사석을 함께 기록한다.
+  // 승/패에는 영향이 없는 범위지만, 추후 관리자 화면에서 근거 자료로 확인/수정할 수 있게 남겨둔다.
+  const endMatch = async (result: string, scoring?: { result: TerritoryResult; deadStones: { x: number; y: number }[] }) => {
     if (isProcessing || !selectedMatch) return;
     setIsProcessing(true);
     // 기보(kifu)는 matches 행에 그대로 남아 대국 종료 후에도 영구 보존된다.
     // 중계 슬롯은 하나뿐이므로, 대국이 끝나면 다음 대국이 중계를 시작할 수 있도록 반드시 꺼둔다.
-    const { error } = await supabase.from('matches').update({ phase: result === '취소' ? '취소' : '종료', winner: result, is_streaming: false }).eq('id', selectedMatch.id);
+    const updatePayload: Partial<Match> = { phase: result === '취소' ? '취소' : '종료', winner: result, is_streaming: false };
+    if (scoring) {
+      updatePayload.black_score = scoring.result.blackScore;
+      updatePayload.white_score = scoring.result.whiteScore;
+      updatePayload.dead_stones = scoring.deadStones as unknown as Match['dead_stones'];
+    }
+    const { error } = await supabase.from('matches').update(updatePayload).eq('id', selectedMatch.id);
     if (error) {
       console.error(error);
       alert('대국 처리 중 오류가 발생했습니다. 다시 시도해주세요.');
@@ -277,7 +286,13 @@ export default function KioskPage() {
     }
     const allIds = [...selectedMatch.black_team, ...selectedMatch.white_team];
     await supabase.from('profiles').update({ current_status: '출석중' }).in('id', allIds);
-    alert(result === '취소' ? '대국이 취소되었습니다.' : '대국이 정상 종료되었습니다.');
+    alert(
+      result === '취소'
+        ? '대국이 취소되었습니다.'
+        : scoring
+          ? `계가 완료: ${scoring.result.winner} ${Math.abs(scoring.result.margin)}집 승 (흑 ${scoring.result.blackScore}집 : 백 ${scoring.result.whiteScore}집)`
+          : '대국이 정상 종료되었습니다.'
+    );
     setRefreshTrigger(p => p + 1); handleReset();
   };
 
@@ -305,13 +320,24 @@ export default function KioskPage() {
     setIsProcessing(false);
   };
 
-  // DB의 place_kifu_move / undo_kifu_move RPC는 행 잠금(FOR UPDATE) 기반으로 동작해,
-  // 관리자가 빠르게 연속으로 탭하거나 여러 기기에서 조작해도 착수 순서가 꼬이지 않는다.
+  // 착수는 매 수마다 lib/goRules.ts로 규칙(자충수/패)을 검사한 뒤, 최신 기보를 다시 읽어와
+  // 다른 기기에서 먼저 놓인 수와 어긋나지 않는지 확인하고 나서야 저장한다. 사석(따낸 돌)은
+  // kifu 배열에서 지우지 않고 그대로 두어도, 화면은 항상 재생(replay)해서 그리므로 문제없다.
   const placeKifuMove = async (x: number, y: number) => {
     if (!selectedMatch) return;
-    const { data, error } = await supabase.rpc('place_kifu_move', { p_match_id: selectedMatch.id, p_x: x, p_y: y });
-    if (error) { console.error(error); return; }
-    setSelectedMatch(prev => (prev ? { ...prev, kifu: data as unknown as Match['kifu'] } : prev));
+    const { data: fresh, error: fetchError } = await supabase.from('matches').select('kifu').eq('id', selectedMatch.id).single();
+    if (fetchError || !fresh) { console.error(fetchError); return; }
+    const kifu = (fresh.kifu as unknown as KifuMove[]) || [];
+    const nextColor: 'black' | 'white' = kifu.length % 2 === 0 ? 'black' : 'white';
+    const legality = checkMoveLegality(kifu, selectedMatch.board_size, x, y, nextColor);
+    if (!legality.legal) {
+      alert(legality.reason || '둘 수 없는 자리입니다.');
+      return;
+    }
+    const newKifu = [...kifu, { x, y, color: nextColor }];
+    const { data, error } = await supabase.from('matches').update({ kifu: newKifu as unknown as Match['kifu'] }).eq('id', selectedMatch.id).select('kifu').single();
+    if (error) { console.error(error); alert('착수 저장 중 오류가 발생했습니다.'); return; }
+    setSelectedMatch(prev => (prev ? { ...prev, kifu: data.kifu } : prev));
   };
 
   const undoKifuMove = async () => {
@@ -372,7 +398,10 @@ export default function KioskPage() {
     if (isProcessing) return;
     setIsProcessing(true);
     const finalHandicap = handicapType === '접바둑' ? `접바둑 ${handicapStones}점 (${handicapStones===0?'역덤':'덤'} ${komi}집)` : `${handicapType}(덤 ${handicapType==='호선'?'6.5':'0.5'}집)`;
-    const { error } = await supabase.from('matches').insert([{ match_type: matchType, black_team: blackTeam.map(m => m.id), white_team: whiteTeam.map(m => m.id), handicap: finalHandicap }]);
+    // 계가 시 whiteScore에 그대로 더해지는 숫자이므로, 접바둑 없이 덤만으로 실력 차를 보정하는
+    // "역덤"은 오히려 흑에게 유리하도록 부호를 반전해서 저장해야 계가 결과가 올바르게 나온다.
+    const finalKomi = handicapType === '호선' ? 6.5 : handicapType === '정선' ? 0.5 : (handicapStones === 0 ? -komi : komi);
+    const { error } = await supabase.from('matches').insert([{ match_type: matchType, black_team: blackTeam.map(m => m.id), white_team: whiteTeam.map(m => m.id), handicap: finalHandicap, komi: finalKomi }]);
     if (error) {
       console.error(error);
       alert('대국 등록 중 오류가 발생했습니다. 다시 시도해주세요.');

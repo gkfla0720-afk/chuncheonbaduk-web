@@ -11,6 +11,9 @@ export interface MatchHistoryEntry {
   opponentNames: string[];
   kifu: KifuMove[];
   boardSize: number;
+  // 계가(집 세기)로 종료된 대국만 값이 채워진다. 수동으로 흑승/백승만 눌러 끝난 대국은 null.
+  blackScore: number | null;
+  whiteScore: number | null;
 }
 
 /**
@@ -52,6 +55,8 @@ export async function fetchProfileMatchHistory(profileId: string, limit = 15): P
       opponentNames,
       kifu: (m.kifu as unknown as KifuMove[]) || [],
       boardSize: m.board_size,
+      blackScore: m.black_score,
+      whiteScore: m.white_score,
     };
   });
 }

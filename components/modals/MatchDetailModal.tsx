@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Match, Profile, KifuMove } from '../../types';
+import { TerritoryResult } from '../../lib/goRules';
 import GoBoard from '../GoBoard';
+import ScoringPanel from './ScoringPanel';
 
 export type QuickAction = 'register' | 'match_wizard' | 'attendance';
 
@@ -11,7 +13,7 @@ interface MatchDetailModalProps {
   matchElapsed: string;
   confirmAction: 'black_win' | 'white_win' | 'cancel' | null;
   setConfirmAction: (action: 'black_win' | 'white_win' | 'cancel' | null) => void;
-  endMatch: (result: string) => void;
+  endMatch: (result: string, scoring?: { result: TerritoryResult; deadStones: { x: number; y: number }[] }) => void;
   isProcessing: boolean;
   onClose: () => void;
   onToggleStreaming: (turnOn: boolean) => void;
@@ -26,12 +28,17 @@ function EndMatchControls({
   setConfirmAction,
   endMatch,
   isProcessing,
-}: Pick<MatchDetailModalProps, 'confirmAction' | 'setConfirmAction' | 'endMatch' | 'isProcessing'>) {
+  hasKifu,
+  onStartScoring,
+}: Pick<MatchDetailModalProps, 'confirmAction' | 'setConfirmAction' | 'endMatch' | 'isProcessing'> & { hasKifu: boolean; onStartScoring: () => void }) {
   if (!confirmAction) {
     return (
       <div className="grid grid-cols-2 gap-3">
         <button onClick={() => setConfirmAction('black_win')} className="py-4 bg-stone-900 border-2 border-stone-600 text-white text-2xl font-black rounded-2xl hover:bg-black transition-all shadow-lg">⚫ 흑승</button>
         <button onClick={() => setConfirmAction('white_win')} className="py-4 bg-white border-2 border-stone-300 text-stone-900 text-2xl font-black rounded-2xl hover:bg-stone-100 transition-all shadow-lg">⚪ 백승</button>
+        {hasKifu && (
+          <button onClick={onStartScoring} className="col-span-2 py-3 bg-[#b88c42] hover:bg-[#a67a35] text-[#1f1a16] text-xl font-black rounded-2xl transition-all shadow-lg">📐 계가로 승부 확정 (집 세기)</button>
+        )}
         <button onClick={() => setConfirmAction('cancel')} className="col-span-2 py-3 bg-red-950/60 text-red-400 text-[26px] font-bold rounded-2xl hover:bg-red-900 hover:text-white border border-red-800 transition-all">대국 취소 (무효)</button>
       </div>
     );
@@ -71,6 +78,29 @@ export default function MatchDetailModal({
   useEffect(() => {
     setBoardExpanded(match.is_streaming);
   }, [match.is_streaming]);
+  // 계가(집 세기) 모드: 종국된 바둑판을 크게 보여주고 죽은 돌을 표시해 자동으로 승부를 계산한다.
+  const [isScoring, setIsScoring] = useState(false);
+
+  const handleScoringConfirm = (result: TerritoryResult, deadStones: { x: number; y: number }[]) => {
+    endMatch(result.winner === '흑' ? '흑승' : '백승', { result, deadStones });
+  };
+
+  if (isScoring) {
+    return (
+      <div className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-[rgba(22,16,12,0.75)] p-3 backdrop-blur-[2px]">
+        <div className="modal-card relative w-full h-[96vh] max-w-[1500px] bg-[#1f1a16] text-white rounded-[30px] shadow-[0_18px_45px_rgba(34,27,20,0.4)] border-4 border-[#b88c42] overflow-hidden flex flex-col p-4 lg:p-6">
+          <ScoringPanel
+            kifu={kifu}
+            boardSize={match.board_size}
+            komi={match.komi}
+            isProcessing={isProcessing}
+            onCancel={() => setIsScoring(false)}
+            onConfirm={handleScoringConfirm}
+          />
+        </div>
+      </div>
+    );
+  }
 
   if (match.is_streaming && boardExpanded) {
     return (
@@ -147,7 +177,7 @@ export default function MatchDetailModal({
             </div>
 
             <div className="pt-2 border-t border-stone-800">
-              <EndMatchControls confirmAction={confirmAction} setConfirmAction={setConfirmAction} endMatch={endMatch} isProcessing={isProcessing} />
+              <EndMatchControls confirmAction={confirmAction} setConfirmAction={setConfirmAction} endMatch={endMatch} isProcessing={isProcessing} hasKifu={kifu.length > 0} onStartScoring={() => setIsScoring(true)} />
             </div>
 
             <button onClick={onClose} className="w-full py-3 text-stone-400 hover:text-white font-bold text-xl bg-stone-900 rounded-2xl">닫기</button>
@@ -201,7 +231,7 @@ export default function MatchDetailModal({
           <p className="text-lg font-bold text-stone-500">중계를 시작하면 바둑판이 크게 확대되어 입력하기 편해집니다.</p>
         </div>
 
-        <EndMatchControls confirmAction={confirmAction} setConfirmAction={setConfirmAction} endMatch={endMatch} isProcessing={isProcessing} />
+        <EndMatchControls confirmAction={confirmAction} setConfirmAction={setConfirmAction} endMatch={endMatch} isProcessing={isProcessing} hasKifu={kifu.length > 0} onStartScoring={() => setIsScoring(true)} />
         <button onClick={onClose} className="w-full mt-6 py-4 text-stone-400 hover:text-white font-bold text-[27px] bg-stone-900 rounded-2xl">닫기</button>
       </div>
     </div>
