@@ -55,7 +55,10 @@ export default function MatchWizard({
   onClose,
 }: MatchWizardProps) {
   return (
-    <div className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-[rgba(22,16,12,0.56)] p-4 backdrop-blur-[2px]">
+    <div
+      className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-[rgba(22,16,12,0.56)] p-4 backdrop-blur-[2px]"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
       <div className="modal-card w-full max-w-3xl bg-[#1f1a16] text-white p-10 rounded-[30px] shadow-[0_18px_45px_rgba(34,27,20,0.28)] border-4 border-[#b88c42]">
         <button onClick={onClose} className="absolute top-6 right-6 text-stone-400 hover:text-white font-extrabold text-2xl">✕</button>
         <div className="flex gap-3 mb-8 justify-center">

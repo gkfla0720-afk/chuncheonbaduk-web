@@ -24,7 +24,10 @@ export default function ProfileDetailModal({ profile, stats, isLoadingStats, mat
   const [viewingKifu, setViewingKifu] = useState<MatchHistoryEntry | null>(null);
 
   return (
-    <div className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-[rgba(22,16,12,0.56)] p-4 backdrop-blur-[2px]">
+    <div
+      className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-[rgba(22,16,12,0.56)] p-4 backdrop-blur-[2px]"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
       <div className="modal-card w-full max-w-2xl max-h-[92vh] overflow-y-auto bg-[#1f1a16] text-white p-10 rounded-[30px] shadow-[0_18px_45px_rgba(34,27,20,0.28)] border-4 border-[#b88c42] text-center">
         <h2 className="text-3xl font-black text-[#e8d5b5] mb-1">회원 기력 및 프로필</h2>
         <p className="text-stone-400 font-semibold mb-6">가입일: {stats.joinedAt}</p>
