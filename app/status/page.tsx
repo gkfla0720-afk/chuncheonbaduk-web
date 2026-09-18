@@ -3,7 +3,9 @@
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { fetchProfileStats } from '@/lib/profileStats';
-import { Profile, Match as BaseMatch } from '../../types';
+import { formatKoreanTime } from '@/lib/formatTime';
+import { Profile, Match as BaseMatch, KifuMove } from '../../types';
+import GoBoard from '../../components/GoBoard';
 
 interface Match extends BaseMatch {
   blackProfiles?: Profile[];
@@ -23,6 +25,9 @@ export default function StatusPage() {
   const [profileStats, setProfileStats] = useState({ wins: 0, losses: 0, attendanceRate: 0, joinedAt: '', tier: '' });
   const [isLoadingStats, setIsLoadingStats] = useState(false);
 
+  // 대국 카드를 클릭하면 상세 정보(중계 중이면 실시간 기보 포함)를 큰 팝업으로 표시
+  const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
+
   const fetchData = useCallback(async (showNotification = false) => {
     const { count } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).neq('current_status', '오프라인');
     const { data: matchesData } = await supabase.from('matches').select('*').eq('phase', '진행중').order('started_at', { ascending: false });
@@ -39,6 +44,9 @@ export default function StatusPage() {
       }));
     }
 
+    // 실시간 중계 중인 대국(있다면 1개)을 관전자 관심도가 가장 높은 최상단에 노출한다.
+    enrichedMatches.sort((a, b) => (b.is_streaming ? 1 : 0) - (a.is_streaming ? 1 : 0));
+
     setActiveCount(count || 0);
     setActiveMatches(prevMatches => {
       if (showNotification && prevMatches.length > 0 && enrichedMatches.length > prevMatches.length) {
@@ -46,6 +54,8 @@ export default function StatusPage() {
       }
       return enrichedMatches;
     });
+    // 팝업이 열려 있는 대국의 기보도 실시간으로 갱신되도록 함께 최신화한다.
+    setSelectedMatch(prev => (prev ? enrichedMatches.find(m => m.id === prev.id) || prev : prev));
     setLastUpdated(new Date()); setIsLoading(false);
   }, []);
 
@@ -102,7 +112,7 @@ export default function StatusPage() {
             </div>
             <div className="flex items-center gap-3 text-[20px] text-stone-500 sm:text-xl">
               <span className="inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500 shadow-[0_0_0_4px_rgba(16,185,129,0.12)]" />
-              <span className="text-[20px] sm:text-xl">마지막 업데이트: {lastUpdated.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+              <span className="text-[20px] sm:text-xl">마지막 업데이트: {formatKoreanTime(lastUpdated, { showSeconds: true })}</span>
             </div>
           </div>
 
@@ -167,12 +177,19 @@ export default function StatusPage() {
           ) : (
             <ul className="space-y-4">
               {activeMatches.map((match) => (
-                <li key={match.id} className="rounded-[28px] border border-[#d7c7a8] bg-[#faf5ee] p-4 shadow-[0_12px_24px_rgba(90,69,45,0.06)] sm:p-5">
+                <li
+                  key={match.id}
+                  onClick={() => setSelectedMatch(match)}
+                  className={`cursor-pointer rounded-[28px] border bg-[#faf5ee] p-4 shadow-[0_12px_24px_rgba(90,69,45,0.06)] transition hover:brightness-105 sm:p-5 ${match.is_streaming ? 'border-2 border-red-400' : 'border-[#d7c7a8]'}`}
+                >
                   <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                     <div className="flex items-center gap-3">
                       <span className="rounded-full border border-[#cab38b] bg-[#fffaf2] px-3 py-1.5 text-[20px] font-black tracking-[0.15em] text-[#7f6348] sm:text-[20px]">{match.match_type}</span>
+                      {match.is_streaming && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-red-600 px-3 py-1 text-[20px] font-black text-white animate-pulse">🔴 LIVE 중계</span>
+                      )}
                       <p className="text-[20px] font-bold text-stone-500 sm:text-[20px]">
-                        {new Date(match.started_at).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })} 시작
+                        {formatKoreanTime(new Date(match.started_at))} 시작
                       </p>
                     </div>
                     <span className="inline-flex items-center rounded-full bg-[#efe2c7] px-3 py-1.5 text-[20px] font-black text-[#725739] sm:text-[20px]">{match.handicap}</span>
@@ -184,7 +201,7 @@ export default function StatusPage() {
                         {match.blackProfiles?.map(p => (
                           <button
                             key={p.id}
-                            onClick={() => openProfileDetail(p)}
+                            onClick={(e) => { e.stopPropagation(); openProfileDetail(p); }}
                             className="w-full rounded-2xl border border-[#322c28] bg-[#1d1b19] px-3 py-2.5 text-left text-white shadow-sm transition hover:brightness-110"
                           >
                             <span className="block text-[1.8rem] font-black leading-tight whitespace-nowrap overflow-hidden text-ellipsis sm:text-[2rem]">{p.name}</span>
@@ -201,7 +218,7 @@ export default function StatusPage() {
                         {match.whiteProfiles?.map(p => (
                           <button
                             key={p.id}
-                            onClick={() => openProfileDetail(p)}
+                            onClick={(e) => { e.stopPropagation(); openProfileDetail(p); }}
                             className="w-full rounded-2xl border border-[#d7d0c7] bg-[#f9f5f1] px-3 py-2.5 text-left text-stone-800 shadow-sm transition hover:bg-[#f1ece6]"
                           >
                             <span className="block text-[1.8rem] font-black leading-tight whitespace-nowrap overflow-hidden text-ellipsis sm:text-[2rem]">{p.name}</span>
@@ -251,6 +268,62 @@ export default function StatusPage() {
                   </div>
                 )}
               </div>
+            </div>
+          </div>
+        )}
+
+        {selectedMatch && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(28,24,20,0.6)] p-4 backdrop-blur-sm" onClick={() => setSelectedMatch(null)}>
+            <div
+              className="w-full max-w-2xl rounded-[30px] border border-[#d4c3a2] bg-[#f8f4ee] p-5 shadow-[0_18px_45px_rgba(34,27,20,0.32)] sm:p-7"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="flex items-center gap-2 text-xl font-bold tracking-[0.18em] text-[#7e5d3d]">
+                    대국 정보
+                    {selectedMatch.is_streaming && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-red-600 px-3 py-1 text-xl font-black text-white animate-pulse">🔴 LIVE 중계</span>
+                    )}
+                  </p>
+                  <h2 className="mt-2 text-2xl font-black text-[#2a241d]">{selectedMatch.match_type} · {selectedMatch.handicap}</h2>
+                  <p className="mt-1 text-xl text-stone-500">{formatKoreanTime(new Date(selectedMatch.started_at))} 시작</p>
+                </div>
+                <button onClick={() => setSelectedMatch(null)} className="rounded-full bg-stone-200 px-3 py-1 text-xl font-bold text-stone-700">닫기</button>
+              </div>
+
+              <div className="mt-5 rounded-[24px] border border-[#d9cab0] bg-[#1d1b19] p-4">
+                <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3">
+                  <div className="min-w-0 flex flex-col gap-1 text-left">
+                    {selectedMatch.blackProfiles?.map(p => (
+                      <div key={p.id}>
+                        <p className="text-2xl font-black text-white whitespace-nowrap overflow-hidden text-ellipsis">{p.name}</p>
+                        <p className="text-xl font-bold text-stone-400">{p.rank}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <span className="text-2xl font-black tracking-[0.2em] text-[#dcb36c]">VS</span>
+                  <div className="min-w-0 flex flex-col gap-1 text-right">
+                    {selectedMatch.whiteProfiles?.map(p => (
+                      <div key={p.id}>
+                        <p className="text-2xl font-black text-white whitespace-nowrap overflow-hidden text-ellipsis">{p.name}</p>
+                        <p className="text-xl font-bold text-stone-300">{p.rank}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {selectedMatch.is_streaming ? (
+                <div className="mt-5 flex flex-col items-center gap-3">
+                  <div className="w-full max-w-[420px] aspect-square rounded-2xl overflow-hidden border-2 border-[#b88c42] shadow-lg">
+                    <GoBoard size={selectedMatch.board_size} moves={(selectedMatch.kifu as unknown as KifuMove[]) || []} />
+                  </div>
+                  <p className="text-xl font-bold text-stone-500">{((selectedMatch.kifu as unknown as KifuMove[]) || []).length}수 진행 중 · 실시간으로 업데이트됩니다.</p>
+                </div>
+              ) : (
+                <p className="mt-5 text-center text-xl text-stone-500">이 대국은 현재 실시간 기보 중계 대상이 아닙니다.</p>
+              )}
             </div>
           </div>
         )}

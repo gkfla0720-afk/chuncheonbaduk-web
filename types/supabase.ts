@@ -49,9 +49,12 @@ export type Database = {
       matches: {
         Row: {
           black_team: string[]
+          board_size: number
           ended_at: string | null
           handicap: string
           id: number
+          is_streaming: boolean
+          kifu: Json
           match_type: string
           phase: string
           started_at: string
@@ -60,9 +63,12 @@ export type Database = {
         }
         Insert: {
           black_team?: string[]
+          board_size?: number
           ended_at?: string | null
           handicap?: string
           id?: number
+          is_streaming?: boolean
+          kifu?: Json
           match_type?: string
           phase?: string
           started_at?: string
@@ -71,9 +77,12 @@ export type Database = {
         }
         Update: {
           black_team?: string[]
+          board_size?: number
           ended_at?: string | null
           handicap?: string
           id?: number
+          is_streaming?: boolean
+          kifu?: Json
           match_type?: string
           phase?: string
           started_at?: string
@@ -120,7 +129,11 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      place_kifu_move: {
+        Args: { p_match_id: number; p_x: number; p_y: number }
+        Returns: Json
+      }
+      undo_kifu_move: { Args: { p_match_id: number }; Returns: Json }
     }
     Enums: {
       [_ in never]: never
