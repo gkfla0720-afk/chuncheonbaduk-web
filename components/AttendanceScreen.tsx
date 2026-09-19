@@ -13,12 +13,7 @@ interface AttendanceScreenProps {
   onConfirmAttendance: () => void;
   onGoHome: () => void;
   onSelectCandidate: (candidate: Profile) => void;
-  onShowMembershipGuide?: () => void;
-  onOpenRegister?: () => void;
-  onOpenMatchWizard?: () => void;
-  // 중계 화면 등 좁은 팝업에서 열릴 때는 입장/귀가 키패드만 보여주고
-  // 정회원 안내/신규가입/대국신청 버튼은 숨겨 세로 넘침과 좌우 쏠림을 막는다.
-  // (신규가입/대국신청은 이미 중계 화면 자체에 버튼이 별도로 있어 중복이기도 하다.)
+  // 중계 화면 등 좁은 팝업에서 열릴 때는 키패드를 더 작게 표시한다.
   compact?: boolean;
 }
 
@@ -37,16 +32,13 @@ export default function AttendanceScreen({
   onConfirmAttendance,
   onGoHome,
   onSelectCandidate,
-  onShowMembershipGuide,
-  onOpenRegister,
-  onOpenMatchWizard,
   compact = false,
 }: AttendanceScreenProps) {
   return (
-    <div className={`relative z-10 w-full h-full flex flex-row items-center justify-center gap-8 xl:gap-12 px-2 ${compact ? 'max-w-[420px] mx-auto' : ''}`}>
+    <div className={`relative z-10 w-full h-full flex flex-row items-center justify-center px-2 ${compact ? 'max-w-[420px] mx-auto' : ''}`}>
       {/* 진행 중 대국 카드는 왼쪽 '현재 현황' 패널에서만 표시한다 (중복 노출 방지) */}
 
-      {/* 중앙: 콤팩트하고 세련된 입력 키패드 영역 - 좌우 칸의 유무/내용과 무관하게 항상 동일한 고정 폭 유지 */}
+      {/* 중앙: 콤팩트하고 세련된 입력 키패드 영역 - 항상 동일한 고정 폭 유지 */}
       <div className={`flex flex-col items-center shrink-0 ${compact ? 'w-full' : 'w-[420px]'}`}>
         {(confirmUser || candidates.length > 0) && (
           <p className={`font-extrabold text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.75)] ${compact ? 'text-lg h-6 mb-1' : 'text-xl h-8 mb-2'}`}>{message}</p>
@@ -59,11 +51,11 @@ export default function AttendanceScreen({
             <p className={`text-stone-300 font-extrabold ${compact ? 'text-lg mb-4' : 'text-xl mb-8'}`}>{confirmUser.rank} / {confirmUser.tier}</p>
             {confirmUser.current_status !== '오프라인' ? (
               <button onClick={onGoHome} disabled={isProcessing} className={`w-full bg-[#332a24] border-2 border-[#dcb36c] text-[#dcb36c] hover:bg-[#dcb36c] hover:text-stone-900 font-black rounded-2xl shadow-xl transition-all disabled:opacity-50 ${compact ? 'py-[18px] text-xl' : 'py-5 text-2xl'}`}>
-                {isProcessing ? '처리중...' : '귀가하기 (퇴장)'}
+                {isProcessing ? '처리중...' : '귀가하기'}
               </button>
             ) : (
               <button onClick={onConfirmAttendance} disabled={isProcessing} className={`w-full bg-white text-stone-900 hover:bg-stone-100 font-black rounded-2xl shadow-xl transition-all disabled:opacity-50 ${compact ? 'py-[18px] text-xl' : 'py-5 text-2xl'}`}>
-                {isProcessing ? '처리중...' : '출석하기 (입장)'}
+                {isProcessing ? '처리중...' : '입장하기'}
               </button>
             )}
             <button onClick={onReset} className={`w-full text-stone-400 hover:text-white font-bold ${compact ? 'mt-[13px] py-[9px] text-lg' : 'mt-4 py-3 text-xl'}`}>취소</button>
@@ -106,22 +98,6 @@ export default function AttendanceScreen({
           </div>
         )}
       </div>
-
-      {/* 우측: 여백 공간을 활용한 큼직한 액션 버튼 - 좁은 팝업(compact)에서는 숨겨
-          입장/귀가 키패드만 남기고, 신규가입/대국신청은 중계 화면 자체 버튼을 이용하게 한다. */}
-      {!compact && (
-        <div className="flex flex-col gap-6 w-64 xl:w-72 shrink-0">
-          <button onClick={onShowMembershipGuide} className="w-full bg-[#f7f0e5] hover:bg-[#efe1cb] text-stone-900 font-extrabold py-4 rounded-[18px] shadow-[0_10px_18px_rgba(25,18,12,0.12)] text-xl transition-all border border-[#c69b5c] tracking-[0.02em]">
-            정회원 달성 조건
-          </button>
-          <button onClick={onOpenRegister} className="w-full bg-[#f8f5f1] hover:bg-[#f1e7d8] text-stone-900 font-black py-7 rounded-[24px] shadow-[0_12px_24px_rgba(25,18,12,0.18)] text-2xl xl:text-3xl transition-all border-2 border-[#c69b5c] flex items-center justify-center gap-3 tracking-[0.02em]">
-            <span>📝</span> 신규 가입
-          </button>
-          <button onClick={onOpenMatchWizard} className="w-full bg-[#1e1a17] hover:bg-[#2b231e] text-[#efdfba] font-black py-7 rounded-[24px] shadow-[0_12px_24px_rgba(25,18,12,0.2)] text-2xl xl:text-3xl transition-all border-2 border-[#b88c42] flex items-center justify-center gap-3 tracking-[0.02em]">
-            <span>⚔️</span> 대국 신청
-          </button>
-        </div>
-      )}
     </div>
   );
 }

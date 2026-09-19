@@ -9,7 +9,7 @@ export function isValidPhoneNumber(digits: string): boolean {
   return /^[0-9]{9,11}$/.test(digits);
 }
 
-// 출석/퇴장 조회에 사용하는 뒷자리 4자리를 추출한다.
+// 입장/귀가 조회에 사용하는 뒷자리 4자리를 추출한다.
 export function toPhoneLast4(digits: string): string {
   return digits.slice(-4);
 }

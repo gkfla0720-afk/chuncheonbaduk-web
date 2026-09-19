@@ -50,11 +50,11 @@ export default function ProfileDetailModal({ profile, stats, isLoadingStats, mat
           {isLoadingStats ? (
             <p className="text-stone-400 font-bold py-8 animate-pulse text-xl">전적 데이터를 집계하는 중...</p>
           ) : (
-            // 모바일 화면에서는 출석률을 위, 대국 전적을 아래로 세로 배치해야 "n승 n패" 등이
+            // 모바일 화면에서는 입장률을 위, 대국 전적을 아래로 세로 배치해야 "n승 n패" 등이
             // 좁은 폭에 눌려 줄바뀜되지 않는다. sm 이상에서는 기존처럼 2열로 나란히 배치한다.
             <div className="flex flex-col sm:grid sm:grid-cols-2 gap-5">
               <div className="bg-[#241f1b] p-5 rounded-2xl border border-stone-700 flex flex-col justify-center items-center">
-                <p className="text-stone-400 text-xl font-bold mb-2">최근 30일 출석률</p>
+                <p className="text-stone-400 text-xl font-bold mb-2">최근 30일 입장률</p>
                 <p className="text-4xl font-black text-[#dcb36c]">{stats.attendanceRate}%</p>
               </div>
               <div className="bg-[#241f1b] p-5 rounded-2xl border border-stone-700">

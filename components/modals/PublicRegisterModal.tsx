@@ -46,7 +46,7 @@ export default function PublicRegisterModal({ onClose }: PublicRegisterModalProp
           <div className="text-center">
             <p className="text-3xl">🎉</p>
             <h2 className="mt-3 text-2xl font-black text-[#2a241d]">가입이 완료되었습니다!</h2>
-            <p className="mt-2 text-lg text-stone-600">기원에 방문하시면 출석 시 전화번호 뒷자리 4자리로 바로 이용하실 수 있습니다.</p>
+            <p className="mt-2 text-lg text-stone-600">기원에 방문하시면 입장 시 전화번호 뒷자리 4자리로 바로 이용하실 수 있습니다.</p>
             <button onClick={onClose} className="mt-6 w-full rounded-2xl bg-[#b88c42] px-4 py-3 text-lg font-black text-stone-950 hover:bg-[#a37934]">확인</button>
           </div>
         ) : (
@@ -66,7 +66,7 @@ export default function PublicRegisterModal({ onClose }: PublicRegisterModalProp
                 />
               </div>
               <div>
-                <label className="mb-1.5 block text-lg font-bold text-stone-700">전화번호 (전체)</label>
+                <label className="mb-1.5 block text-lg font-bold text-stone-700">전화번호</label>
                 <input
                   type="tel"
                   inputMode="numeric"
@@ -75,6 +75,7 @@ export default function PublicRegisterModal({ onClose }: PublicRegisterModalProp
                   placeholder="01012345678"
                   className="w-full rounded-2xl border-2 border-stone-300 bg-white p-3 text-xl font-bold text-stone-900 outline-none focus:border-[#b88c42]"
                 />
+                <p className="mt-1.5 text-sm text-stone-500">입장/귀가 시에는 이 번호의 뒷자리 4자리만 입력하면 됩니다.</p>
               </div>
               <div>
                 <label className="mb-1.5 block text-lg font-bold text-stone-700">기력 (급/단)</label>

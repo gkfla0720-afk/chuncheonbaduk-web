@@ -71,7 +71,7 @@ export default function RegisterModal({
               />
             </div>
             <div>
-              <label className="text-stone-300 text-xl font-bold mb-1.5 block">전화번호 (전체, 관리자 연락용)</label>
+              <label className="text-stone-300 text-xl font-bold mb-1.5 block">전화번호</label>
               <input
                 type="text"
                 inputMode="none"
@@ -81,7 +81,7 @@ export default function RegisterModal({
                 className={`w-full p-4 text-2xl font-bold bg-[#120f0d] text-white rounded-2xl border-2 outline-none transition-colors ${activeField === 'phone' ? 'border-[#dcb36c]' : 'border-stone-700'}`}
                 placeholder="01012345678"
               />
-              <p className="mt-1.5 text-sm text-stone-400">출석/퇴장 시에는 이 번호의 뒤자리 4자리만 입력하면 됩니다.</p>
+              <p className="mt-1.5 text-sm text-stone-400">입장/귀가 시에는 이 번호의 뒷자리 4자리만 입력하면 됩니다.</p>
             </div>
             <div>
               <label className="text-stone-300 text-xl font-bold mb-1.5 block">기력 (급/단)</label>
