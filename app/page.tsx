@@ -20,12 +20,8 @@ import MembershipGuideModal from '../components/modals/MembershipGuideModal';
 import ProfileDetailModal from '../components/modals/ProfileDetailModal';
 import MatchDetailModal from '../components/modals/MatchDetailModal';
 import RegisterModal from '../components/modals/RegisterModal';
-
-const RANKS = [
-  '18급', '17급', '16급', '15급', '14급', '13급', '12급', '11급', '10급', '9급',
-  '8급', '7급', '6급', '5급', '4급', '3급', '2급', '1급',
-  '1단', '2단', '3단', '4단', '5단', '6단', '7단', '8단', '9단'
-];
+import { RANKS } from '../lib/ranks';
+import { isValidPhoneNumber, toPhoneLast4 } from '../lib/phone';
 
 const INITIAL_ATTENDANCE_MESSAGE = '전화번호 뒷자리 4자리를 눌러주세요.';
 const INITIAL_MATCH_STEP = 1;
@@ -229,9 +225,9 @@ export default function KioskPage() {
 
   const submitRegister = async () => {
     if (isProcessing) return;
-    if (!regName || regPhone.length !== 4) { alert('이름과 번호 4자리를 모두 입력하세요.'); return; }
+    if (!regName || !isValidPhoneNumber(regPhone)) { alert('이름과 전체 전화번호를 올바르게 입력하세요.'); return; }
     setIsProcessing(true);
-    const { error } = await supabase.from('profiles').insert([{ name: regName, phone_last4: regPhone, rank: regRank, tier: '준회원' }]);
+    const { error } = await supabase.from('profiles').insert([{ name: regName, phone: regPhone, phone_last4: toPhoneLast4(regPhone), rank: regRank, tier: '준회원' }]);
     if (error) {
       console.error(error);
       alert('가입 처리 중 오류가 발생했습니다. 다시 시도해주세요.');

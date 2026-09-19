@@ -2,6 +2,9 @@
 
 import { useState } from 'react';
 import OnScreenKeyboard, { appendJamo } from '../OnScreenKeyboard';
+import { normalizePhoneDigits } from '../../lib/phone';
+
+const MAX_PHONE_DIGITS = 11;
 
 interface RegisterModalProps {
   regName: string;
@@ -36,7 +39,7 @@ export default function RegisterModal({
       setRegName(prev => appendJamo(prev, value));
       setShift(false);
     } else {
-      setRegPhone(prev => (prev.length < 4 ? prev + value : prev));
+      setRegPhone(prev => (prev.length < MAX_PHONE_DIGITS ? prev + value : prev));
     }
   };
 
@@ -68,16 +71,17 @@ export default function RegisterModal({
               />
             </div>
             <div>
-              <label className="text-stone-300 text-xl font-bold mb-1.5 block">전화번호 뒷자리 4개 (출석용)</label>
+              <label className="text-stone-300 text-xl font-bold mb-1.5 block">전화번호 (전체, 관리자 연락용)</label>
               <input
                 type="text"
                 inputMode="none"
                 value={regPhone}
-                onChange={e => setRegPhone(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                onChange={e => setRegPhone(normalizePhoneDigits(e.target.value).slice(0, MAX_PHONE_DIGITS))}
                 onFocus={() => setActiveField('phone')}
                 className={`w-full p-4 text-2xl font-bold bg-[#120f0d] text-white rounded-2xl border-2 outline-none transition-colors ${activeField === 'phone' ? 'border-[#dcb36c]' : 'border-stone-700'}`}
-                placeholder="1234"
+                placeholder="01012345678"
               />
+              <p className="mt-1.5 text-sm text-stone-400">출석/퇴장 시에는 이 번호의 뒤자리 4자리만 입력하면 됩니다.</p>
             </div>
             <div>
               <label className="text-stone-300 text-xl font-bold mb-1.5 block">기력 (급/단)</label>

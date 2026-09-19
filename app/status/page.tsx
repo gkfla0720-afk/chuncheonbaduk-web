@@ -7,6 +7,7 @@ import { useProfileDetail } from '@/lib/useProfileDetail';
 import { Profile, Match as BaseMatch, KifuMove } from '../../types';
 import GoBoard from '../../components/GoBoard';
 import ProfileDetailModal from '../../components/modals/ProfileDetailModal';
+import PublicRegisterModal from '../../components/modals/PublicRegisterModal';
 
 interface Match extends BaseMatch {
   blackProfiles?: Profile[];
@@ -18,6 +19,7 @@ export default function StatusPage() {
   const [activeMatches, setActiveMatches] = useState<Match[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [newMatchAlert, setNewMatchAlert] = useState(false);
+  const [showRegister, setShowRegister] = useState(false);
   const {
     selectedProfile,
     profileStats,
@@ -95,12 +97,20 @@ export default function StatusPage() {
               <p className="text-[20px] font-semibold uppercase tracking-[0.25em] text-[#8b6d4a]">춘천기원 LIVE</p>
               <h1 className="mt-2 text-4xl font-black tracking-tight text-[#2a241d] sm:text-5xl drop-shadow-[0_1px_0_rgba(255,255,255,0.55)]">기원 현황</h1>
             </div>
-            <div className="flex items-center gap-3 text-[20px] text-stone-500 sm:text-xl">
-              <span className="relative flex h-2.5 w-2.5 shrink-0">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
-              </span>
-              <span className="text-[20px] font-bold sm:text-xl">실시간 연동 중</span>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setShowRegister(true)}
+                className="rounded-full bg-[#b88c42] px-5 py-2.5 text-lg font-black text-stone-950 shadow-[0_8px_16px_rgba(184,140,66,0.35)] transition hover:bg-[#a37934] sm:text-xl"
+              >
+                📝 신규 가입
+              </button>
+              <div className="flex items-center gap-3 text-[20px] text-stone-500 sm:text-xl">
+                <span className="relative flex h-2.5 w-2.5 shrink-0">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
+                </span>
+                <span className="text-[20px] font-bold sm:text-xl">실시간 연동 중</span>
+              </div>
             </div>
           </div>
 
@@ -226,6 +236,8 @@ export default function StatusPage() {
             onClose={closeProfileDetail}
           />
         )}
+
+        {showRegister && <PublicRegisterModal onClose={() => setShowRegister(false)} />}
 
         {selectedMatch && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(28,24,20,0.6)] p-4 backdrop-blur-sm" onClick={() => setSelectedMatch(null)}>

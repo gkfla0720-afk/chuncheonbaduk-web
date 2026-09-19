@@ -110,6 +110,7 @@ export type Database = {
           id: string
           last_check_in: string | null
           name: string
+          phone: string | null
           phone_last4: string
           rank: string
           tier: string
@@ -120,6 +121,7 @@ export type Database = {
           id?: string
           last_check_in?: string | null
           name: string
+          phone?: string | null
           phone_last4: string
           rank?: string
           tier?: string
@@ -130,6 +132,7 @@ export type Database = {
           id?: string
           last_check_in?: string | null
           name?: string
+          phone?: string | null
           phone_last4?: string
           rank?: string
           tier?: string
