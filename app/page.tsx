@@ -2,8 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { fetchProfileStats } from '@/lib/profileStats';
-import { fetchProfileMatchHistory, MatchHistoryEntry } from '@/lib/matchHistory';
+import { useProfileDetail } from '@/lib/useProfileDetail';
 import { Profile, Match, KifuMove } from '../types';
 import {
   checkMoveLegality,
@@ -54,12 +53,15 @@ export default function KioskPage() {
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [matchElapsed, setMatchElapsed] = useState('');
   const [confirmAction, setConfirmAction] = useState<'black_win' | 'white_win' | 'cancel' | null>(null);
-
-  const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
-  const [profileStats, setProfileStats] = useState({ wins: 0, losses: 0, attendanceRate: 0, joinedAt: '', tier: '' });
-  const [isLoadingStats, setIsLoadingStats] = useState(false);
-  const [matchHistory, setMatchHistory] = useState<MatchHistoryEntry[]>([]);
-  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const {
+    selectedProfile,
+    profileStats,
+    isLoadingStats,
+    matchHistory,
+    isLoadingHistory,
+    openProfileDetail,
+    closeProfileDetail,
+  } = useProfileDetail();
 
   const [regName, setRegName] = useState('');
   const [regPhone, setRegPhone] = useState('');
@@ -146,15 +148,11 @@ export default function KioskPage() {
     if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
     setPhoneNumber(''); setCandidates([]); setConfirmUser(null);
     setKioskMode('attendance'); setMessage('전화번호 뒷자리 4자리를 눌러주세요.');
-    setConfirmAction(null); setSelectedMatch(null); setSelectedProfile(null);
+    setConfirmAction(null); setSelectedMatch(null); closeProfileDetail();
     setIsProcessing(false);
     // 신규 가입 입력값도 함께 초기화해, 직전 가입자의 입력 정보가 다음 화면에 남지 않도록 한다.
     setRegName(''); setRegPhone(''); setRegRank('10급');
   };
-
-  // 대국 상세(중계) 화면 위에 띄운 프로필 팝업만 닫는다. handleReset과 달리
-  // kioskMode/selectedMatch는 건드리지 않아, 대국 화면을 그대로 유지한다.
-  const closeProfileDetail = () => setSelectedProfile(null);
 
   const handleNumberClick = (num: string) => { if (phoneNumber.length < 4) setPhoneNumber(prev => prev + num); };
   const handleDelete = () => setPhoneNumber(prev => prev.slice(0, -1));
@@ -233,18 +231,6 @@ export default function KioskPage() {
     }
     alert('가입이 완료되었습니다!');
     handleReset();
-  };
-
-  const openProfileDetail = async (member: Profile) => {
-    setSelectedProfile(member); setIsLoadingStats(true); setIsLoadingHistory(true);
-    try {
-      const [stats, history] = await Promise.all([fetchProfileStats(member.id), fetchProfileMatchHistory(member.id)]);
-      setProfileStats(stats);
-      setMatchHistory(history);
-    } catch (err) {
-      console.error(err);
-    }
-    setIsLoadingStats(false); setIsLoadingHistory(false);
   };
 
   const openMatchWizard = () => {

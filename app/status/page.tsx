@@ -2,9 +2,8 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
-import { fetchProfileStats } from '@/lib/profileStats';
-import { fetchProfileMatchHistory, MatchHistoryEntry } from '@/lib/matchHistory';
 import { formatKoreanTime } from '@/lib/formatTime';
+import { useProfileDetail } from '@/lib/useProfileDetail';
 import { Profile, Match as BaseMatch, KifuMove } from '../../types';
 import GoBoard from '../../components/GoBoard';
 import ProfileDetailModal from '../../components/modals/ProfileDetailModal';
@@ -19,13 +18,15 @@ export default function StatusPage() {
   const [activeMatches, setActiveMatches] = useState<Match[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [newMatchAlert, setNewMatchAlert] = useState(false);
-
-  // 💡 프로필 팝업 추가됨
-  const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
-  const [profileStats, setProfileStats] = useState({ wins: 0, losses: 0, attendanceRate: 0, joinedAt: '', tier: '' });
-  const [isLoadingStats, setIsLoadingStats] = useState(false);
-  const [matchHistory, setMatchHistory] = useState<MatchHistoryEntry[]>([]);
-  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const {
+    selectedProfile,
+    profileStats,
+    isLoadingStats,
+    matchHistory,
+    isLoadingHistory,
+    openProfileDetail,
+    closeProfileDetail,
+  } = useProfileDetail();
 
   // 대국 카드를 클릭하면 상세 정보(중계 중이면 실시간 기보 포함)를 큰 팝업으로 표시
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
@@ -76,22 +77,6 @@ export default function StatusPage() {
 
     return () => { clearInterval(timer); supabase.removeChannel(channel); };
   }, [fetchData]);
-
-  // 💡 스마트폰에서 프로필을 터치하면 상세 전적이 열리는 로직
-  const openProfileDetail = async (profile: Profile) => {
-    setSelectedProfile(profile);
-    setIsLoadingStats(true);
-    setIsLoadingHistory(true);
-    try {
-      const [stats, history] = await Promise.all([fetchProfileStats(profile.id), fetchProfileMatchHistory(profile.id)]);
-      setProfileStats(stats);
-      setMatchHistory(history);
-    } catch (err) {
-      console.error(err);
-    }
-    setIsLoadingStats(false);
-    setIsLoadingHistory(false);
-  };
 
   return (
     <main className="min-h-screen text-stone-800 font-sans select-none relative board-surface">
@@ -238,7 +223,7 @@ export default function StatusPage() {
             isLoadingStats={isLoadingStats}
             matchHistory={matchHistory}
             isLoadingHistory={isLoadingHistory}
-            onClose={() => setSelectedProfile(null)}
+            onClose={closeProfileDetail}
           />
         )}
 
