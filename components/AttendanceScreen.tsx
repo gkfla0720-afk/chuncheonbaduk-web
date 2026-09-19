@@ -35,7 +35,7 @@ export default function AttendanceScreen({
   compact = false,
 }: AttendanceScreenProps) {
   return (
-    <div className={`relative z-10 w-full h-full flex flex-row items-center justify-center px-2 ${compact ? 'max-w-[420px] mx-auto' : ''}`}>
+    <div className={`relative z-10 w-full h-full flex flex-row items-center justify-center gap-8 px-2 xl:gap-12 ${compact ? 'max-w-[420px] mx-auto' : ''}`}>
       {/* 진행 중 대국 카드는 왼쪽 '현재 현황' 패널에서만 표시한다 (중복 노출 방지) */}
 
       {/* 중앙: 콤팩트하고 세련된 입력 키패드 영역 - 항상 동일한 고정 폭 유지 */}
@@ -98,6 +98,10 @@ export default function AttendanceScreen({
           </div>
         )}
       </div>
+
+      {/* 우측: 간판/액션 버튼 컴럼(w-64 xl:w-72)이 차지하는 공간을 동일하게 비워두어,
+          키패드가 그 공간으로 확장되어 겹치지 않고 항상 좌측에 위치하게 한다. */}
+      {!compact && <div aria-hidden className="w-64 shrink-0 xl:w-72" />}
     </div>
   );
 }

@@ -446,26 +446,27 @@ export default function KioskPage() {
 
       <section className="w-[62%] h-full board-surface text-stone-900 flex flex-col items-center justify-center relative overflow-hidden p-6">
         {kioskMode === 'attendance' && (
-          // 기원 이름 간판: 우측 버튼 컬럼과 무관하게 화면 상단에 항상 고정 노출한다.
-          // (버튼 컬럼과 함께 세로 중앙 정렬되면 PC처럼 화면이 낮은 환경에서 컬럼 전체 높이가
-          // 커져 위쪽이 잘려 간판이 보이지 않는 문제가 있어, 별도로 상단에 배치한다.
-          // 간판과 우측 액션 버튼을 하나의 고정 폭 컬럼으로 묶어 좌우 폭과 우측 정렬 기준이 항상 일치하게 한다.
-          <div className="absolute! top-6! right-8! z-20! flex w-64 flex-col gap-6 xl:w-72">
+          // 간판은 항상 화면 상단에 고정 노출한다. 버튼들은 간판 바로 아래가 아니라,
+          // 간판 하단부터 화면 바닥까지 남은 공간의 세로 중앙에 오도록 별도 영역(flex-1)으로 묶는다.
+          // 간판/버튼이 같은 고정 폭(w-64/xl:w-72) 컬럼을 공유해 좌우 폭과 우측 정렬 기준이 항상 일치한다.
+          <div className="absolute! top-6! right-8! bottom-6! z-20! flex w-64 flex-col xl:w-72">
             <div className="relative rounded-[20px] border-2 border-[#8a5a2b] bg-[linear-gradient(155deg,#7a4f28_0%,#5c3a1e_55%,#4a2f18_100%)] px-5 py-6 shadow-[0_14px_26px_rgba(25,18,12,0.35),inset_0_1px_0_rgba(255,255,255,0.12)]">
               <div className="pointer-events-none absolute inset-1.5 rounded-2xl border border-[#d9b06a]/40" />
               <p className="text-center text-sm font-bold tracking-[0.5em] text-[#e8c98a]/80">CHUNCHEON</p>
               <h2 className="mt-1 text-center text-4xl xl:text-[2.6rem] font-black tracking-[0.15em] text-[#f6e4bd] drop-shadow-[0_2px_2px_rgba(0,0,0,0.5)]">춘천기원</h2>
               <p className="mt-1 text-center text-sm font-bold tracking-[0.3em] text-[#e8c98a]/70">바둑을 사랑하는 사람들</p>
             </div>
-            <button onClick={() => setShowMembershipGuide(true)} className="w-full bg-[#f7f0e5] hover:bg-[#efe1cb] text-stone-900 font-extrabold py-4 rounded-[18px] shadow-[0_10px_18px_rgba(25,18,12,0.12)] text-xl transition-all border border-[#c69b5c] tracking-[0.02em]">
-              정회원 달성 조건
-            </button>
-            <button onClick={() => setKioskMode('register')} className="w-full bg-[#f8f5f1] hover:bg-[#f1e7d8] text-stone-900 font-black py-7 rounded-[24px] shadow-[0_12px_24px_rgba(25,18,12,0.18)] text-2xl xl:text-3xl transition-all border-2 border-[#c69b5c] flex items-center justify-center gap-3 tracking-[0.02em]">
-              <span>📝</span> 신규 가입
-            </button>
-            <button onClick={() => openMatchWizard()} className="w-full bg-[#1e1a17] hover:bg-[#2b231e] text-[#efdfba] font-black py-7 rounded-[24px] shadow-[0_12px_24px_rgba(25,18,12,0.2)] text-2xl xl:text-3xl transition-all border-2 border-[#b88c42] flex items-center justify-center gap-3 tracking-[0.02em]">
-              <span>⚔️</span> 대국 신청
-            </button>
+            <div className="flex flex-1 flex-col justify-center gap-6">
+              <button onClick={() => setShowMembershipGuide(true)} className="w-full bg-[#f7f0e5] hover:bg-[#efe1cb] text-stone-900 font-extrabold py-4 rounded-[18px] shadow-[0_10px_18px_rgba(25,18,12,0.12)] text-xl transition-all border border-[#c69b5c] tracking-[0.02em]">
+                정회원 달성 조건
+              </button>
+              <button onClick={() => setKioskMode('register')} className="w-full bg-[#f8f5f1] hover:bg-[#f1e7d8] text-stone-900 font-black py-7 rounded-[24px] shadow-[0_12px_24px_rgba(25,18,12,0.18)] text-2xl xl:text-3xl transition-all border-2 border-[#c69b5c] flex items-center justify-center gap-3 tracking-[0.02em]">
+                <span>📝</span> 신규 가입
+              </button>
+              <button onClick={() => openMatchWizard()} className="w-full bg-[#1e1a17] hover:bg-[#2b231e] text-[#efdfba] font-black py-7 rounded-[24px] shadow-[0_12px_24px_rgba(25,18,12,0.2)] text-2xl xl:text-3xl transition-all border-2 border-[#b88c42] flex items-center justify-center gap-3 tracking-[0.02em]">
+                <span>⚔️</span> 대국 신청
+              </button>
+            </div>
           </div>
         )}
         {kioskMode === 'attendance' && (
