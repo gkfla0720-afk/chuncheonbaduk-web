@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRef } from 'react';
 import { Profile } from '../types';
 import { fetchProfileMatchHistory, MatchHistoryEntry } from './matchHistory';
 import { fetchProfileStats } from './profileStats';
@@ -13,8 +14,11 @@ export function useProfileDetail() {
   const [isLoadingStats, setIsLoadingStats] = useState(false);
   const [matchHistory, setMatchHistory] = useState<MatchHistoryEntry[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const requestIdRef = useRef(0);
 
   const openProfileDetail = async (profile: Profile) => {
+    const requestId = requestIdRef.current + 1;
+    requestIdRef.current = requestId;
     setSelectedProfile(profile);
     setIsLoadingStats(true);
     setIsLoadingHistory(true);
@@ -23,17 +27,24 @@ export function useProfileDetail() {
         fetchProfileStats(profile.id),
         fetchProfileMatchHistory(profile.id),
       ]);
+      if (requestId !== requestIdRef.current) return;
       setProfileStats(stats);
       setMatchHistory(history);
     } catch (err) {
       console.error(err);
     } finally {
+      if (requestId !== requestIdRef.current) return;
       setIsLoadingStats(false);
       setIsLoadingHistory(false);
     }
   };
 
-  const closeProfileDetail = () => setSelectedProfile(null);
+  const closeProfileDetail = () => {
+    requestIdRef.current += 1;
+    setSelectedProfile(null);
+    setIsLoadingStats(false);
+    setIsLoadingHistory(false);
+  };
 
   return {
     selectedProfile,
