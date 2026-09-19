@@ -111,7 +111,7 @@ export default function StatusPage() {
           </div>
         </header>
 
-        <section className="mt-6 rounded-[32px] border border-[#d8c7a8] bg-[#f5efe6]/95 p-5 shadow-[0_14px_30px_rgba(10,8,7,0.22)] sm:p-6 backdrop-blur-[1px]">
+        <section className="mt-6 rounded-4xl border border-[#d8c7a8] bg-[#f5efe6]/95 p-5 shadow-[0_14px_30px_rgba(10,8,7,0.22)] sm:p-6 backdrop-blur-[1px]">
           <div className="flex flex-col gap-2">
             <h2 className="text-[1.7rem] font-black text-[#2a241d] sm:text-[2.4rem]">오늘의 참여 인원</h2>
             <div className="inline-flex w-fit items-center gap-2 rounded-full border border-[#cdb48b] bg-[#f7f3ec] px-3 py-1 text-[20px] font-semibold text-[#6d553f]">
@@ -177,7 +177,7 @@ export default function StatusPage() {
                     </div>
                   </div>
 
-                  <div className="mt-4 rounded-[24px] border border-[#d5c3a4] bg-[#1d1b19] p-2 shadow-inner sm:bg-[linear-gradient(90deg,#1d1b19_0%,#1d1b19_49.5%,#f9f6f2_49.5%,#f9f6f2_100%)] sm:p-4">
+                  <div className="mt-4 rounded-3xl border border-[#d5c3a4] bg-[#1d1b19] p-2 shadow-inner sm:bg-[linear-gradient(90deg,#1d1b19_0%,#1d1b19_49.5%,#f9f6f2_49.5%,#f9f6f2_100%)] sm:p-4">
                     <div className="flex flex-col gap-2 sm:grid sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-center sm:gap-3">
                       <div className="min-w-0 flex flex-col gap-2">
                         {match.blackProfiles?.map(p => (
@@ -234,7 +234,7 @@ export default function StatusPage() {
               // 외부 관전자는 바둑판이나 대국을 조작할 수 없도록 클릭 가능한 버튼을 전혀 두지 않는다.
               // 닫기는 다른 팝업들과 동일하게 바깥(배경)을 탭하면 처리된다.
               <div
-                className="relative w-full h-[94vh] max-w-[1500px] bg-[#1f1a16] text-white rounded-[30px] shadow-[0_18px_45px_rgba(34,27,20,0.4)] border-4 border-[#b88c42] overflow-hidden flex flex-col lg:flex-row"
+                className="relative w-full h-[94vh] max-w-375 bg-[#1f1a16] text-white rounded-[30px] shadow-[0_18px_45px_rgba(34,27,20,0.4)] border-4 border-[#b88c42] overflow-hidden flex flex-col lg:flex-row"
                 onClick={(e) => e.stopPropagation()}
               >
                 <button
@@ -249,7 +249,7 @@ export default function StatusPage() {
                     <GoBoard size={selectedMatch.board_size} moves={(selectedMatch.kifu as unknown as KifuMove[]) || []} />
                   </div>
                 </div>
-                <div className="w-full lg:w-[400px] shrink-0 border-t-2 lg:border-t-0 lg:border-l-2 border-stone-800 p-6 flex flex-col gap-4 overflow-y-auto">
+                <div className="w-full lg:w-100 shrink-0 border-t-2 lg:border-t-0 lg:border-l-2 border-stone-800 p-6 flex flex-col gap-4 overflow-y-auto">
                   <p className="text-xl font-black text-[#dcb36c] flex items-center gap-2">
                     <span className="inline-flex items-center rounded-full bg-red-600 px-3 py-1 text-lg font-black text-white animate-pulse">LIVE</span>
                     실시간 기보 중계
@@ -301,7 +301,7 @@ export default function StatusPage() {
                   <button onClick={() => setSelectedMatch(null)} className="shrink-0 rounded-full bg-stone-200 px-3 py-1 text-xl font-bold text-stone-700">닫기</button>
                 </div>
 
-                <div className="mt-5 rounded-[24px] border border-[#d9cab0] bg-[#1d1b19] p-4">
+                <div className="mt-5 rounded-3xl border border-[#d9cab0] bg-[#1d1b19] p-4">
                   <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3">
                     <div className="min-w-0 flex flex-col gap-1 text-left">
                       {selectedMatch.blackProfiles?.map(p => (

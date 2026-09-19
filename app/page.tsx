@@ -27,6 +27,15 @@ const RANKS = [
   '1단', '2단', '3단', '4단', '5단', '6단', '7단', '8단', '9단'
 ];
 
+const INITIAL_ATTENDANCE_MESSAGE = '전화번호 뒷자리 4자리를 눌러주세요.';
+const INITIAL_MATCH_STEP = 1;
+const INITIAL_MATCH_TYPE = '친선전';
+const INITIAL_DRAW_METHOD = '수동' as const;
+const INITIAL_HANDICAP_TYPE: HandicapType = '호선';
+const INITIAL_KOMI = 0.5;
+const INITIAL_REGISTER_RANK = '10급';
+type KifuColor = KifuMove['color'];
+
 export default function KioskPage() {
   const [activeMembers, setActiveMembers] = useState<Profile[]>([]);
   const [liveMatches, setLiveMatches] = useState<Match[]>([]);
@@ -36,19 +45,19 @@ export default function KioskPage() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [candidates, setCandidates] = useState<Profile[]>([]);
   const [confirmUser, setConfirmUser] = useState<Profile | null>(null);
-  const [message, setMessage] = useState('전화번호 뒷자리 4자리를 눌러주세요.');
+  const [message, setMessage] = useState(INITIAL_ATTENDANCE_MESSAGE);
   const [showMembershipGuide, setShowMembershipGuide] = useState(false);
   
   const [kioskMode, setKioskMode] = useState<'attendance' | 'match_wizard' | 'register' | 'match_detail'>('attendance');
 
-  const [matchStep, setMatchStep] = useState(1);
-  const [matchType, setMatchType] = useState('친선전');
-  const [drawMethod, setDrawMethod] = useState<'수동' | '랜덤'>('수동');
+  const [matchStep, setMatchStep] = useState(INITIAL_MATCH_STEP);
+  const [matchType, setMatchType] = useState(INITIAL_MATCH_TYPE);
+  const [drawMethod, setDrawMethod] = useState<'수동' | '랜덤'>(INITIAL_DRAW_METHOD);
   const [blackTeam, setBlackTeam] = useState<Profile[]>([]);
   const [whiteTeam, setWhiteTeam] = useState<Profile[]>([]);
-  const [handicapType, setHandicapType] = useState<HandicapType>('호선');
+  const [handicapType, setHandicapType] = useState<HandicapType>(INITIAL_HANDICAP_TYPE);
   const [handicapStones, setHandicapStones] = useState(MIN_HANDICAP_STONES);
-  const [komi, setKomi] = useState(0.5);
+  const [komi, setKomi] = useState(INITIAL_KOMI);
 
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [matchElapsed, setMatchElapsed] = useState('');
@@ -65,7 +74,7 @@ export default function KioskPage() {
 
   const [regName, setRegName] = useState('');
   const [regPhone, setRegPhone] = useState('');
-  const [regRank, setRegRank] = useState('10급');
+  const [regRank, setRegRank] = useState(INITIAL_REGISTER_RANK);
 
   const resetTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -147,11 +156,11 @@ export default function KioskPage() {
   const handleReset = () => {
     if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
     setPhoneNumber(''); setCandidates([]); setConfirmUser(null);
-    setKioskMode('attendance'); setMessage('전화번호 뒷자리 4자리를 눌러주세요.');
+    setKioskMode('attendance'); setMessage(INITIAL_ATTENDANCE_MESSAGE);
     setConfirmAction(null); setSelectedMatch(null); closeProfileDetail();
     setIsProcessing(false);
     // 신규 가입 입력값도 함께 초기화해, 직전 가입자의 입력 정보가 다음 화면에 남지 않도록 한다.
-    setRegName(''); setRegPhone(''); setRegRank('10급');
+    setRegName(''); setRegPhone(''); setRegRank(INITIAL_REGISTER_RANK);
   };
 
   const handleNumberClick = (num: string) => { if (phoneNumber.length < 4) setPhoneNumber(prev => prev + num); };
@@ -166,7 +175,7 @@ export default function KioskPage() {
     
     if (!data || data.length === 0) {
       alert('등록되지 않은 번호입니다.');
-      setPhoneNumber(''); setMessage('전화번호 뒷자리 4자리를 눌러주세요.'); setIsProcessing(false);
+      setPhoneNumber(''); setMessage(INITIAL_ATTENDANCE_MESSAGE); setIsProcessing(false);
       return;
     }
     if (data.length > 1) { setCandidates(data); setMessage('이름을 선택하세요.'); setIsProcessing(false); } 
@@ -210,7 +219,7 @@ export default function KioskPage() {
   const handleRankChange = (delta: number) => {
     setRegRank(prev => {
       const idx = RANKS.indexOf(prev);
-      if (idx === -1) return '10급';
+      if (idx === -1) return INITIAL_REGISTER_RANK;
       const nextIdx = idx + delta;
       if (nextIdx < 0) return RANKS[0];
       if (nextIdx >= RANKS.length) return RANKS[RANKS.length - 1];
@@ -233,8 +242,19 @@ export default function KioskPage() {
     handleReset();
   };
 
+  const resetMatchWizardState = () => {
+    setMatchStep(INITIAL_MATCH_STEP);
+    setMatchType(INITIAL_MATCH_TYPE);
+    setDrawMethod(INITIAL_DRAW_METHOD);
+    setBlackTeam([]);
+    setWhiteTeam([]);
+    setHandicapType(INITIAL_HANDICAP_TYPE);
+    setHandicapStones(MIN_HANDICAP_STONES);
+    setKomi(INITIAL_KOMI);
+  };
+
   const openMatchWizard = () => {
-    setMatchStep(1); setDrawMethod('수동'); setBlackTeam([]); setWhiteTeam([]); setHandicapType('호선'); setHandicapStones(2); setKomi(0.5);
+    resetMatchWizardState();
     setKioskMode('match_wizard');
   };
   const closeMatchWizard = () => { setKioskMode('attendance'); handleReset(); };
@@ -303,21 +323,32 @@ export default function KioskPage() {
   // 착수는 매 수마다 lib/goRules.ts로 규칙(자충수/패)을 검사한 뒤, 최신 기보를 다시 읽어와
   // 다른 기기에서 먼저 놓인 수와 어긋나지 않는지 확인하고 나서야 저장한다. 사석(따낸 돌)은
   // kifu 배열에서 지우지 않고 그대로 두어도, 화면은 항상 재생(replay)해서 그리므로 문제없다.
-  const placeKifuMove = async (x: number, y: number) => {
+  const updateKifu = async (
+    buildNextKifu: (kifu: KifuMove[], nextColor: KifuColor) => KifuMove[] | null,
+    errorMessage: string,
+  ) => {
     if (!selectedMatch) return;
     const { data: fresh, error: fetchError } = await supabase.from('matches').select('kifu').eq('id', selectedMatch.id).single();
     if (fetchError || !fresh) { console.error(fetchError); return; }
     const kifu = (fresh.kifu as unknown as KifuMove[]) || [];
-    const nextColor: 'black' | 'white' = kifu.length % 2 === 0 ? 'black' : 'white';
+    const nextColor: KifuColor = kifu.length % 2 === 0 ? 'black' : 'white';
+    const newKifu = buildNextKifu(kifu, nextColor);
+    if (!newKifu) return;
+    const { data, error } = await supabase.from('matches').update({ kifu: newKifu as unknown as Match['kifu'] }).eq('id', selectedMatch.id).select('kifu').single();
+    if (error) { console.error(error); alert(errorMessage); return; }
+    setSelectedMatch(prev => (prev ? { ...prev, kifu: data.kifu } : prev));
+  };
+
+  const placeKifuMove = async (x: number, y: number) => {
+    if (!selectedMatch) return;
+    await updateKifu((kifu, nextColor) => {
     const legality = checkMoveLegality(kifu, selectedMatch.board_size, x, y, nextColor);
     if (!legality.legal) {
       alert(legality.reason || '둘 수 없는 자리입니다.');
-      return;
+      return null;
     }
-    const newKifu = [...kifu, { x, y, color: nextColor }];
-    const { data, error } = await supabase.from('matches').update({ kifu: newKifu as unknown as Match['kifu'] }).eq('id', selectedMatch.id).select('kifu').single();
-    if (error) { console.error(error); alert('착수 저장 중 오류가 발생했습니다.'); return; }
-    setSelectedMatch(prev => (prev ? { ...prev, kifu: data.kifu } : prev));
+      return [...kifu, { x, y, color: nextColor }];
+    }, '착수 저장 중 오류가 발생했습니다.');
   };
 
   const undoKifuMove = async () => {
@@ -329,15 +360,7 @@ export default function KioskPage() {
 
   // 착수 넘김(pass): 규칙 검사 없이 턴만 넘긴다. x/y를 -1로 저장해 실제 착수와 구분한다.
   const passKifuMove = async () => {
-    if (!selectedMatch) return;
-    const { data: fresh, error: fetchError } = await supabase.from('matches').select('kifu').eq('id', selectedMatch.id).single();
-    if (fetchError || !fresh) { console.error(fetchError); return; }
-    const kifu = (fresh.kifu as unknown as KifuMove[]) || [];
-    const nextColor: 'black' | 'white' = kifu.length % 2 === 0 ? 'black' : 'white';
-    const newKifu = [...kifu, { x: -1, y: -1, color: nextColor }];
-    const { data, error } = await supabase.from('matches').update({ kifu: newKifu as unknown as Match['kifu'] }).eq('id', selectedMatch.id).select('kifu').single();
-    if (error) { console.error(error); alert('착수 넘김 저장 중 오류가 발생했습니다.'); return; }
-    setSelectedMatch(prev => (prev ? { ...prev, kifu: data.kifu } : prev));
+    await updateKifu((kifu, nextColor) => [...kifu, { x: -1, y: -1, color: nextColor }], '착수 넘김 저장 중 오류가 발생했습니다.');
   };
 
 
@@ -430,8 +453,8 @@ export default function KioskPage() {
           // 기원 이름 간판: 우측 버튼 컬럼과 무관하게 화면 상단에 항상 고정 노출한다.
           // (버튼 컬럼과 함께 세로 중앙 정렬되면 PC처럼 화면이 낮은 환경에서 컬럼 전체 높이가
           // 커져 위쪽이 잘려 간판이 보이지 않는 문제가 있어, 별도로 상단에 배치한다.)
-          <div className="!absolute !top-6 !right-8 !z-20 w-64 xl:w-72 rounded-[20px] border-2 border-[#8a5a2b] bg-[linear-gradient(155deg,#7a4f28_0%,#5c3a1e_55%,#4a2f18_100%)] px-5 py-6 shadow-[0_14px_26px_rgba(25,18,12,0.35),inset_0_1px_0_rgba(255,255,255,0.12)]">
-            <div className="pointer-events-none absolute inset-1.5 rounded-[16px] border border-[#d9b06a]/40" />
+          <div className="absolute! top-6! right-8! z-20! w-64 xl:w-72 rounded-[20px] border-2 border-[#8a5a2b] bg-[linear-gradient(155deg,#7a4f28_0%,#5c3a1e_55%,#4a2f18_100%)] px-5 py-6 shadow-[0_14px_26px_rgba(25,18,12,0.35),inset_0_1px_0_rgba(255,255,255,0.12)]">
+            <div className="pointer-events-none absolute inset-1.5 rounded-2xl border border-[#d9b06a]/40" />
             <p className="text-center text-sm font-bold tracking-[0.5em] text-[#e8c98a]/80">CHUNCHEON</p>
             <h2 className="mt-1 text-center text-4xl xl:text-[2.6rem] font-black tracking-[0.15em] text-[#f6e4bd] drop-shadow-[0_2px_2px_rgba(0,0,0,0.5)]">춘천기원</h2>
             <p className="mt-1 text-center text-sm font-bold tracking-[0.3em] text-[#e8c98a]/70">바둑을 사랑하는 사람들</p>
