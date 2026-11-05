@@ -1,0 +1,45 @@
+{
+  "generatedAt": "2026-11-05T00:48:14.000Z",
+  "generatedOnPlatform": "win32",
+  "projectType": "webapp",
+  "setup": [
+    {
+      "command": "npm",
+      "args": ["ci", "--legacy-peer-deps"]
+    }
+  ],
+  "assertions": [
+    {
+      "name": "typescript-no-emit",
+      "kind": "process",
+      "command": "npx",
+      "args": ["tsc", "--noEmit"],
+      "verificationMethod": "exit-code",
+      "expected": "0",
+      "timeoutSeconds": 180
+    },
+    {
+      "name": "tests-pass",
+      "kind": "process",
+      "command": "npm",
+      "args": ["test"],
+      "verificationMethod": "test-results",
+      "expected": "0",
+      "timeoutSeconds": 300
+    },
+    {
+      "name": "home-route-200",
+      "kind": "http-probe",
+      "startCommand": "npm",
+      "startArgs": ["run", "dev", "--", "--hostname", "127.0.0.1"],
+      "url": "http://127.0.0.1:3000/",
+      "env": {
+        "NEXT_PUBLIC_SUPABASE_URL": "https://example.supabase.co",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY": "runtime-validation-placeholder"
+      },
+      "verificationMethod": "http-status",
+      "expected": "200",
+      "timeoutSeconds": 120
+    }
+  ]
+}
